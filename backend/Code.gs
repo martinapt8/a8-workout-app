@@ -80,24 +80,16 @@ function doGet(e) {
 // REST API entry point for POST requests
 function doPost(e) {
   try {
-    // Parse request body - handle both JSON and URL-encoded form data
+    // Parse request body - handle form-encoded data (used to avoid CORS preflight)
     let requestData;
 
-    // Log what we received for debugging
-    Logger.log('POST received - e.parameter: ' + JSON.stringify(e.parameter));
-    Logger.log('POST received - e.postData: ' + JSON.stringify(e.postData));
-
-    // Check if the data is URL-encoded form data (to avoid CORS preflight)
     if (e.parameter && e.parameter.payload) {
       // Data came as form-encoded with payload parameter
-      Logger.log('Using e.parameter.payload: ' + e.parameter.payload);
       requestData = JSON.parse(e.parameter.payload);
     } else if (e.postData && e.postData.type === 'application/json' && e.postData.contents) {
-      // JSON body (only if content-type is JSON to avoid parsing form data)
-      Logger.log('Using JSON body: ' + e.postData.contents);
+      // Fallback to JSON body if sent with proper content-type
       requestData = JSON.parse(e.postData.contents);
     } else {
-      // Error - unexpected format
       throw new Error('Unable to parse request. Expected form-encoded payload or JSON body.');
     }
 

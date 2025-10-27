@@ -54,8 +54,6 @@ const API = {
         ...data
       };
 
-      console.log(`API POST request to ${action}:`, requestBody);
-
       // Convert to URL-encoded form data to avoid CORS preflight
       const formData = new URLSearchParams();
       formData.append('payload', JSON.stringify(requestBody));
@@ -65,14 +63,11 @@ const API = {
         body: formData
       });
 
-      console.log(`API POST response status:`, response.status, response.statusText);
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log(`API POST result:`, result);
 
       // Check if backend returned an error
       if (result.success === false) {
@@ -82,7 +77,6 @@ const API = {
       return result;
     } catch (error) {
       console.error(`API POST Error (${action}):`, error);
-      console.error('Full error details:', error);
       throw error;
     }
   },

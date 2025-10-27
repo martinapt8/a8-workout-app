@@ -50,49 +50,17 @@ GitHub Pages (Frontend)          Google Apps Script (Backend API)        Google 
    - Replace `YOUR_DEPLOYMENT_ID` with the URL from Phase 1
 
 2. **Test locally (optional)**
-   - Open `index.html` in your browser
-   - Add `?user=yourname` to the URL
+   - Run `python3 serve.py` from project root
+   - Open browser to `http://localhost:8000/?user=yourname`
    - Check browser console for any errors
 
 ### Phase 3: Deploy to GitHub Pages
 
-1. **Initialize Git Repository**
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit - GitHub Pages migration"
-   ```
+**For detailed git workflow instructions, see [GITHUB_WORKFLOW.md](GITHUB_WORKFLOW.md)**
 
-2. **Create GitHub Repository**
-   - Go to GitHub and create a new repository
-   - Name it something like `a8-workout-app`
-   - Don't initialize with README (you already have one)
-
-3. **Push to GitHub**
-   ```bash
-   git remote add origin https://github.com/YOUR_USERNAME/a8-workout-app.git
-   git branch -M main
-   git push -u origin main
-   ```
-
-4. **Enable GitHub Pages**
-   - Go to your repo on GitHub
-   - Settings → Pages
-   - Source: Deploy from branch
-   - Branch: `main` → `/` (root)
-   - Click "Save"
-
-5. **Your App is Live!**
-   - GitHub will provide a URL: `https://YOUR_USERNAME.github.io/a8-workout-app/`
-   - Add `?user=martin` to access as a specific user
-   - Example: `https://YOUR_USERNAME.github.io/a8-workout-app/?user=martin`
-
-### Phase 4: Update User Links
-
-Send your team the new stable URL:
-```
-https://YOUR_USERNAME.github.io/a8-workout-app/?user=THEIR_NAME
-```
+1. **Initialize and push to GitHub** (if not already done)
+2. **Enable GitHub Pages** in repo settings
+3. **Your app will be live at:** `https://YOUR_USERNAME.github.io/a8-workout-app/`
 
 **Benefits:**
 - ✅ This URL **never changes**
@@ -103,24 +71,17 @@ https://YOUR_USERNAME.github.io/a8-workout-app/?user=THEIR_NAME
 
 ## 🔄 Updating the App
 
-### Frontend Updates (Easy!)
-```bash
-# Make your changes to index.html, styles.css, etc.
-git add .
-git commit -m "Update workout page UI"
-git push
+**For complete git workflow and branching strategy, see [GITHUB_WORKFLOW.md](GITHUB_WORKFLOW.md)**
 
-# Changes go live in ~30 seconds!
-# User URLs never change!
-```
+### Frontend Updates
+- Make changes to HTML, CSS, or JS files
+- Commit and push to GitHub
+- Changes go live in ~30 seconds
 
 ### Backend Updates (Rare)
 1. Update .gs files in Google Apps Script
-2. Deploy → "Manage deployments"
-3. Click ⚙️ → "Edit"
-4. Version: "New version"
-5. Click "Deploy"
-6. URL stays the same - no user impact!
+2. Deploy → "Manage deployments" → Edit → New version
+3. URL stays the same - no user impact!
 
 ## 📁 File Structure
 

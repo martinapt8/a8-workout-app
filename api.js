@@ -48,25 +48,35 @@ const API = {
    */
   async post(action, data = {}) {
     try {
+      const requestBody = {
+        action: action,
+        ...data
+      };
+
+      console.log(`API POST request to ${action}:`, requestBody);
+
       const response = await fetch(CONFIG.API_URL, {
         method: 'POST',
-        redirect: 'follow',  // Explicitly follow redirects
-        mode: 'cors',        // Enable CORS
+        redirect: 'follow',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          action: action,
-          ...data
-        })
+        body: JSON.stringify(requestBody)
       });
+
+      console.log(`API POST response status:`, response.status, response.statusText);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log(`API POST result:`, result);
+
+      // Check if backend returned an error
+      if (result.success === false) {
+        throw new Error(result.message || 'Backend returned an error');
+      }
 
       return result;
     } catch (error) {

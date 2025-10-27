@@ -1199,7 +1199,9 @@
             const workoutInput = document.getElementById('me-past-workout-input');
             const dateInput = document.getElementById('me-past-workout-date');
 
-            messageDiv.textContent = 'Failed to log workout. Please try again.';
+            // Extract error message from Error object or string
+            const errorMessage = error.message || error.toString() || 'Failed to log workout. Please try again.';
+            messageDiv.textContent = '❌ ' + errorMessage;
             messageDiv.className = 'past-workout-message error';
 
             // Re-enable inputs
@@ -1274,7 +1276,9 @@
         // Handle workout error
         function onWorkoutError(error) {
             console.error('Workout error:', error);
-            showError('Failed to save workout. Please try again.');
+            // Extract error message from Error object or string
+            const errorMessage = error.message || error.toString() || 'Failed to save workout. Please try again.';
+            alert('Error: ' + errorMessage);
             // Re-enable buttons to allow user to try again
             updateWorkoutButtonsPending();
         }

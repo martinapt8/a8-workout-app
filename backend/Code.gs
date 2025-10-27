@@ -79,13 +79,6 @@ function doGet(e) {
 
 // REST API entry point for POST requests
 function doPost(e) {
-  // Enable CORS for cross-origin requests
-  let output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
-
-  // Note: Google Apps Script Web Apps automatically handle CORS
-  // No need to set headers manually
-
   try {
     // Parse request body
     const requestData = JSON.parse(e.postData.contents);
@@ -112,20 +105,34 @@ function doPost(e) {
         result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete' };
     }
 
-    output.setContent(JSON.stringify(result));
+    return createCORSResponse(result);
 
   } catch (error) {
     Logger.log('API Error in doPost: ' + error.toString());
-    output.setContent(JSON.stringify({
+    return createCORSResponse({
       success: false,
       message: 'Server error: ' + error.toString()
-    }));
+    });
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+function doOptions(e) {
+  return createCORSResponse({});
+}
+
+// Helper function to create CORS-enabled response
+function createCORSResponse(data) {
+  const output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+
+  // CORS is handled by Google Apps Script when deployed with:
+  // - Execute as: Me (or User accessing the web app)
+  // - Who has access: Anyone
+  // The doOptions() function handles preflight requests automatically
 
   return output;
 }
-
-// Note: doOptions() not needed - Google Apps Script handles CORS automatically
 
 // Get main dashboard data for a user
 function getUserDashboardData(userId) {

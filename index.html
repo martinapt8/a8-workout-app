@@ -1470,32 +1470,53 @@
 
             let html = markdown;
 
-            // Headers (## Header)
+            // Remove any title-like patterns at the start
+            html = html.replace(/^(A8 TEAM DAILY DOSE CHALLENGE|DAILY DOSE|A8 WORKOUT)\s*$/gmi, '');
+            html = html.replace(/^[-=]{3,}\s*$/gm, ''); // Remove horizontal rules
+
+            // Clean up excessive blank lines (more than 1 in a row)
+            html = html.replace(/\n{3,}/g, '\n\n');
+
+            // Headers (## Header) - process before other replacements
             html = html.replace(/^### (.+)$/gm, '<h4>$1</h4>');
             html = html.replace(/^## (.+)$/gm, '<h3>$1</h3>');
             html = html.replace(/^# (.+)$/gm, '<h2>$1</h2>');
 
-            // Bold (**text** or __text__)
+            // Bold (**text** or __text__) - process before italic to handle **text** correctly
             html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
             html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
 
-            // Italic (*text* or _text_)
-            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-            html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+            // Italic (*text* or _text_) - but avoid matching already processed bold
+            html = html.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
+            html = html.replace(/(?<!_)_([^_]+?)_(?!_)/g, '<em>$1</em>');
 
-            // Bullet points (- item or * item)
-            html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+            // Bullet points (- item or * item or • item)
+            html = html.replace(/^[\-\*•] (.+)$/gm, '<li>$1</li>');
 
             // Wrap consecutive <li> items in <ul>
-            html = html.replace(/(<li>.*<\/li>\n?)+/g, function(match) {
+            html = html.replace(/(<li>.*?<\/li>\s*)+/g, function(match) {
                 return '<ul>' + match + '</ul>';
             });
 
-            // Numbered lists (1. item)
+            // Numbered lists (1. item, 2. item, etc.)
             html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
 
-            // Convert remaining line breaks to <br>
-            html = html.replace(/\n/g, '<br>');
+            // Remove motivational closing statements
+            html = html.replace(/(LET'S GO|YOU'VE GOT THIS|GREAT JOB|NICE WORK|WELL DONE)[^<]*$/gi, '');
+            html = html.replace(/NOTE[S]?\s*FOR THE TEAM[^<]*$/gi, '');
+
+            // Convert double line breaks to paragraph breaks
+            html = html.replace(/\n\n/g, '</p><p>');
+
+            // Wrap in paragraph tags if not already wrapped in block elements
+            if (!html.match(/^<[h|u|p]/)) {
+                html = '<p>' + html + '</p>';
+            }
+
+            // Clean up empty paragraphs
+            html = html.replace(/<p>\s*<\/p>/g, '');
+            html = html.replace(/<p>\s*(<[h|u])/g, '$1');
+            html = html.replace(/(<\/[h|u][^>]*>)\s*<\/p>/g, '$1');
 
             return html;
         }

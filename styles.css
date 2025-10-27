@@ -1162,7 +1162,7 @@ body {
 
 .ai-workout-text {
     font-size: 15px;
-    line-height: 1.8;
+    line-height: 1.5;
     color: #111827;
     font-family: 'Roobert', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -1172,7 +1172,7 @@ body {
     font-size: 18px;
     font-weight: 700;
     color: #111827;
-    margin: 16px 0 8px 0;
+    margin: 12px 0 6px 0;
     border-bottom: 2px solid #FFC107;
     padding-bottom: 4px;
 }
@@ -1181,14 +1181,14 @@ body {
     font-size: 16px;
     font-weight: 700;
     color: #111827;
-    margin: 14px 0 6px 0;
+    margin: 10px 0 4px 0;
 }
 
 .ai-workout-text h4 {
     font-size: 15px;
     font-weight: 600;
     color: #374151;
-    margin: 12px 0 6px 0;
+    margin: 8px 0 4px 0;
 }
 
 .ai-workout-text strong {
@@ -1202,26 +1202,28 @@ body {
 }
 
 .ai-workout-text ul {
-    margin: 8px 0;
+    margin: 4px 0;
     padding-left: 24px;
     list-style-type: disc;
 }
 
 .ai-workout-text ol {
-    margin: 8px 0;
+    margin: 4px 0;
     padding-left: 24px;
     list-style-type: decimal;
 }
 
 .ai-workout-text li {
+    margin: 2px 0;
+    line-height: 1.5;
+}
+
+.ai-workout-text p {
     margin: 4px 0;
-    line-height: 1.6;
 }
 
 .ai-workout-text br {
-    display: block;
-    content: "";
-    margin: 4px 0;
+    display: none;
 }
 
 .ai-workout-actions {

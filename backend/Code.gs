@@ -80,8 +80,17 @@ function doGet(e) {
 // REST API entry point for POST requests
 function doPost(e) {
   try {
-    // Parse request body
-    const requestData = JSON.parse(e.postData.contents);
+    // Parse request body - handle both JSON and URL-encoded form data
+    let requestData;
+
+    // Check if the data is URL-encoded form data (to avoid CORS preflight)
+    if (e.parameter && e.parameter.payload) {
+      requestData = JSON.parse(e.parameter.payload);
+    } else {
+      // Fallback to JSON body
+      requestData = JSON.parse(e.postData.contents);
+    }
+
     const action = requestData.action;
 
     let result;

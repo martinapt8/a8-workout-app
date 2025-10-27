@@ -45,6 +45,7 @@ const API = {
 
   /**
    * Make a POST request to the backend API
+   * Using URL-encoded form data to avoid CORS preflight requests
    */
   async post(action, data = {}) {
     try {
@@ -55,13 +56,13 @@ const API = {
 
       console.log(`API POST request to ${action}:`, requestBody);
 
+      // Convert to URL-encoded form data to avoid CORS preflight
+      const formData = new URLSearchParams();
+      formData.append('payload', JSON.stringify(requestBody));
+
       const response = await fetch(CONFIG.API_URL, {
         method: 'POST',
-        redirect: 'follow',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
+        body: formData
       });
 
       console.log(`API POST response status:`, response.status, response.statusText);

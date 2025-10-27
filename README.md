@@ -226,6 +226,7 @@ For issues or questions:
 
 ---
 
-**Migration Date**: [Add date when you migrate]
-**Deployed URL**: [Add your GitHub Pages URL here]
-**API URL**: [Add your Google Apps Script URL here]
+**Migration Date**: October 27, 2025
+**Deployed URL**: https://martinapt8.github.io/a8-workout-app/
+**API URL**: https://script.google.com/macros/s/AKfycbzeynl5eE8Hth_0J0SiEq_puj2NKgLPSjIzhxX_-qeXFx8Una6f26R423PHq83KXm_2Aw/exec
+**GitHub Repo**: https://github.com/martinapt8/a8-workout-app

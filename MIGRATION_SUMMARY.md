@@ -284,11 +284,12 @@ POST /exec
 - **Quick Start**: See `QUICK_START.md`
 - **Project Info**: See `CLAUDE.md`
 
-## Migration Status: ✅ COMPLETE
+## Migration Status: ✅ COMPLETE & DEPLOYED
 
-**Date**: [Add today's date]
-**Completed By**: [Your name]
-**Next Step**: Deploy backend and test!
+**Date**: October 27, 2025
+**Deployed URL**: https://martinapt8.github.io/a8-workout-app/
+**GitHub Repo**: https://github.com/martinapt8/a8-workout-app
+**Status**: Live and working!
 
 ---
 

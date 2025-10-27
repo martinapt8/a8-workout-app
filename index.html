@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A8 Workout Challenge</title>
+
+    <!-- Apple Touch Icon and PWA settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="A8 Challenge">
+
+    <!-- Create and inject PNG icon dynamically -->
+    <script>
+        (function() {
+            // Create canvas to generate PNG icon
+            const canvas = document.createElement('canvas');
+            canvas.width = 180;
+            canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+
+            // Fill yellow background
+            ctx.fillStyle = '#FFC107';
+            ctx.fillRect(0, 0, 180, 180);
+
+            // Draw black text
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 100px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A8', 90, 95);
+
+            // Convert to data URL and create link element
+            const iconUrl = canvas.toDataURL('image/png');
+
+            // Apple touch icon
+            const appleTouchIcon = document.createElement('link');
+            appleTouchIcon.rel = 'apple-touch-icon';
+            appleTouchIcon.href = iconUrl;
+            document.head.appendChild(appleTouchIcon);
+
+            // Also add as regular icon
+            const icon = document.createElement('link');
+            icon.rel = 'icon';
+            icon.type = 'image/png';
+            icon.href = iconUrl;
+            document.head.appendChild(icon);
+
+            // Add additional sizes for better compatibility
+            const sizes = [152, 167, 180];
+            sizes.forEach(size => {
+                const link = document.createElement('link');
+                link.rel = 'apple-touch-icon';
+                link.sizes = `${size}x${size}`;
+                link.href = iconUrl;
+                document.head.appendChild(link);
+            });
+        })();
+    </script>
+
+    <!-- Theme color for browser chrome -->
+    <meta name="theme-color" content="#FFC107">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- API Configuration and Helper -->
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Workout Page -->
+        <div id="workout-page" class="page active">
+            <div class="container">
+                <!-- Header -->
+                <div class="header">
+                    <h1 id="challenge-title">A8 Workout Challenge</h1>
+                    <div class="user-greeting">
+                        <span id="user-greeting">Hey there!</span>
+                        <span id="completion-status" class="status-badge"></span>
+                    </div>
+                </div>
+
+                <!-- Today's Workout Card -->
+                <div class="card workout-card" id="workout-card">
+                    <div class="card-header">
+                        <h2 id="workout-title">Loading...</h2>
+                        <p id="workout-dates" class="workout-dates"></p>
+                    </div>
+                    <div class="card-body">
+                        <div id="exercises-list" class="exercises-list">
+                            <!-- Exercises will be populated here -->
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button id="complete-workout-btn" class="btn btn-primary">
+                            Complete Workout
+                        </button>
+                    </div>
+                    <div class="other-card-body">
+                        <input type="text" id="other-workout-input" class="other-workout-input"
+                               placeholder="Describe your workout (e.g., 30 min run, yoga class)"
+                               maxlength="100">
+                        <button id="log-other-btn" class="btn btn-secondary">
+                            Log Other Workout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- No Workout Message -->
+                <div class="card" id="no-workout-card" style="display: none;">
+                    <div class="card-body">
+                        <h2>Rest Day</h2>
+                        <p>No workout scheduled for today. Enjoy your rest!</p>
+                    </div>
+                    <div class="other-card-body">
+                        <input type="text" id="other-workout-rest-input" class="other-workout-input"
+                               placeholder="Describe your workout (e.g., 30 min run, yoga class)"
+                               maxlength="100">
+                        <button id="other-workout-rest-btn" class="btn btn-secondary">
+                            Log Other Workout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Card -->
+                <div class="card activity-card">
+                    <div class="card-header">
+                        <h2>Recent Activity</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="activity-list" class="activity-list">
+                            <!-- Recent completions will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Progress Page -->
+        <div id="progress-page" class="page">
+            <div class="container">
+                <!-- Progress Card -->
+                <div class="card progress-card">
+                    <div class="card-header">
+                        <h1 id="goal-challenge-title">A8 Progress towards Challenge</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-stats">
+                            <span id="progress-text" class="progress-text">0/200 workouts</span>
+                            <span id="progress-percentage" class="progress-percentage">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Breakdown Card -->
+                <div class="card team-card">
+                    <div class="card-header">
+                        <h2>Team Workouts</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="team-list" class="team-list">
+                            <!-- Teams will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Me Page -->
+        <div id="me-page" class="page">
+            <div class="container">
+                <!-- My Summary Card -->
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <h2>My Summary</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="my-summary">
+                            <p id="my-summary-name" class="summary-name"></p>
+                            <p id="my-summary-workouts" class="summary-workouts"></p>
+                            <p id="my-summary-last" class="summary-last"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Calendar Card -->
+                <div class="card calendar-card">
+                    <div class="card-header">
+                        <h2>My Calendar</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="calendar-grid" class="calendar-grid">
+                            <!-- Calendar will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log Past Workout Card (moved from workout page) -->
+                <div class="card past-workout-card">
+                    <div class="card-header">
+                        <h2>📅 Log Past Workout</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="past-workout-form">
+                            <label for="me-past-workout-date" class="past-workout-label">Date:</label>
+                            <input type="date" id="me-past-workout-date" class="past-workout-date-input">
+
+                            <label for="me-past-workout-input" class="past-workout-label">Workout Description:</label>
+                            <input type="text" id="me-past-workout-input" class="past-workout-text-input"
+                                   placeholder="Describe your workout (e.g., 30 min run, yoga class)"
+                                   maxlength="100">
+
+                            <button id="me-log-past-workout-btn" class="btn btn-secondary">
+                                Log Past Workout
+                            </button>
+                            <div id="me-past-workout-message" class="past-workout-message"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Library Page -->
+        <div id="library-page" class="page">
+            <div class="container">
+                <!-- Library List View -->
+                <div id="library-list" class="library-list-view">
+                    <div class="card library-card">
+                        <div class="card-header">
+                            <h2>Workout Library</h2>
+                        </div>
+                        <div class="card-body">
+                            <div id="library-workouts" class="library-workouts">
+                                <!-- Workout list will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Library Detail View -->
+                <div id="library-detail" class="library-detail-view" style="display: none;">
+                    <button id="library-back-btn" class="btn btn-link library-back">← Back to Library</button>
+
+                    <div class="card workout-card" id="library-workout-card">
+                        <div class="card-header">
+                            <h2 id="library-workout-title">Workout</h2>
+                            <p id="library-workout-dates" class="workout-dates"></p>
+                        </div>
+                        <div class="card-body">
+                            <div id="library-exercises-list" class="exercises-list">
+                                <!-- Exercises will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="library-back-btn-bottom" class="btn btn-link library-back">← Back to Library</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Workout Page -->
+        <div id="ai-page" class="page">
+            <div class="container">
+                <!-- AI Workout Generator Card -->
+                <div class="card ai-generator-card">
+                    <div class="card-header">
+                        <h2>A8AI Workout Generator 🤖</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Selector Form -->
+                        <div id="ai-selector-form" class="ai-selector-form">
+                            <!-- Time Selection -->
+                            <div class="ai-category">
+                                <h3 class="ai-category-title">How much time do you have?</h3>
+                                <div class="ai-button-group">
+                                    <button class="ai-option-btn" data-category="time" data-value="10">
+                                        10 min
+                                    </button>
+                                    <button class="ai-option-btn active" data-category="time" data-value="15">
+                                        15 min
+                                    </button>
+                                    <button class="ai-option-btn" data-category="time" data-value="20">
+                                        20 min
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="ai-divider"></div>
+
+                            <!-- Difficulty Selection -->
+                            <div class="ai-category">
+                                <h3 class="ai-category-title">What difficulty level?</h3>
+                                <div class="ai-button-group">
+                                    <button class="ai-option-btn" data-category="difficulty" data-value="Beginner">
+                                        Beginner
+                                    </button>
+                                    <button class="ai-option-btn active" data-category="difficulty" data-value="Intermediate">
+                                        Intermediate
+                                    </button>
+                                    <button class="ai-option-btn" data-category="difficulty" data-value="Hard">
+                                        Hard
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="ai-divider"></div>
+
+                            <!-- Equipment Selection -->
+                            <div class="ai-category">
+                                <h3 class="ai-category-title">What equipment do you have?</h3>
+                                <div class="ai-button-group">
+                                    <button class="ai-option-btn active" data-category="equipment" data-value="Bodyweight">
+                                        Bodyweight
+                                    </button>
+                                    <button class="ai-option-btn" data-category="equipment" data-value="Kettlebell">
+                                        Kettlebell
+                                    </button>
+                                    <button class="ai-option-btn" data-category="equipment" data-value="Dumbbell">
+                                        Dumbbell
+                                    </button>
+                                    <button class="ai-option-btn" data-category="equipment" data-value="Bands">
+                                        Bands
+                                    </button>
+                                    <button class="ai-option-btn" data-category="equipment" data-value="Full Gym">
+                                        Full Gym
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button id="ai-generate-btn" class="btn btn-primary ai-generate-btn">
+                                Generate Workout 🤖
+                            </button>
+                        </div>
+
+                        <!-- Loading Animation -->
+                        <div id="ai-loading" class="ai-loading" style="display: none;">
+                            <div class="ai-loading-spinner">🤖</div>
+                            <p id="ai-loading-tip" class="ai-loading-tip">Generating your workout...</p>
+                        </div>
+
+                        <!-- Workout Display -->
+                        <div id="ai-workout-display" class="ai-workout-display" style="display: none;">
+                            <div class="ai-workout-content">
+                                <div id="ai-workout-text" class="ai-workout-text"></div>
+                            </div>
+                            <div class="ai-workout-actions">
+                                <button id="ai-refresh-btn" class="btn btn-secondary">
+                                    🔄 Refresh
+                                </button>
+                                <button id="ai-change-btn" class="btn btn-secondary">
+                                    ⚙️ Change Options
+                                </button>
+                                <button id="ai-log-btn" class="btn btn-primary">
+                                    Log This Workout
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Error Display -->
+                        <div id="ai-error-display" class="ai-error-display" style="display: none;">
+                            <div class="ai-error-content">
+                                <p id="ai-error-text" class="ai-error-text"></p>
+                            </div>
+                            <button id="ai-retry-btn" class="btn btn-primary">
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-page="workout">
+                <span class="nav-icon">💪</span>
+                <span class="nav-label">Today</span>
+            </button>
+            <button class="nav-btn" data-page="progress">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Team</span>
+            </button>
+            <button class="nav-btn" data-page="me">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Me</span>
+            </button>
+            <button class="nav-btn" data-page="library">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Library</span>
+            </button>
+            <button class="nav-btn" data-page="ai">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">A8AI</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Success Animation Container -->
+    <div id="success-animation" class="success-animation"></div>
+
+    <script>
+        // Global variables
+        let userData = null;
+        let currentPage = 'workout';
+        let isRefreshing = false;
+
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get userId from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user');
+
+            if (!userId) {
+                showError('Please add ?user=yourname to the URL');
+                return;
+            }
+
+            // Show loading state
+            showLoading();
+
+            try {
+                // Fetch user dashboard data from API
+                userData = await API.getDashboard(userId);
+
+                if (userData.error) {
+                    showError(userData.error);
+                    return;
+                }
+
+                // Initialize the app with fetched data
+                initializeApp();
+
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                showError('Failed to load app data. Please check your connection and try again.');
+                return;
+            }
+
+            // Setup navigation
+            setupNavigation();
+
+            // Setup button handlers
+            setupButtonHandlers();
+
+            // Setup AI workout handlers
+            setupAIWorkoutHandlers();
+        });
+
+        // Initialize app with user data
+        function initializeApp() {
+            // Restore opacity after loading
+            const app = document.getElementById('app');
+            app.style.opacity = '1';
+
+            // Update workout page
+            updateWorkoutPage();
+
+            // Update progress page
+            updateProgressPage();
+
+            // Update me page
+            updateMePage();
+
+            // Update library page
+            updateLibraryPage();
+        }
+
+        // Update workout page with user data
+        function updateWorkoutPage() {
+            if (!userData) return;
+
+            // Update header
+            document.getElementById('challenge-title').textContent = userData.settings.challenge_name || 'A8 Workout Challenge';
+
+            // Update user greeting
+            const greeting = document.getElementById('user-greeting');
+            greeting.textContent = `Hey ${userData.user.display_name}!`;
+
+            // Update completion status
+            const statusBadge = document.getElementById('completion-status');
+            if (userData.completedToday) {
+                statusBadge.textContent = 'Completed Today';
+                statusBadge.className = 'status-badge completed';
+                // Disable and update button text to show completed state
+                updateWorkoutButtonsCompleted();
+            } else {
+                statusBadge.textContent = 'Not Yet Completed';
+                statusBadge.className = 'status-badge pending';
+                // Ensure buttons are enabled for incomplete state
+                updateWorkoutButtonsPending();
+            }
+
+            // Update workout card or show rest day
+            if (userData.activeWorkout) {
+                showWorkoutCard(userData.activeWorkout);
+            } else {
+                showRestDay();
+            }
+
+            // Update recent activity on workout page
+            updateActivityFeed();
+        }
+
+        // Show workout card with exercises
+        function showWorkoutCard(workout) {
+            document.getElementById('workout-card').style.display = 'block';
+            document.getElementById('no-workout-card').style.display = 'none';
+
+            document.getElementById('workout-title').textContent = workout.workout_name || 'Today\'s Workout';
+            // Only show date range if dates are different
+            if (workout.start_date === workout.end_date) {
+                document.getElementById('workout-dates').textContent = workout.start_date;
+            } else {
+                document.getElementById('workout-dates').textContent = `${workout.start_date} - ${workout.end_date}`;
+            }
+
+            const exercisesList = document.getElementById('exercises-list');
+            exercisesList.innerHTML = '';
+
+            // Add instructions if available
+            if (workout.instructions && workout.instructions.trim()) {
+                const instructionsDiv = document.createElement('div');
+                instructionsDiv.className = 'workout-instructions';
+                instructionsDiv.innerHTML = `<div class="instructions-content">${workout.instructions}</div>`;
+                exercisesList.appendChild(instructionsDiv);
+            }
+
+            // Check if exercises exist and is an array
+            if (workout.exercises && Array.isArray(workout.exercises)) {
+                workout.exercises.forEach((exercise, index) => {
+                    const exerciseDiv = document.createElement('div');
+                    exerciseDiv.className = 'exercise-item';
+
+                    // Create movement name element - either as link or plain text
+                    let movementElement;
+                    if (exercise.movement_url) {
+                        // If URL exists, create a clickable link
+                        movementElement = `<a href="${exercise.movement_url}" target="_blank" class="exercise-name exercise-link">${exercise.movement}:</a>`;
+                    } else {
+                        // Otherwise, display as plain text
+                        movementElement = `<span class="exercise-name">${exercise.movement}:</span>`;
+                    }
+
+                    exerciseDiv.innerHTML = `
+                        <div class="exercise-main">
+                            <span class="exercise-number">${index + 1}.</span>
+                            ${movementElement}
+                            <span class="exercise-reps">${exercise.reps}</span>
+                        </div>
+                        ${exercise.alternative ? `<div class="exercise-alt"> ${exercise.alternative}</div>` : ''}
+                    `;
+                    exercisesList.appendChild(exerciseDiv);
+                });
+            } else {
+                // If no exercises, show a message
+                exercisesList.innerHTML = '<div class="exercise-item">No exercises found for today\'s workout.</div>';
+            }
+        }
+
+        // Show rest day message
+        function showRestDay() {
+            document.getElementById('workout-card').style.display = 'none';
+            document.getElementById('no-workout-card').style.display = 'block';
+        }
+
+        // Update progress page with team data
+        function updateProgressPage() {
+            if (!userData || !userData.goalProgress) return;
+
+            // Update header with progress format
+            const challengeName = userData.settings.challenge_name || 'Challenge';
+            document.getElementById('goal-challenge-title').textContent = `${challengeName}`;
+
+            const progress = userData.goalProgress;
+
+            // Update progress stats
+            document.getElementById('progress-text').textContent = `${progress.total_completions}/${progress.total_goal} workouts`;
+            document.getElementById('progress-percentage').textContent = `${progress.percentage}%`;
+
+            // Update progress bar width
+            const progressFill = document.getElementById('progress-fill');
+            progressFill.style.width = `${Math.min(progress.percentage, 100)}%`; // Cap width at 100%
+
+            // Set color based on percentage range
+            let progressColor;
+            if (progress.percentage <= 25) {
+                // 0-25%: Green
+                progressColor = 'linear-gradient(90deg, #10B981, #059669)';
+            } else if (progress.percentage <= 75) {
+                // 26-75%: Blue
+                progressColor = 'linear-gradient(90deg, #3B82F6, #2563EB)';
+            } else if (progress.percentage <= 100) {
+                // 76-100%: Yellow (original)
+                progressColor = 'linear-gradient(90deg, #FFC107, #FFB300)';
+            } else {
+                // >100%: Red (exceeded goal)
+                progressColor = 'linear-gradient(90deg, #EF4444, #DC2626)';
+            }
+            progressFill.style.background = progressColor;
+
+            // Update team breakdown
+            const teamList = document.getElementById('team-list');
+            teamList.innerHTML = '';
+
+            Object.keys(progress.team_totals).sort().forEach(teamName => {
+                const teamDiv = document.createElement('div');
+                teamDiv.className = 'team-item';
+                const teamColor = getTeamColor(teamName);
+                teamDiv.innerHTML = `
+                    <span class="team-name" style="color: ${teamColor}">${teamName}</span>
+                    <span class="team-count">${progress.team_totals[teamName]}</span>
+                `;
+                teamList.appendChild(teamDiv);
+            });
+        }
+
+        // Update activity feed (shown on workout page)
+        function updateActivityFeed() {
+            if (!userData || !userData.goalProgress) return;
+
+            const progress = userData.goalProgress;
+            const activityList = document.getElementById('activity-list');
+            activityList.innerHTML = '';
+
+            if (progress.recent_completions.length > 0) {
+                progress.recent_completions.forEach(completion => {
+                    const activityDiv = document.createElement('div');
+                    activityDiv.className = 'activity-item';
+                    const workoutName = completion.workout_name || 'Workout';
+                    activityDiv.innerHTML = `
+                        <span class="activity-user">${completion.display_name}</span>
+                        <span class="activity-action">completed ${workoutName}</span>
+                        <span class="activity-time">${completion.timestamp}</span>
+                    `;
+                    activityList.appendChild(activityDiv);
+                });
+            } else {
+                activityList.innerHTML = '<p class="no-activity">No workouts completed yet. Be the first!</p>';
+            }
+        }
+
+        // Update Me page with user's personal data
+        function updateMePage() {
+            if (!userData || !userData.user) return;
+
+            // Update My Summary
+            const summaryName = document.getElementById('my-summary-name');
+            const summaryWorkouts = document.getElementById('my-summary-workouts');
+            const summaryLast = document.getElementById('my-summary-last');
+
+            summaryName.textContent = `${userData.user.display_name} - Team ${userData.user.team_name}`;
+            summaryName.style.color = userData.user.team_color || '#000000';
+            summaryWorkouts.textContent = `${userData.user.total_workouts} workouts completed`;
+            summaryLast.textContent = userData.user.last_completed ? `Last Workout: ${userData.user.last_completed}` : 'No workouts yet';
+
+            // Fetch and build calendar
+            API.getUserCompletionHistory(userData.user.user_id)
+                .then(buildCalendar)
+                .catch(function(error) {
+                    console.error('Failed to fetch completion history:', error);
+                });
+        }
+
+        // Build calendar grid with checkmarks
+        function buildCalendar(completionDates) {
+            const calendarGrid = document.getElementById('calendar-grid');
+            calendarGrid.innerHTML = '';
+
+            if (!userData || !userData.settings) return;
+
+            // Parse challenge dates
+            const startDate = new Date(userData.settings.start_date);
+            const endDate = new Date(userData.settings.end_date);
+
+            // Get month and year from start date
+            const month = startDate.getMonth();
+            const year = startDate.getFullYear();
+
+            // Create calendar header
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthHeader = document.createElement('div');
+            monthHeader.className = 'calendar-month-header';
+            monthHeader.textContent = `${monthNames[month]} ${year}`;
+            calendarGrid.appendChild(monthHeader);
+
+            // Create day headers
+            const dayHeaders = document.createElement('div');
+            dayHeaders.className = 'calendar-day-headers';
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                dayHeaders.appendChild(dayHeader);
+            });
+            calendarGrid.appendChild(dayHeaders);
+
+            // Create calendar days container
+            const daysContainer = document.createElement('div');
+            daysContainer.className = 'calendar-days';
+
+            // Get first day of month
+            const firstDay = new Date(year, month, 1).getDay();
+
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day empty';
+                daysContainer.appendChild(emptyCell);
+            }
+
+            // Get last day of month
+            const lastDay = new Date(year, month + 1, 0).getDate();
+
+            // Add calendar days
+            for (let day = 1; day <= lastDay; day++) {
+                const dayCell = document.createElement('div');
+                const currentDate = new Date(year, month, day);
+                const dateStr = formatDateForComparison(currentDate);
+
+                dayCell.className = 'calendar-day';
+
+                // Check if date is within challenge range
+                if (currentDate >= startDate && currentDate <= endDate) {
+                    // Check if user completed workout on this day
+                    if (completionDates.includes(dateStr)) {
+                        dayCell.classList.add('completed');
+                        dayCell.innerHTML = `<span class="day-number">${day}</span><span class="checkmark">✓</span>`;
+                    } else {
+                        dayCell.innerHTML = `<span class="day-number">${day}</span>`;
+                    }
+                } else {
+                    // Outside challenge range
+                    dayCell.classList.add('outside-range');
+                    dayCell.innerHTML = `<span class="day-number">${day}</span>`;
+                }
+
+                daysContainer.appendChild(dayCell);
+            }
+
+            calendarGrid.appendChild(daysContainer);
+        }
+
+        // Format date for comparison (YYYY-MM-DD)
+        function formatDateForComparison(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Update Library page with all workouts
+        function updateLibraryPage() {
+            // Fetch all workouts
+            API.getAllWorkouts()
+                .then(buildLibraryList)
+                .catch(function(error) {
+                    console.error('Failed to fetch workouts:', error);
+                });
+        }
+
+        // Build library list view
+        function buildLibraryList(workouts) {
+            const libraryWorkouts = document.getElementById('library-workouts');
+            libraryWorkouts.innerHTML = '';
+
+            if (!workouts || workouts.length === 0) {
+                libraryWorkouts.innerHTML = '<p>No workouts available yet.</p>';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Categorize workouts
+            const pastWorkouts = [];
+            const currentWorkout = [];
+            const upcomingWorkouts = [];
+
+            workouts.forEach(workout => {
+                const startDate = new Date(workout.start_date_raw);
+                const endDate = new Date(workout.end_date_raw);
+                startDate.setHours(0, 0, 0, 0);
+                endDate.setHours(23, 59, 59, 999);
+
+                if (today > endDate) {
+                    pastWorkouts.push(workout);
+                } else if (today >= startDate && today <= endDate) {
+                    currentWorkout.push(workout);
+                } else {
+                    upcomingWorkouts.push(workout);
+                }
+            });
+
+            // Build sections
+            if (pastWorkouts.length > 0) {
+                const pastHeader = document.createElement('h3');
+                pastHeader.className = 'library-section-header';
+                pastHeader.textContent = 'Past Workouts:';
+                libraryWorkouts.appendChild(pastHeader);
+
+                pastWorkouts.forEach(workout => {
+                    libraryWorkouts.appendChild(createLibraryWorkoutItem(workout));
+                });
+            }
+
+            if (currentWorkout.length > 0) {
+                const currentHeader = document.createElement('h3');
+                currentHeader.className = 'library-section-header';
+                currentHeader.textContent = 'Current Workout:';
+                libraryWorkouts.appendChild(currentHeader);
+
+                currentWorkout.forEach(workout => {
+                    libraryWorkouts.appendChild(createLibraryWorkoutItem(workout, true));
+                });
+            }
+
+            if (upcomingWorkouts.length > 0) {
+                const upcomingHeader = document.createElement('h3');
+                upcomingHeader.className = 'library-section-header';
+                upcomingHeader.textContent = 'Upcoming Workouts:';
+                libraryWorkouts.appendChild(upcomingHeader);
+
+                upcomingWorkouts.forEach(workout => {
+                    libraryWorkouts.appendChild(createLibraryWorkoutItem(workout));
+                });
+            }
+        }
+
+        // Create a library workout list item
+        function createLibraryWorkoutItem(workout, isCurrent = false) {
+            const item = document.createElement('div');
+            item.className = 'library-workout-item';
+            if (isCurrent) item.classList.add('current');
+
+            const dateRange = workout.start_date === workout.end_date
+                ? workout.start_date
+                : `${workout.start_date} - ${workout.end_date}`;
+
+            item.innerHTML = `
+                <div class="library-workout-name">${workout.workout_name}${isCurrent ? ' ⭐' : ''}</div>
+                <div class="library-workout-dates">${dateRange}</div>
+            `;
+
+            item.addEventListener('click', function() {
+                showLibraryWorkoutDetail(workout);
+            });
+
+            return item;
+        }
+
+        // Show workout detail view in library
+        function showLibraryWorkoutDetail(workout) {
+            // Hide list view
+            document.getElementById('library-list').style.display = 'none';
+            // Show detail view
+            document.getElementById('library-detail').style.display = 'block';
+
+            // Populate workout details
+            document.getElementById('library-workout-title').textContent = workout.workout_name;
+            const dateRange = workout.start_date === workout.end_date
+                ? workout.start_date
+                : `${workout.start_date} - ${workout.end_date}`;
+            document.getElementById('library-workout-dates').textContent = dateRange;
+
+            const exercisesList = document.getElementById('library-exercises-list');
+            exercisesList.innerHTML = '';
+
+            // Add instructions if available
+            if (workout.instructions && workout.instructions.trim()) {
+                const instructionsDiv = document.createElement('div');
+                instructionsDiv.className = 'workout-instructions';
+                instructionsDiv.innerHTML = `<div class="instructions-content">${workout.instructions}</div>`;
+                exercisesList.appendChild(instructionsDiv);
+            }
+
+            // Add exercises
+            if (workout.exercises && Array.isArray(workout.exercises)) {
+                workout.exercises.forEach((exercise, index) => {
+                    const exerciseDiv = document.createElement('div');
+                    exerciseDiv.className = 'exercise-item';
+
+                    let movementElement;
+                    if (exercise.movement_url) {
+                        movementElement = `<a href="${exercise.movement_url}" target="_blank" class="exercise-name exercise-link">${exercise.movement}:</a>`;
+                    } else {
+                        movementElement = `<span class="exercise-name">${exercise.movement}:</span>`;
+                    }
+
+                    exerciseDiv.innerHTML = `
+                        <div class="exercise-main">
+                            <span class="exercise-number">${index + 1}.</span>
+                            ${movementElement}
+                            <span class="exercise-reps">${exercise.reps}</span>
+                        </div>
+                        ${exercise.alternative ? `<div class="exercise-alt">${exercise.alternative}</div>` : ''}
+                    `;
+                    exercisesList.appendChild(exerciseDiv);
+                });
+            }
+        }
+
+        // Get team color from user data
+        function getTeamColor(teamName) {
+            // Find a user with this team to get the color
+            if (userData && userData.user && userData.user.team_name === teamName) {
+                return userData.user.team_color || '#000000';
+            }
+            // Default color if not found
+            return '#000000';
+        }
+
+        // Setup navigation between pages
+        function setupNavigation() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetPage = this.dataset.page;
+                    switchPage(targetPage);
+                });
+            });
+        }
+
+        // Switch between pages
+        function switchPage(pageName) {
+            // Prevent navigation during refresh
+            if (isRefreshing) {
+                // Optionally show a brief message to the user
+                console.log('Please wait for data to finish updating...');
+                return;
+            }
+
+            // Update active nav button
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.page === pageName);
+            });
+
+            // Update active page
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(`${pageName}-page`).classList.add('active');
+
+            currentPage = pageName;
+        }
+
+        // Setup button handlers
+        function setupButtonHandlers() {
+            // Complete workout button
+            document.getElementById('complete-workout-btn').addEventListener('click', function() {
+                completeWorkout('prescribed');
+            });
+
+            // Log other workout buttons with input validation
+            document.getElementById('log-other-btn').addEventListener('click', function() {
+                const input = document.getElementById('other-workout-input');
+                const details = input.value.trim();
+                if (details) {
+                    completeWorkout('other', details);
+                } else {
+                    alert('Please describe your workout before logging it.');
+                    input.focus();
+                }
+            });
+
+            document.getElementById('other-workout-rest-btn').addEventListener('click', function() {
+                const input = document.getElementById('other-workout-rest-input');
+                const details = input.value.trim();
+                if (details) {
+                    completeWorkout('other', details);
+                } else {
+                    alert('Please describe your workout before logging it.');
+                    input.focus();
+                }
+            });
+
+            // Log past workout button on Me page
+            document.getElementById('me-log-past-workout-btn').addEventListener('click', function() {
+                logPastWorkoutFromMePage();
+            });
+
+            // Library back buttons (top and bottom)
+            document.getElementById('library-back-btn').addEventListener('click', function() {
+                // Hide detail view
+                document.getElementById('library-detail').style.display = 'none';
+                // Show list view
+                document.getElementById('library-list').style.display = 'block';
+            });
+
+            document.getElementById('library-back-btn-bottom').addEventListener('click', function() {
+                // Hide detail view
+                document.getElementById('library-detail').style.display = 'none';
+                // Show list view
+                document.getElementById('library-list').style.display = 'block';
+            });
+
+            // Set up date input constraints for Me page
+            setupMePastWorkoutDatePicker();
+        }
+
+        // Set up date picker for Me page
+        function setupMePastWorkoutDatePicker() {
+            const dateInput = document.getElementById('me-past-workout-date');
+            const today = new Date();
+            const maxDate = today.toISOString().split('T')[0];
+            dateInput.max = maxDate;
+
+            // Set default to yesterday as a helpful starting point
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            dateInput.value = yesterday.toISOString().split('T')[0];
+
+            // Also set min date to challenge start if available
+            if (userData && userData.settings && userData.settings.start_date) {
+                try {
+                    const startDate = new Date(userData.settings.start_date);
+                    dateInput.min = startDate.toISOString().split('T')[0];
+                } catch (e) {
+                    console.log('Could not parse start date for min constraint');
+                }
+            }
+        }
+
+        // Log past workout from Me page
+        function logPastWorkoutFromMePage() {
+            if (!userData || !userData.user) {
+                showError('User data not loaded');
+                return;
+            }
+
+            const dateInput = document.getElementById('me-past-workout-date');
+            const workoutInput = document.getElementById('me-past-workout-input');
+            const messageDiv = document.getElementById('me-past-workout-message');
+            const logBtn = document.getElementById('me-log-past-workout-btn');
+
+            const selectedDate = dateInput.value;
+            const workoutDetails = workoutInput.value.trim();
+
+            // Clear previous messages
+            messageDiv.textContent = '';
+            messageDiv.className = 'past-workout-message';
+
+            // Validate inputs
+            if (!selectedDate) {
+                messageDiv.textContent = 'Please select a date.';
+                messageDiv.classList.add('error');
+                dateInput.focus();
+                return;
+            }
+
+            if (!workoutDetails) {
+                messageDiv.textContent = 'Please describe your workout.';
+                messageDiv.classList.add('error');
+                workoutInput.focus();
+                return;
+            }
+
+            // Validate date is not in the future
+            const selected = new Date(selectedDate + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selected > today) {
+                messageDiv.textContent = 'Cannot log workouts in the future!';
+                messageDiv.classList.add('error');
+                return;
+            }
+
+            // Show loading state
+            logBtn.disabled = true;
+            logBtn.textContent = 'Logging...';
+            workoutInput.disabled = true;
+            dateInput.disabled = true;
+
+            // Call backend with date parameter
+            API.markWorkoutComplete(userData.user.user_id, 'other', workoutDetails, selectedDate)
+                .then(onMePastWorkoutComplete)
+                .catch(onMePastWorkoutError);
+        }
+
+        // Handle successful past workout completion
+        function onPastWorkoutComplete(result) {
+            const messageDiv = document.getElementById('past-workout-message');
+            const logBtn = document.getElementById('log-past-workout-btn');
+            const workoutInput = document.getElementById('past-workout-input');
+            const dateInput = document.getElementById('past-workout-date');
+
+            if (result.success) {
+                // Show success message
+                messageDiv.textContent = '✅ Past workout logged successfully!';
+                messageDiv.className = 'past-workout-message success';
+
+                // Clear the input field
+                workoutInput.value = '';
+
+                // Reset to yesterday as default
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                dateInput.value = yesterday.toISOString().split('T')[0];
+
+                // Re-enable inputs
+                logBtn.disabled = false;
+                logBtn.textContent = 'Log Past Workout';
+                workoutInput.disabled = false;
+                dateInput.disabled = false;
+
+                // Refresh data to update progress
+                setTimeout(refreshData, 1500);
+            } else {
+                // Show error message from backend
+                messageDiv.textContent = result.message || 'Failed to log workout.';
+                messageDiv.className = 'past-workout-message error';
+
+                // Re-enable inputs
+                logBtn.disabled = false;
+                logBtn.textContent = 'Log Past Workout';
+                workoutInput.disabled = false;
+                dateInput.disabled = false;
+            }
+        }
+
+        // Handle successful past workout completion from Me page
+        function onMePastWorkoutComplete(result) {
+            const messageDiv = document.getElementById('me-past-workout-message');
+            const logBtn = document.getElementById('me-log-past-workout-btn');
+            const workoutInput = document.getElementById('me-past-workout-input');
+            const dateInput = document.getElementById('me-past-workout-date');
+
+            if (result.success) {
+                // Show success message
+                messageDiv.textContent = '✅ Past workout logged successfully!';
+                messageDiv.className = 'past-workout-message success';
+
+                // Clear the input field
+                workoutInput.value = '';
+
+                // Reset to yesterday as default
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                dateInput.value = yesterday.toISOString().split('T')[0];
+
+                // Re-enable inputs
+                logBtn.disabled = false;
+                logBtn.textContent = 'Log Past Workout';
+                workoutInput.disabled = false;
+                dateInput.disabled = false;
+
+                // Refresh data to update progress and calendar
+                setTimeout(function() {
+                    refreshData();
+                    // Re-fetch calendar data
+                    if (userData && userData.user) {
+                        API.getUserCompletionHistory(userData.user.user_id)
+                            .then(buildCalendar)
+                            .catch(function(error) {
+                                console.error('Failed to update calendar:', error);
+                            });
+                    }
+                }, 1500);
+            } else {
+                // Show error message from backend
+                messageDiv.textContent = result.message || 'Failed to log workout.';
+                messageDiv.className = 'past-workout-message error';
+
+                // Re-enable inputs
+                logBtn.disabled = false;
+                logBtn.textContent = 'Log Past Workout';
+                workoutInput.disabled = false;
+                dateInput.disabled = false;
+            }
+        }
+
+        // Handle past workout error from Me page
+        function onMePastWorkoutError(error) {
+            console.error('Past workout error:', error);
+            const messageDiv = document.getElementById('me-past-workout-message');
+            const logBtn = document.getElementById('me-log-past-workout-btn');
+            const workoutInput = document.getElementById('me-past-workout-input');
+            const dateInput = document.getElementById('me-past-workout-date');
+
+            messageDiv.textContent = 'Failed to log workout. Please try again.';
+            messageDiv.className = 'past-workout-message error';
+
+            // Re-enable inputs
+            logBtn.disabled = false;
+            logBtn.textContent = 'Log Past Workout';
+            workoutInput.disabled = false;
+            dateInput.disabled = false;
+        }
+
+        // Complete workout (prescribed or other)
+        function completeWorkout(type, workoutDetails) {
+            if (!userData || !userData.user) {
+                showError('User data not loaded');
+                return;
+            }
+
+            // Show loading state on the clicked button
+            const completeBtn = document.getElementById('complete-workout-btn');
+            const logOtherBtn = document.getElementById('log-other-btn');
+            const restBtn = document.getElementById('other-workout-rest-btn');
+            const otherInput = document.getElementById('other-workout-input');
+            const restInput = document.getElementById('other-workout-rest-input');
+
+            // Update the specific button that was clicked
+            if (type === 'prescribed' && completeBtn) {
+                completeBtn.disabled = true;
+                completeBtn.textContent = 'Logging...';
+            } else if (type === 'other') {
+                if (logOtherBtn && logOtherBtn.parentElement.parentElement.style.display !== 'none') {
+                    logOtherBtn.disabled = true;
+                    logOtherBtn.textContent = 'Logging...';
+                    if (otherInput) otherInput.disabled = true;
+                }
+                if (restBtn && restBtn.parentElement.parentElement.style.display !== 'none') {
+                    restBtn.disabled = true;
+                    restBtn.textContent = 'Logging...';
+                    if (restInput) restInput.disabled = true;
+                }
+            }
+
+            // Call backend with optional workout details
+            API.markWorkoutComplete(userData.user.user_id, type, workoutDetails || '')
+                .then(onWorkoutComplete)
+                .catch(onWorkoutError);
+        }
+
+        // Handle successful workout completion
+        function onWorkoutComplete(result) {
+            console.log('Workout complete result:', result);
+            if (result.success) {
+                // Clear the input fields after successful submission
+                const otherInput = document.getElementById('other-workout-input');
+                const restInput = document.getElementById('other-workout-rest-input');
+                if (otherInput) otherInput.value = '';
+                if (restInput) restInput.value = '';
+
+                // Give immediate feedback that the action was successful
+                showSuccessAnimation();
+                updateWorkoutButtonsCompleted(); // This changes button to "Completed" and disables it
+
+                // Refresh all data from the server after a short delay
+                // This ensures the Google Sheet has time to process the update
+                console.log('Scheduling data refresh in 2 seconds...');
+                setTimeout(refreshData, 2000);
+
+            } else {
+                // Handle failure reported by the backend
+                onWorkoutError(result.message || 'An unknown error occurred.');
+            }
+        }
+
+        // Handle workout error
+        function onWorkoutError(error) {
+            console.error('Workout error:', error);
+            showError('Failed to save workout. Please try again.');
+            // Re-enable buttons to allow user to try again
+            updateWorkoutButtonsPending();
+        }
+
+        // Fetch fresh data from the server and update the UI
+        function refreshData() {
+            if (!userData || !userData.user) return;
+
+            // Set refreshing flag to prevent navigation
+            isRefreshing = true;
+
+            // Show loading indicator in the status badge
+            const statusBadge = document.getElementById('completion-status');
+            if (statusBadge) {
+                statusBadge.textContent = '🔄 Updating...';
+                statusBadge.className = 'status-badge';
+            }
+
+            console.log('Refreshing data from server...');
+            API.getDashboard(userData.user.user_id)
+                .then(function(freshData) {
+                    console.log('Fetched fresh data:', freshData);
+                    if (freshData && !freshData.error) {
+                        userData = freshData;
+                        // Update entire UI with the new data
+                        updateWorkoutPage();
+                        updateProgressPage();
+                        updateMePage();
+                    } else {
+                        showError('Could not refresh data. Please reload the page.');
+                        console.error('Failed to refresh data:', freshData ? freshData.error : 'No data returned');
+                    }
+                    // Clear refreshing flag
+                    isRefreshing = false;
+                })
+                .catch(function(error) {
+                    showError('Could not refresh data. Please reload the page.');
+                    console.error('Failed to fetch fresh data:', error);
+                    // Clear refreshing flag
+                    isRefreshing = false;
+                });
+        }
+
+        // Disable workout buttons
+        function disableWorkoutButtons() {
+            document.getElementById('complete-workout-btn').disabled = true;
+            const logOtherBtn = document.getElementById('log-other-btn');
+            if (logOtherBtn) logOtherBtn.disabled = true;
+            const restBtn = document.getElementById('other-workout-rest-btn');
+            if (restBtn) restBtn.disabled = true;
+            const otherInput = document.getElementById('other-workout-input');
+            if (otherInput) otherInput.disabled = true;
+            const restInput = document.getElementById('other-workout-rest-input');
+            if (restInput) restInput.disabled = true;
+        }
+
+        // Enable workout buttons
+        function enableWorkoutButtons() {
+            if (!userData.completedToday) {
+                document.getElementById('complete-workout-btn').disabled = false;
+                const logOtherBtn = document.getElementById('log-other-btn');
+                if (logOtherBtn) logOtherBtn.disabled = false;
+                const restBtn = document.getElementById('other-workout-rest-btn');
+                if (restBtn) restBtn.disabled = false;
+                const otherInput = document.getElementById('other-workout-input');
+                if (otherInput) otherInput.disabled = false;
+                const restInput = document.getElementById('other-workout-rest-input');
+                if (restInput) restInput.disabled = false;
+            }
+        }
+
+        // Update workout buttons to show completed state
+        function updateWorkoutButtonsCompleted() {
+            const completeBtn = document.getElementById('complete-workout-btn');
+            const logOtherBtn = document.getElementById('log-other-btn');
+            const restBtn = document.getElementById('other-workout-rest-btn');
+            const otherInput = document.getElementById('other-workout-input');
+            const restInput = document.getElementById('other-workout-rest-input');
+
+            if (completeBtn) {
+                completeBtn.disabled = true;
+                completeBtn.textContent = 'Completed';
+                completeBtn.classList.add('btn-disabled');
+            }
+            if (logOtherBtn) {
+                logOtherBtn.disabled = true;
+                logOtherBtn.textContent = 'Logged';
+                logOtherBtn.classList.add('btn-disabled');
+            }
+            if (otherInput) {
+                otherInput.disabled = true;
+            }
+            if (restBtn) {
+                restBtn.disabled = true;
+                restBtn.textContent = 'Logged';
+                restBtn.classList.add('btn-disabled');
+            }
+            if (restInput) {
+                restInput.disabled = true;
+            }
+        }
+
+        // Update workout buttons to show pending state
+        function updateWorkoutButtonsPending() {
+            const completeBtn = document.getElementById('complete-workout-btn');
+            const logOtherBtn = document.getElementById('log-other-btn');
+            const restBtn = document.getElementById('other-workout-rest-btn');
+            const otherInput = document.getElementById('other-workout-input');
+            const restInput = document.getElementById('other-workout-rest-input');
+
+            if (completeBtn) {
+                completeBtn.disabled = false;
+                completeBtn.textContent = 'Complete Workout';
+                completeBtn.classList.remove('btn-disabled');
+            }
+            if (logOtherBtn) {
+                logOtherBtn.disabled = false;
+                logOtherBtn.textContent = 'Log Other Workout';
+                logOtherBtn.classList.remove('btn-disabled');
+            }
+            if (otherInput) {
+                otherInput.disabled = false;
+            }
+            if (restBtn) {
+                restBtn.disabled = false;
+                restBtn.textContent = 'Log Other Workout';
+                restBtn.classList.remove('btn-disabled');
+            }
+            if (restInput) {
+                restInput.disabled = false;
+            }
+        }
+
+        // Show success animation
+        function showSuccessAnimation() {
+            const container = document.getElementById('success-animation');
+            container.innerHTML = '';
+            container.style.display = 'block';
+
+            // Create checkmark or confetti
+            const success = document.createElement('div');
+            success.className = 'success-checkmark';
+            success.innerHTML = '✅';
+            container.appendChild(success);
+
+            // Hide after animation
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 2000);
+        }
+
+        // Show loading state
+        function showLoading() {
+            // Just hide the app temporarily and show a simple loading indicator
+            const app = document.getElementById('app');
+            app.style.opacity = '0.3';
+
+            // Add loading message to header if it exists
+            const header = document.querySelector('.header h1');
+            if (header) {
+                header.textContent = 'Loading...';
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="container">
+                    <div class="card error-card">
+                        <div class="card-body">
+                            <h2>Error</h2>
+                            <p>${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ====== AI WORKOUT FUNCTIONALITY ======
+
+        // Store current AI workout data
+        let currentAIWorkout = null;
+        let currentAIParams = null;
+
+        // Simple markdown to HTML converter for workout display
+        function markdownToHTML(markdown) {
+            if (!markdown) return '';
+
+            let html = markdown;
+
+            // Headers (## Header)
+            html = html.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+            html = html.replace(/^## (.+)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^# (.+)$/gm, '<h2>$1</h2>');
+
+            // Bold (**text** or __text__)
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+            // Italic (*text* or _text_)
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+            // Bullet points (- item or * item)
+            html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+
+            // Wrap consecutive <li> items in <ul>
+            html = html.replace(/(<li>.*<\/li>\n?)+/g, function(match) {
+                return '<ul>' + match + '</ul>';
+            });
+
+            // Numbered lists (1. item)
+            html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+
+            // Convert remaining line breaks to <br>
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+
+        // Fitness tips for loading animation
+        const fitnessTips = [
+            "Form over speed - quality reps build results! 💪",
+            "Hydration is key - drink water before, during, and after! 💧",
+            "Consistency beats intensity - show up every day! 📅",
+            "Rest is part of training - recovery matters! 😴",
+            "Challenge yourself, but listen to your body! 🎯",
+            "Warm up to prevent injury and improve performance! 🔥",
+            "Breathe properly - exhale on exertion! 🌬️",
+            "Progress, not perfection - every workout counts! ⭐"
+        ];
+
+        let currentTipIndex = 0;
+        let tipRotationInterval = null;
+
+        // Setup AI workout event handlers
+        function setupAIWorkoutHandlers() {
+            // Option button selection handlers
+            const optionButtons = document.querySelectorAll('.ai-option-btn');
+            optionButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const category = this.dataset.category;
+
+                    // Remove active class from all buttons in this category
+                    document.querySelectorAll(`[data-category="${category}"]`).forEach(b => {
+                        b.classList.remove('active');
+                    });
+
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                });
+            });
+
+            // Generate button
+            document.getElementById('ai-generate-btn').addEventListener('click', generateAIWorkout);
+
+            // Refresh button (regenerate with same params)
+            document.getElementById('ai-refresh-btn').addEventListener('click', function() {
+                if (currentAIParams) {
+                    generateAIWorkoutWithParams(
+                        currentAIParams.time,
+                        currentAIParams.difficulty,
+                        currentAIParams.equipment
+                    );
+                }
+            });
+
+            // Change options button
+            document.getElementById('ai-change-btn').addEventListener('click', function() {
+                showAISelector();
+            });
+
+            // Log workout button
+            document.getElementById('ai-log-btn').addEventListener('click', logAIWorkout);
+
+            // Retry button (after error)
+            document.getElementById('ai-retry-btn').addEventListener('click', function() {
+                showAISelector();
+            });
+        }
+
+        // Generate AI workout from form inputs
+        function generateAIWorkout() {
+            // Get selected values from active buttons
+            const timeBtn = document.querySelector('[data-category="time"].active');
+            const difficultyBtn = document.querySelector('[data-category="difficulty"].active');
+            const equipmentBtn = document.querySelector('[data-category="equipment"].active');
+
+            if (!timeBtn || !difficultyBtn || !equipmentBtn) {
+                alert('Please select an option from each category');
+                return;
+            }
+
+            const time = timeBtn.dataset.value;
+            const difficulty = difficultyBtn.dataset.value;
+            const equipment = equipmentBtn.dataset.value;
+
+            generateAIWorkoutWithParams(time, difficulty, equipment);
+        }
+
+        // Generate AI workout with specific parameters
+        function generateAIWorkoutWithParams(time, difficulty, equipment) {
+            // Store parameters for refresh
+            currentAIParams = { time, difficulty, equipment };
+
+            // Hide selector and error
+            document.getElementById('ai-selector-form').style.display = 'none';
+            document.getElementById('ai-error-display').style.display = 'none';
+            document.getElementById('ai-workout-display').style.display = 'none';
+
+            // Show loading animation
+            document.getElementById('ai-loading').style.display = 'block';
+
+            // Start rotating fitness tips
+            startTipRotation();
+
+            // Call backend API
+            API.generateAIWorkout(time, difficulty, equipment)
+                .then(onAIWorkoutGenerated)
+                .catch(onAIWorkoutError);
+        }
+
+        // Handle successful AI workout generation
+        function onAIWorkoutGenerated(result) {
+            // Stop tip rotation
+            stopTipRotation();
+
+            // Hide loading
+            document.getElementById('ai-loading').style.display = 'none';
+
+            if (result.success) {
+                // Store workout
+                currentAIWorkout = result.workout;
+
+                // Display workout with markdown formatting
+                const workoutText = document.getElementById('ai-workout-text');
+                workoutText.innerHTML = markdownToHTML(result.workout);
+
+                // Show workout display
+                document.getElementById('ai-workout-display').style.display = 'block';
+
+                // Update log button based on completion status
+                updateAILogButton();
+            } else {
+                // Show error
+                showAIError(result.error || 'Failed to generate workout. Please try again.');
+            }
+        }
+
+        // Handle AI workout generation error
+        function onAIWorkoutError(error) {
+            // Stop tip rotation
+            stopTipRotation();
+
+            // Hide loading
+            document.getElementById('ai-loading').style.display = 'none';
+
+            console.error('AI workout error:', error);
+            showAIError('Network error. Please check your connection and try again.');
+        }
+
+        // Show AI error display
+        function showAIError(errorMessage) {
+            document.getElementById('ai-error-text').textContent = errorMessage;
+            document.getElementById('ai-error-display').style.display = 'block';
+        }
+
+        // Show AI selector form
+        function showAISelector() {
+            document.getElementById('ai-selector-form').style.display = 'block';
+            document.getElementById('ai-loading').style.display = 'none';
+            document.getElementById('ai-workout-display').style.display = 'none';
+            document.getElementById('ai-error-display').style.display = 'none';
+        }
+
+        // Start rotating fitness tips
+        function startTipRotation() {
+            currentTipIndex = 0;
+            const tipElement = document.getElementById('ai-loading-tip');
+            tipElement.textContent = fitnessTips[currentTipIndex];
+
+            tipRotationInterval = setInterval(function() {
+                currentTipIndex = (currentTipIndex + 1) % fitnessTips.length;
+                tipElement.textContent = fitnessTips[currentTipIndex];
+            }, 3000); // Change tip every 3 seconds
+        }
+
+        // Stop rotating fitness tips
+        function stopTipRotation() {
+            if (tipRotationInterval) {
+                clearInterval(tipRotationInterval);
+                tipRotationInterval = null;
+            }
+        }
+
+        // Log AI workout
+        function logAIWorkout() {
+            if (!userData || !userData.user) {
+                showError('User data not loaded');
+                return;
+            }
+
+            if (!currentAIWorkout || !currentAIParams) {
+                showAIError('No workout to log. Please generate a workout first.');
+                return;
+            }
+
+            // Create workout description with parameters (stored in other_workout_details column)
+            const workoutDescription = `${currentAIParams.time}min, ${currentAIParams.difficulty}, ${currentAIParams.equipment}`;
+
+            // Disable log button
+            const logBtn = document.getElementById('ai-log-btn');
+            logBtn.disabled = true;
+            logBtn.textContent = 'Logging...';
+
+            // Call backend to log as "ai" workout
+            API.markWorkoutComplete(userData.user.user_id, 'ai', workoutDescription)
+                .then(onAIWorkoutLogged)
+                .catch(onAIWorkoutLogError);
+        }
+
+        // Handle successful AI workout logging
+        function onAIWorkoutLogged(result) {
+            if (result.success) {
+                // Show success animation
+                showSuccessAnimation();
+
+                // Update log button to show completed state
+                const logBtn = document.getElementById('ai-log-btn');
+                logBtn.textContent = 'Logged ✓';
+                logBtn.disabled = true;
+                logBtn.classList.add('btn-disabled');
+
+                // Refresh data after delay
+                setTimeout(refreshData, 2000);
+            } else {
+                // Show error
+                const logBtn = document.getElementById('ai-log-btn');
+                logBtn.disabled = false;
+                logBtn.textContent = 'Log This Workout';
+
+                alert(result.message || 'Failed to log workout. You may have already logged a workout today.');
+            }
+        }
+
+        // Handle AI workout logging error
+        function onAIWorkoutLogError(error) {
+            console.error('AI workout log error:', error);
+
+            const logBtn = document.getElementById('ai-log-btn');
+            logBtn.disabled = false;
+            logBtn.textContent = 'Log This Workout';
+
+            alert('Failed to log workout. Please try again.');
+        }
+
+        // Update AI log button based on completion status
+        function updateAILogButton() {
+            const logBtn = document.getElementById('ai-log-btn');
+
+            if (userData && userData.completedToday) {
+                logBtn.disabled = true;
+                logBtn.textContent = 'Already Logged Today';
+                logBtn.classList.add('btn-disabled');
+            } else {
+                logBtn.disabled = false;
+                logBtn.textContent = 'Log This Workout';
+                logBtn.classList.remove('btn-disabled');
+            }
+        }
+    </script>
+</body>
+</html>

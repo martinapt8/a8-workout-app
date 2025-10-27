@@ -1,0 +1,33 @@
+# Node modules (if using any build tools)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+
+# Optional: Keep config.js out of git if you want to manage it privately
+# Uncomment the line below if you want to keep the API URL secret
+# config.js
+
+# Google Apps Script files (these stay in GAS, not deployed to GitHub Pages)
+# Backend .gs files are kept in /backend folder for version control reference only
+# They are NOT deployed to GitHub Pages - they stay in Google Apps Script
+
+# Build files (if using any build process)
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.log

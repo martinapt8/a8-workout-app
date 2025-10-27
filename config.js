@@ -4,7 +4,7 @@
 const CONFIG = {
   // IMPORTANT: After deploying Code.gs as a Web App, replace this URL
   // with your stable deployment URL: https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
-  API_URL: 'https://script.google.com/macros/s/AKfycbxTGCYsJVUVhtQfl6JVkhxcR88oZrIvZfQZymgb9Cqsv877I4Qz5B5AF8P8plsvroUvgg/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbzYJhGMr8TNbQ8TtNmchg9CZTyj88C4YGG7JCwSqegoi9gLvDCQmgABuPMRT02vfAt6qg/exec',
 
   // Optional: Add API key for basic security
   // Set the same key in Google Apps Script Script Properties

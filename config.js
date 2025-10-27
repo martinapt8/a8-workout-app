@@ -1,5 +1,6 @@
 // API Configuration
 // Replace with your Google Apps Script Web App URL after deployment
+// Last updated: 2025-10-27 - v2 deployment with CORS support
 const CONFIG = {
   // IMPORTANT: After deploying Code.gs as a Web App, replace this URL
   // with your stable deployment URL: https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec

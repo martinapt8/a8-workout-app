@@ -19,11 +19,13 @@
 
 **Google Apps Script API**:
 ```
-https://script.google.com/macros/s/AKfycbzeynl5eE8Hth_0J0SiEq_puj2NKgLPSjIzhxX_-qeXFx8Una6f26R423PHq83KXm_2Aw/exec
+https://script.google.com/macros/s/AKfycbzYJhGMr8TNbQ8TtNmchg9CZTyj88C4YGG7JCwSqegoi9gLvDCQmgABuPMRT02vfAt6qg/exec
 ```
 
 **Production Google Sheet**: [Your production sheet]
 **Dev Google Sheet**: [Create a duplicate for testing]
+
+**CORS Solution**: Uses form-encoded POST requests instead of JSON to bypass CORS preflight restrictions in Google Apps Script
 
 ---
 

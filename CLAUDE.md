@@ -25,6 +25,7 @@ A collective goal-oriented workout tracking web app for team building at A8. Fea
 - **Google Sheets Database**: 5 sheets for Users, Workouts, Completions, Settings, Coaching
 - **Google Apps Script**: Server logic with simplified operations
 - **No Authentication**: URL parameters identify users (`?user=martin`)
+- **CORS Solution**: Uses form-encoded POST (URLSearchParams) instead of JSON to bypass CORS preflight restrictions
 
 ### User Access Pattern
 ```
@@ -778,23 +779,36 @@ To add instructional video links to workout movements:
 
 ## API Endpoints
 
-### Main App
-`GET /exec?user={userId}`
-- Returns full HTML app for user
+### REST API (GitHub Pages deployment)
 
-### Mark Complete (via client-side)
+**Base URL**: Configured in `config.js`
+
+All API requests use **form-encoded POST** to avoid CORS preflight:
 ```javascript
-google.script.run
-  .withSuccessHandler(onSuccess)
-  .markWorkoutComplete(userId, 'prescribed');
+const formData = new URLSearchParams();
+formData.append('payload', JSON.stringify({
+  action: 'markWorkoutComplete',
+  userId: 'username',
+  workoutType: 'prescribed',
+  workoutDetails: '',
+  completionDate: null
+}));
+
+fetch(API_URL, {
+  method: 'POST',
+  body: formData
+});
 ```
 
-### Get Progress (via client-side)
-```javascript
-google.script.run
-  .withSuccessHandler(updateGoalPage)
-  .getGoalProgress();
-```
+**Available Actions**:
+- `getDashboard` - Get user dashboard data
+- `getGoalProgress` - Get team progress
+- `getAllWorkouts` - Get workout library
+- `getUserCompletionHistory` - Get user's completion dates
+- `generateAIWorkout` - Generate AI workout
+- `markWorkoutComplete` - Log a workout (POST only)
+
+**Why form-encoded?** Google Apps Script has CORS restrictions that prevent JSON POST requests from triggering preflight OPTIONS requests. Using URLSearchParams bypasses this limitation.
 
 ## Design System
 

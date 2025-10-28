@@ -8,55 +8,13 @@
     <!-- Apple Touch Icon and PWA settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="A8 Challenge">
+    <meta name="apple-mobile-web-app-title" content="Daily Dose">
 
-    <!-- Create and inject PNG icon dynamically -->
-    <script>
-        (function() {
-            // Create canvas to generate PNG icon
-            const canvas = document.createElement('canvas');
-            canvas.width = 180;
-            canvas.height = 180;
-            const ctx = canvas.getContext('2d');
-
-            // Fill yellow background
-            ctx.fillStyle = '#FFC107';
-            ctx.fillRect(0, 0, 180, 180);
-
-            // Draw black text
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 100px Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('A8', 90, 95);
-
-            // Convert to data URL and create link element
-            const iconUrl = canvas.toDataURL('image/png');
-
-            // Apple touch icon
-            const appleTouchIcon = document.createElement('link');
-            appleTouchIcon.rel = 'apple-touch-icon';
-            appleTouchIcon.href = iconUrl;
-            document.head.appendChild(appleTouchIcon);
-
-            // Also add as regular icon
-            const icon = document.createElement('link');
-            icon.rel = 'icon';
-            icon.type = 'image/png';
-            icon.href = iconUrl;
-            document.head.appendChild(icon);
-
-            // Add additional sizes for better compatibility
-            const sizes = [152, 167, 180];
-            sizes.forEach(size => {
-                const link = document.createElement('link');
-                link.rel = 'apple-touch-icon';
-                link.sizes = `${size}x${size}`;
-                link.href = iconUrl;
-                document.head.appendChild(link);
-            });
-        })();
-    </script>
+    <!-- Favicon - Daily Dose Logo -->
+    <link rel="icon" type="image/svg+xml" href="assets/daily_dose_logo.svg">
+    <link rel="icon" type="image/png" sizes="180x180" href="assets/daily_dose_logo_sm.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/daily_dose_logo_sm.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="assets/daily_dose_logo_lg.png">
 
     <!-- Theme color for browser chrome -->
     <meta name="theme-color" content="#FFC107">
@@ -69,6 +27,11 @@
     <script src="api.js"></script>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <img src="assets/daily_dose_logo.svg" alt="Daily Dose" class="loading-logo">
+    </div>
+
     <div id="app">
         <!-- Workout Page -->
         <div id="workout-page" class="page active">
@@ -78,7 +41,6 @@
                     <div class="logo-container">
                         <img src="assets/daily_dose_logo.svg" alt="Daily Dose Logo" class="header-logo">
                     </div>
-                    <h1 id="challenge-title">A8 Workout Challenge</h1>
                     <div class="user-greeting">
                         <span id="user-greeting">Hey there!</span>
                         <span id="completion-status" class="status-badge"></span>
@@ -102,6 +64,7 @@
                         </button>
                     </div>
                     <div class="other-card-body">
+                        <h2 class="other-workout-header">Log Other Workout</h2>
                         <input type="text" id="other-workout-input" class="other-workout-input"
                                placeholder="Describe your workout (e.g., 30 min run, yoga class)"
                                maxlength="100">
@@ -118,6 +81,7 @@
                         <p>No workout scheduled for today. Enjoy your rest!</p>
                     </div>
                     <div class="other-card-body">
+                        <h2 class="other-workout-header">Log Other Workout</h2>
                         <input type="text" id="other-workout-rest-input" class="other-workout-input"
                                placeholder="Describe your workout (e.g., 30 min run, yoga class)"
                                maxlength="100">
@@ -130,7 +94,7 @@
                 <!-- Recent Activity Card -->
                 <div class="card activity-card">
                     <div class="card-header">
-                        <h2>Recent Activity</h2>
+                        <h2>Recent Team Activity</h2>
                     </div>
                     <div class="card-body">
                         <div id="activity-list" class="activity-list">
@@ -150,7 +114,6 @@
                         <div class="logo-container">
                             <img src="assets/daily_dose_logo.svg" alt="Daily Dose Logo" class="header-logo">
                         </div>
-                        <h1 id="goal-challenge-title">A8 Progress towards Challenge</h1>
                     </div>
                     <div class="card-body">
                         <div class="progress-stats">
@@ -186,7 +149,6 @@
                         <div class="logo-container">
                             <img src="assets/daily_dose_logo.svg" alt="Daily Dose Logo" class="header-logo">
                         </div>
-                        <h2>My Summary</h2>
                     </div>
                     <div class="card-body">
                         <div class="my-summary">
@@ -212,7 +174,7 @@
                 <!-- Log Past Workout Card (moved from workout page) -->
                 <div class="card past-workout-card">
                     <div class="card-header">
-                        <h2>📅 Log Past Workout</h2>
+                        <h2>Log Past Workout</h2>
                     </div>
                     <div class="card-body">
                         <div class="past-workout-form">
@@ -244,7 +206,6 @@
                             <div class="logo-container">
                                 <img src="assets/daily_dose_logo.svg" alt="Daily Dose Logo" class="header-logo">
                             </div>
-                            <h2>Workout Library</h2>
                         </div>
                         <div class="card-body">
                             <div id="library-workouts" class="library-workouts">
@@ -284,7 +245,6 @@
                         <div class="logo-container">
                             <img src="assets/daily_dose_logo.svg" alt="Daily Dose Logo" class="header-logo">
                         </div>
-                        <h2>A8AI Workout Generator 🤖</h2>
                     </div>
                     <div class="card-body">
                         <!-- Selector Form -->
@@ -435,9 +395,8 @@
                 return;
             }
 
-            // Show loading state
-            showLoading();
-
+            // Loading screen is already visible by default
+            // Just fetch the data
             try {
                 // Fetch user dashboard data from API
                 userData = await API.getDashboard(userId);
@@ -468,29 +427,31 @@
 
         // Initialize app with user data
         function initializeApp() {
-            // Restore opacity after loading
-            const app = document.getElementById('app');
-            app.style.opacity = '1';
-
-            // Update workout page
+            // Update all pages with data
             updateWorkoutPage();
-
-            // Update progress page
             updateProgressPage();
-
-            // Update me page
             updateMePage();
-
-            // Update library page
             updateLibraryPage();
+
+            // Fade out loading screen and fade in app
+            const loadingScreen = document.getElementById('loading-screen');
+            const app = document.getElementById('app');
+
+            // Start fade out of loading screen
+            loadingScreen.classList.add('fade-out');
+
+            // Fade in app
+            app.classList.add('loaded');
+
+            // Remove loading screen from DOM after animation completes
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 500);
         }
 
         // Update workout page with user data
         function updateWorkoutPage() {
             if (!userData) return;
-
-            // Update header
-            document.getElementById('challenge-title').textContent = userData.settings.challenge_name || 'A8 Workout Challenge';
 
             // Update user greeting
             const greeting = document.getElementById('user-greeting');
@@ -586,10 +547,6 @@
         // Update progress page with team data
         function updateProgressPage() {
             if (!userData || !userData.goalProgress) return;
-
-            // Update header with progress format
-            const challengeName = userData.settings.challenge_name || 'Challenge';
-            document.getElementById('goal-challenge-title').textContent = `${challengeName}`;
 
             const progress = userData.goalProgress;
 
@@ -816,7 +773,6 @@
             if (pastWorkouts.length > 0) {
                 const pastHeader = document.createElement('h3');
                 pastHeader.className = 'library-section-header';
-                pastHeader.textContent = 'Past Workouts:';
                 libraryWorkouts.appendChild(pastHeader);
 
                 pastWorkouts.forEach(workout => {
@@ -1428,19 +1384,6 @@
             setTimeout(() => {
                 container.style.display = 'none';
             }, 2000);
-        }
-
-        // Show loading state
-        function showLoading() {
-            // Just hide the app temporarily and show a simple loading indicator
-            const app = document.getElementById('app');
-            app.style.opacity = '0.3';
-
-            // Add loading message to header if it exists
-            const header = document.querySelector('.header h1');
-            if (header) {
-                header.textContent = 'Loading...';
-            }
         }
 
         // Show error message

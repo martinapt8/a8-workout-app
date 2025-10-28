@@ -389,19 +389,42 @@ Consistent date formatting for display
 - [ ] Generate personalized URLs
 - [ ] Team announcement and onboarding
 
-## Current Status (Latest Update - October 27, 2025)
+## Current Status (Latest Update - October 28, 2025)
 
-### 🎨 Latest UI Improvements (October 27, 2025)
+### 🎨 Major UI Overhaul (October 28, 2025)
+
+**Simplified Page Headers**:
+- Removed all redundant page titles (challenge-title, goal-challenge-title, "My Summary", "Workout Library", "A8AI Workout Generator")
+- Clean headers now show only the Daily Dose logo and essential content
+- Today page: Logo + user greeting/status
+- All other pages: Logo only → straight to content
+
+**Logo Enhancement**:
+- Increased logo size by 50%: 60px → 90px height (max-width 200px → 300px)
+- Better visibility and stronger brand presence across all pages
+
+**Layout Improvements**:
+- Centered workout dates under workout titles for better visual hierarchy
+- Added "Log Other Workout" section headers for clarity
+- Centered all content in Me page summary section for balanced design
+
+**Branded Loading Screen** ⭐:
+- Full-screen black background with centered yellow Daily Dose logo
+- Smooth 0.5s cross-fade transition (loading out → app in)
+- Pulsing logo animation (2s loop) for polish
+- Loading screen visible instantly while data fetches asynchronously
+- Zero added load time - professional UX without performance cost
+
+**App Icon & Favicon**:
+- Dynamic generation: Yellow Daily Dose logo on black background
+- Black theme color for browser chrome (matches loading screen)
+- Works for browser tabs, iOS "Add to Home Screen", and Android
+- Consistent branding across all touchpoints
+
+### 🎨 UI Improvements (October 27, 2025)
 - **Daily Dose Logo Integration**: Black logo added to all 5 page headers
-  - SVG logo converted from yellow/gold to pure black (#000000)
-  - Centered at top of each page header card
-  - 60px height with automatic width for proper scaling
+  - SVG logo centered at top of each page header card
   - Logo file: `assets/daily_dose_logo.svg`
-- **Page Title Standardization**: All page titles now consistent
-  - Centered alignment for all page titles
-  - Standardized font size: 24px (was 20px for h2)
-  - Standardized font weight: 800 (extra bold, was 700)
-  - Applies to: "A8 Workout Challenge", "A8 Progress towards Challenge", "My Summary", "Workout Library", "A8AI Workout Generator 🤖"
 
 ### 🚀 Test Deployment Active
 - **Initial deployment successful** - App is running on Google Apps Script
@@ -426,9 +449,8 @@ Consistent date formatting for display
   - 26-75%: Blue (#3B82F6) - Steady progress
   - 76-100%: Yellow (#FFC107) - Nearing goal (A8 brand color)
   - >100%: Red (#EF4444) - Exceeded goal
-- **Apple Touch Icon**: Yellow background with black "A8" text for home screen
-  - Dynamically generated using HTML5 Canvas
-  - Multiple sizes for iOS compatibility (152x152, 167x167, 180x180)
+- **App Icon (Deprecated - see October 28 updates above)**: Old yellow background with black "A8" text
+  - Replaced with branded Daily Dose logo on black background
 
 ### 🤖 AI Workout Generator (October 24, 2025)
 

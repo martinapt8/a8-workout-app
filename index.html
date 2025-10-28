@@ -10,14 +10,74 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Daily Dose">
 
-    <!-- Favicon - Daily Dose Logo -->
-    <link rel="icon" type="image/svg+xml" href="assets/daily_dose_logo.svg">
-    <link rel="icon" type="image/png" sizes="180x180" href="assets/daily_dose_logo_sm.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/daily_dose_logo_sm.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="assets/daily_dose_logo_lg.png">
+    <!-- Dynamic icon generator - Black background with yellow logo -->
+    <script>
+        (function() {
+            // Load SVG and create icons with black background
+            fetch('assets/daily_dose_logo.svg')
+                .then(r => r.text())
+                .then(svgText => {
+                    // Modify SVG to use yellow instead of black
+                    const yellowSvg = svgText.replace(/fill="#000000"/g, 'fill="#FFC107"');
+
+                    // Create blob for image loading
+                    const blob = new Blob([yellowSvg], {type: 'image/svg+xml'});
+                    const url = URL.createObjectURL(blob);
+
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create 180x180 icon with black background
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 180;
+                        canvas.height = 180;
+                        const ctx = canvas.getContext('2d');
+
+                        // Black background
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(0, 0, 180, 180);
+
+                        // Draw yellow logo centered (80% of canvas)
+                        const logoSize = 144;
+                        const offset = (180 - logoSize) / 2;
+                        ctx.drawImage(img, offset, offset, logoSize, logoSize);
+
+                        const iconUrl = canvas.toDataURL('image/png');
+
+                        // Regular favicon
+                        const icon = document.createElement('link');
+                        icon.rel = 'icon';
+                        icon.type = 'image/png';
+                        icon.href = iconUrl;
+                        document.head.appendChild(icon);
+
+                        // Apple touch icons
+                        const appleTouchIcon = document.createElement('link');
+                        appleTouchIcon.rel = 'apple-touch-icon';
+                        appleTouchIcon.href = iconUrl;
+                        document.head.appendChild(appleTouchIcon);
+
+                        // Multiple sizes for better compatibility
+                        const sizes = [152, 167, 180];
+                        sizes.forEach(size => {
+                            const link = document.createElement('link');
+                            link.rel = 'apple-touch-icon';
+                            link.sizes = `${size}x${size}`;
+                            link.href = iconUrl;
+                            document.head.appendChild(link);
+                        });
+
+                        URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                })
+                .catch(err => {
+                    console.log('Could not load logo for icon generation:', err);
+                });
+        })();
+    </script>
 
     <!-- Theme color for browser chrome -->
-    <meta name="theme-color" content="#FFC107">
+    <meta name="theme-color" content="#000000">
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">

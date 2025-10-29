@@ -174,6 +174,8 @@
                         <div class="logo-container">
                             <img src="assets/daily_dose_logo.svg" alt="Daily Dose Logo" class="header-logo">
                         </div>
+                        <h2 id="progress-challenge-name" class="challenge-name"></h2>
+                        <p id="progress-challenge-dates" class="challenge-dates"></p>
                     </div>
                     <div class="card-body">
                         <div class="progress-stats">
@@ -609,6 +611,19 @@
             if (!userData || !userData.goalProgress) return;
 
             const progress = userData.goalProgress;
+
+            // Update challenge name and dates
+            if (userData.settings) {
+                document.getElementById('progress-challenge-name').textContent = userData.settings.challenge_name || 'Challenge';
+
+                // Format dates to MM/DD/YYYY
+                const startDate = new Date(userData.settings.start_date);
+                const endDate = new Date(userData.settings.end_date);
+                const formattedStart = `${startDate.getMonth() + 1}/${startDate.getDate()}/${startDate.getFullYear()}`;
+                const formattedEnd = `${endDate.getMonth() + 1}/${endDate.getDate()}/${endDate.getFullYear()}`;
+
+                document.getElementById('progress-challenge-dates').textContent = `${formattedStart} - ${formattedEnd}`;
+            }
 
             // Update progress stats
             document.getElementById('progress-text').textContent = `${progress.total_completions}/${progress.total_goal} workouts`;

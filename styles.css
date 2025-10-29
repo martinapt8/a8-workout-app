@@ -887,6 +887,22 @@ body {
     margin: 0;
 }
 
+/* Challenge name and dates on Team page */
+.challenge-name {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: #000000;
+    margin: 12px 0 8px 0;
+}
+
+.challenge-dates {
+    text-align: center;
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0 0 12px 0;
+}
+
 /* ================================================
    Calendar Grid
    ================================================ */

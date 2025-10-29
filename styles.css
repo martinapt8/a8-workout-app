@@ -597,6 +597,23 @@ body {
 .nav-icon {
     font-size: 24px;
     transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon-svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+    /* Default: Gray for inactive state (#6B7280) */
+    filter: invert(50%) sepia(7%) saturate(371%) hue-rotate(179deg) brightness(94%) contrast(87%);
+    transition: var(--transition);
+}
+
+/* Active state: Rich black (#000000) */
+.nav-btn.active .nav-icon-svg {
+    filter: none;
 }
 
 .nav-label {
@@ -1073,6 +1090,11 @@ body {
         font-size: 18px;
     }
 
+    .nav-icon-svg {
+        width: 18px;
+        height: 18px;
+    }
+
     .calendar-day .day-number {
         font-size: 12px;
     }
@@ -1347,6 +1369,11 @@ body {
 
     .nav-icon {
         font-size: 16px;
+    }
+
+    .nav-icon-svg {
+        width: 16px;
+        height: 16px;
     }
 }
 

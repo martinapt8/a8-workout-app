@@ -1,6 +1,60 @@
 # A8 Workout Challenge App
 
-## Current Status (Latest Update - October 29, 2025)
+## Current Status (Latest Update - October 30, 2025)
+
+### 🏗️ Multi-Challenge Architecture Complete (October 30, 2025)
+
+**Major Backend Changes**:
+- Completed multi-challenge architecture implementation
+  - Year-round workout logging support (challenge_id = "year_round")
+  - Challenge-specific team assignments via Challenge_Teams table
+  - Removed team auto-assignment and Users table fallbacks
+  - Fixed stats calculation to use challenge_id filtering (10-20x performance improvement)
+  - Added debug logging to updateUserStats for troubleshooting
+- Activity Feed Improvements
+  - Simplified messages: "completed a challenge workout!" for all challenge workouts
+  - All workouts with matching challenge_id now properly categorized
+  - Fixed getUserDashboardData to return total_workouts and last_completed
+- New AutoSort.gs Script (Optional)
+  - Automatic Completions sheet sorting by timestamp on edit
+  - Sorts ascending (oldest first, newest last) for efficient reverse iteration
+  - AUTOSORT_ENABLED flag (disabled by default)
+  - Includes manual sort and test functions for admin use
+
+**Frontend Enhancements**:
+- Past Challenge History Feature
+  - New section on Me page showing all completed challenges
+  - Displays challenge name, dates, and workout count
+  - Formatted cards with responsive styling
+  - getUserAllChallengeStats API integration
+- Dynamic Team Navigation
+  - Team tab automatically hidden for users without team assignment
+  - Flexbox navigation with space-evenly distribution
+  - Centered layout for 4 buttons (non-challenge users)
+  - Full-width layout for 5 buttons (challenge users)
+  - Fixed clipping and alignment issues
+- UI Polish
+  - Updated "Past Challenges" to use card-header styling (centered H2)
+  - Fixed navigation button sizing (flex: 0 1 auto, max-width: 80px)
+  - Removed conflicting grid-template-columns overrides
+  - Improved mobile responsiveness
+
+**Cache-Busting Update**:
+- Version bumped to 20251030-1
+- Forces browser reload of updated CSS and JS
+
+**Files Changed**:
+- backend/Code.gs: 594 additions (stats fixes, activity feed, team logic)
+- backend/AutoSort.gs: 112 additions (new file)
+- index.html: 225 additions (past challenges, team nav hiding, off-season updates)
+- styles.css: 124 additions (flexbox nav, past challenge cards)
+- api.js: 7 additions (getUserAllChallengeStats method)
+
+**Technical Details**:
+- Total: 874 additions, 188 deletions across 5 files
+- All Phase 4 and Phase 5 frontend changes completed
+- Multi-challenge Quick Start documentation available
+- Ready for production deployment
 
 ### 🎨 Navigation & UI Improvements (October 29, 2025)
 

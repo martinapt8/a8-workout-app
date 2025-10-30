@@ -31,3 +31,7 @@ build/
 # Temporary files
 *.tmp
 *.log
+
+# Sample data with PII (Personal Identifiable Information)
+SampleData/
+*.csv

@@ -57,24 +57,56 @@ function generateAIWorkout(timeMinutes, difficulty, equipment) {
  * @returns {string} The formatted prompt
  */
 function buildWorkoutPrompt(timeMinutes, difficulty, equipment) {
-  return `You are a professional fitness trainer creating a workout for the A8 team's Daily Dose challenge.
+  // For 10-minute workouts, skip warm-up and cool-down
+  const skipWarmupCooldown = timeMinutes === '10';
 
-Generate a ${timeMinutes}-minute workout with these parameters:
-- Duration: ${timeMinutes} minutes
-- Difficulty: ${difficulty}
-- Equipment: ${equipment}
+  let promptText = `You are a professional fitness trainer creating a workout for a team fitness challenge.
 
-Requirements:
-- Design a complete, balanced workout that fits exactly within ${timeMinutes} minutes
-- Match the ${difficulty} difficulty level appropriately (Beginner = accessible modifications, Intermediate = moderate challenge, Hard = advanced movements)
-- Use only ${equipment} equipment
-- Include a brief warm-up (1-2 min) and cool-down/stretch (1-2 min)
+Generate a ${timeMinutes}-minute ${difficulty} workout using ${equipment}.
+
+CRITICAL FORMATTING RULES:
+- DO NOT include a title or header (e.g., "Daily Dose", "10-Minute Workout", etc.)
+- Start directly with the workout content
+- Use minimal line spacing (single blank line between sections maximum)
+- Be concise - list exercises clearly without motivational text
+- NO celebratory text, additional notes, or coaching tips at the end
+- End immediately after the last exercise or cool-down
+
+WORKOUT STRUCTURE:`;
+
+  if (!skipWarmupCooldown) {
+    promptText += `
+1. WARM-UP (1-2 minutes)
+   - List 3-4 brief warm-up movements with time/reps
+
+2. MAIN WORKOUT (${parseInt(timeMinutes) - 4} minutes)
+   - Provide specific exercises with sets/reps OR time duration
+   - Match ${difficulty} difficulty (Beginner = accessible, Intermediate = moderate, Hard = advanced)
+   - Include modifications in parentheses where helpful (e.g., "Push-ups (or knee push-ups)")
+
+3. COOL-DOWN (1-2 minutes)
+   - List 3-4 brief stretches with time`;
+  } else {
+    promptText += `
+MAIN WORKOUT (full ${timeMinutes} minutes)
 - Provide specific exercises with sets/reps OR time duration
-- Format clearly with sections: Warm-up, Main Workout, Cool-down
-- Use simple, motivating language
-- Make it fun and engaging for a team fitness challenge
+- Match ${difficulty} difficulty (Beginner = accessible, Intermediate = moderate, Hard = advanced)
+- Include modifications in parentheses where helpful (e.g., "Push-ups (or knee push-ups)")
+- NO warm-up or cool-down for 10-minute workouts`;
+  }
 
-Format the workout as plain text with clear sections and bullet points. Keep it concise and action-oriented.`;
+  promptText += `
+
+EXERCISE FORMATTING:
+- Use bullet points (•) for exercises
+- Format: "• Exercise name: reps/time (optional modification)"
+- Example: "• Push-ups: 15 reps (or knee push-ups)"
+- Keep descriptions brief - just the exercise, reps/time, and optional modification
+- DO NOT add coaching cues, form tips, or motivational text under exercises
+
+Remember: Be concise, direct, and end immediately after the workout content.`;
+
+  return promptText;
 }
 
 /**

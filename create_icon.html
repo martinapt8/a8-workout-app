@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+    <canvas id="canvas180" width="180" height="180"></canvas>
+    <script>
+        // Load SVG and create icons
+        fetch('assets/daily_dose_logo.svg')
+            .then(r => r.text())
+            .then(svgText => {
+                // Modify SVG to use yellow instead of black
+                const yellowSvg = svgText.replace(/fill="#000000"/g, 'fill="#FFC107"');
+                
+                // Create blob for image loading
+                const blob = new Blob([yellowSvg], {type: 'image/svg+xml'});
+                const url = URL.createObjectURL(blob);
+                
+                const img = new Image();
+                img.onload = function() {
+                    // Create 512x512 icon
+                    const canvas512 = document.getElementById('canvas512');
+                    const ctx512 = canvas512.getContext('2d');
+                    ctx512.fillStyle = '#000000';
+                    ctx512.fillRect(0, 0, 512, 512);
+                    
+                    const logoSize512 = 410; // 80% of 512
+                    const offset512 = (512 - logoSize512) / 2;
+                    ctx512.drawImage(img, offset512, offset512, logoSize512, logoSize512);
+                    
+                    // Create 180x180 icon
+                    const canvas180 = document.getElementById('canvas180');
+                    const ctx180 = canvas180.getContext('2d');
+                    ctx180.fillStyle = '#000000';
+                    ctx180.fillRect(0, 0, 180, 180);
+                    
+                    const logoSize180 = 144; // 80% of 180
+                    const offset180 = (180 - logoSize180) / 2;
+                    ctx180.drawImage(img, offset180, offset180, logoSize180, logoSize180);
+                    
+                    // Download links
+                    document.body.innerHTML += '<br><br>';
+                    
+                    const link512 = document.createElement('a');
+                    link512.download = 'daily_dose_icon_512.png';
+                    link512.href = canvas512.toDataURL('image/png');
+                    link512.textContent = 'Download 512x512 Icon';
+                    document.body.appendChild(link512);
+                    
+                    document.body.innerHTML += '<br><br>';
+                    
+                    const link180 = document.createElement('a');
+                    link180.download = 'daily_dose_icon_180.png';
+                    link180.href = canvas180.toDataURL('image/png');
+                    link180.textContent = 'Download 180x180 Icon';
+                    document.body.appendChild(link180);
+                    
+                    URL.revokeObjectURL(url);
+                };
+                img.src = url;
+            });
+    </script>
+</body>
+</html>

@@ -112,6 +112,13 @@ const API = {
   },
 
   /**
+   * Get user's stats for all past challenges
+   */
+  async getUserAllChallengeStats(userId) {
+    return this.get('getUserAllChallengeStats', { userId });
+  },
+
+  /**
    * Generate AI workout using Claude API
    */
   async generateAIWorkout(time, difficulty, equipment) {

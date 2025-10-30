@@ -27,7 +27,9 @@ function doGet(e) {
 
       case 'getGoalProgress':
         const ss1 = SpreadsheetApp.getActiveSpreadsheet();
-        result = getGoalProgress(ss1);
+        const activeChallenge1 = getActiveChallenge(ss1);
+        const challengeId1 = activeChallenge1 ? activeChallenge1.challenge_id : null;
+        result = getGoalProgress(ss1, challengeId1);
         break;
 
       case 'getAllWorkouts':
@@ -40,6 +42,16 @@ function doGet(e) {
           result = { error: 'Missing userId parameter' };
         } else {
           result = getUserCompletionHistory(historyUserId);
+        }
+        break;
+
+      case 'getUserAllChallengeStats':
+        const statsUserId = e.parameter.userId;
+        if (!statsUserId) {
+          result = { error: 'Missing userId parameter' };
+        } else {
+          const ss2 = SpreadsheetApp.getActiveSpreadsheet();
+          result = getUserAllChallengeStats(ss2, statsUserId);
         }
         break;
 
@@ -56,7 +68,7 @@ function doGet(e) {
         break;
 
       default:
-        result = { error: 'Invalid action parameter. Valid actions: getDashboard, getGoalProgress, getAllWorkouts, getUserCompletionHistory, generateAIWorkout' };
+        result = { error: 'Invalid action parameter. Valid actions: getDashboard, getGoalProgress, getAllWorkouts, getUserCompletionHistory, getUserAllChallengeStats, generateAIWorkout' };
     }
 
     const jsonResponse = JSON.stringify(result);
@@ -150,27 +162,50 @@ function getUserDashboardData(userId) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    // Get settings
-    const settings = getSettings(ss);
-
     // Get user info
     const user = getUserInfo(ss, userId);
     if (!user) {
       return { error: 'User not found' };
     }
 
-    // Get active workout for today
-    const activeWorkout = getActiveWorkout(ss);
+    // Get active challenge (replaces getSettings for challenge data)
+    const activeChallenge = getActiveChallenge(ss);
 
-    // Check if user completed today
-    const completedToday = hasCompletedToday(ss, userId);
+    // Handle no active challenge (off-season mode)
+    if (!activeChallenge) {
+      return {
+        error: 'No active challenge',
+        message: 'The app is currently in off-season. You can still log "Other Workouts" to track your year-round fitness!',
+        user: user,
+        challenge: null,
+        activeWorkout: null,
+        completedToday: false,
+        goalProgress: null
+      };
+    }
 
-    // Get goal progress
-    const goalProgress = getGoalProgress(ss);
+    // Get user's team for this challenge
+    const userTeam = getUserTeamForChallenge(ss, userId, activeChallenge.challenge_id);
+
+    // Get active workout (now filtered by challenge_id)
+    const activeWorkout = getActiveWorkout(ss, activeChallenge.challenge_id);
+
+    // Check if user completed today (now filtered by challenge_id)
+    const completedToday = hasCompletedToday(ss, userId, activeChallenge.challenge_id);
+
+    // Get goal progress (now filtered by challenge_id)
+    const goalProgress = getGoalProgress(ss, activeChallenge.challenge_id);
 
     return {
-      user: user,
-      settings: settings,
+      user: {
+        user_id: user.user_id,
+        display_name: user.display_name,
+        team_name: userTeam ? userTeam.team_name : null,
+        team_color: userTeam ? userTeam.team_color : null,
+        total_workouts: user.total_workouts || 0,
+        last_completed: user.last_completed || null
+      },
+      challenge: activeChallenge, // RENAMED from "settings"
       activeWorkout: activeWorkout,
       completedToday: completedToday,
       goalProgress: goalProgress
@@ -215,8 +250,6 @@ function getUserInfo(ss, userId) {
       return {
         user_id: data[i][headers['user_id']],
         display_name: data[i][headers['display_name']],
-        team_name: data[i][headers['team_name']],
-        team_color: data[i][headers['team_color']],
         total_workouts: data[i][headers['total_workouts']] || 0,
         last_completed: data[i][headers['last_completed']] ? formatDate(data[i][headers['last_completed']], ss) : null
       };
@@ -246,7 +279,7 @@ function getWorkoutsHeaderMapping(workoutsSheet) {
 }
 
 // Get the active workout based on today's date
-function getActiveWorkout(ss) {
+function getActiveWorkout(ss, challengeId) {
   const workoutsSheet = ss.getSheetByName('Workouts');
   const data = workoutsSheet.getDataRange().getValues();
   const headers = getWorkoutsHeaderMapping(workoutsSheet);
@@ -254,9 +287,19 @@ function getActiveWorkout(ss) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // If no challengeId provided, return null (off-season)
+  if (!challengeId) {
+    return null;
+  }
+
   let activeWorkout = null;
 
   for (let i = 1; i < data.length; i++) { // Skip header
+    // ADDED: Filter by challenge_id
+    if (headers['challenge_id'] !== undefined && data[i][headers['challenge_id']] !== challengeId) {
+      continue;
+    }
+
     const startDate = new Date(data[i][headers['start_date']]);
     const endDate = new Date(data[i][headers['end_date']]);
     startDate.setHours(0, 0, 0, 0);
@@ -320,53 +363,37 @@ function getActiveWorkout(ss) {
 }
 
 // Check if user has completed workout today
-function hasCompletedToday(ss, userId) {
-  const completionsSheet = ss.getSheetByName('Completions');
-  const data = completionsSheet.getDataRange().getValues();
-
-  // Get timezone from settings
+function hasCompletedToday(ss, userId, challengeId) {
   const settings = getSettings(ss);
-  const appTimezone = settings.timezone || Session.getScriptTimeZone();
+  const timezone = settings.timezone || 'America/New_York';
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: timezone }));
+  today.setHours(0, 0, 0, 0);
 
-  const today = new Date();
-  const todayStr = Utilities.formatDate(today, appTimezone, 'yyyy-MM-dd');
-
-  for (let i = data.length - 1; i >= 1; i--) { // Start from bottom, skip header
-    if (data[i][1] === userId) {
-      const completionDate = new Date(data[i][0]);
-      const completionStr = Utilities.formatDate(completionDate, appTimezone, 'yyyy-MM-dd');
-
-      if (completionStr === todayStr) {
-        return true;
-      }
-
-      // If we've gone past today, stop checking
-      if (completionStr < todayStr) {
-        break;
-      }
-    }
-  }
-
-  return false;
+  return hasCompletedOnDate(ss, userId, today, challengeId);
 }
 
 // Check if user has completed workout on a specific date
-function hasCompletedOnDate(ss, userId, targetDate) {
+function hasCompletedOnDate(ss, userId, targetDate, challengeId) {
   const completionsSheet = ss.getSheetByName('Completions');
   const data = completionsSheet.getDataRange().getValues();
+  const headers = data[0];
 
-  // Get timezone from settings
-  const settings = getSettings(ss);
-  const appTimezone = settings.timezone || Session.getScriptTimeZone();
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
 
-  const targetDateStr = Utilities.formatDate(new Date(targetDate), appTimezone, 'yyyy-MM-dd');
+  for (let i = 1; i < data.length; i++) {
+    const rowUserId = data[i][headerMap['user_id']];
+    const rowChallengeId = data[i][headerMap['challenge_id']];
 
-  for (let i = data.length - 1; i >= 1; i--) { // Start from bottom, skip header
-    if (data[i][1] === userId) {
-      const completionDate = new Date(data[i][0]);
-      const completionStr = Utilities.formatDate(completionDate, appTimezone, 'yyyy-MM-dd');
+    // Filter by user and challenge
+    if (rowUserId && rowUserId.toString().toLowerCase().trim() === userId.toLowerCase().trim() &&
+        rowChallengeId === challengeId) {
+      const completionDate = new Date(data[i][headerMap['timestamp']]);
+      completionDate.setHours(0, 0, 0, 0);
 
-      if (completionStr === targetDateStr) {
+      if (completionDate.getTime() === targetDate.getTime()) {
         return true;
       }
     }
@@ -376,98 +403,91 @@ function hasCompletedOnDate(ss, userId, targetDate) {
 }
 
 // Get overall goal progress
-function getGoalProgress(ss) {
-  const settings = getSettings(ss);
+function getGoalProgress(ss, challengeId) {
   const completionsSheet = ss.getSheetByName('Completions');
-  const usersSheet = ss.getSheetByName('Users');
-  const workoutsSheet = ss.getSheetByName('Workouts');
+  const data = completionsSheet.getDataRange().getValues();
+  const headers = data[0];
 
-  // Count total completions for current challenge
-  const startDate = new Date(settings.start_date);
-  const endDate = new Date(settings.end_date);
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
 
-  const completionsData = completionsSheet.getDataRange().getValues();
-  const workoutsData = workoutsSheet.getDataRange().getValues();
+  // Handle no challenge (off-season mode)
+  if (!challengeId) {
+    return {
+      total_completions: 0,
+      total_goal: null,
+      percentage: null,
+      team_totals: {},
+      recent_completions: [],
+      year_round_mode: true
+    };
+  }
+
+  const challenge = getChallengeById(ss, challengeId);
+  if (!challenge) {
+    return { error: 'Challenge not found' };
+  }
+
   let totalCompletions = 0;
   const teamTotals = {};
   const recentCompletions = [];
 
-  // Get header mapping and create workout lookup map for performance
-  const workoutsHeaders = getWorkoutsHeaderMapping(workoutsSheet);
-  const workoutNames = {};
-  for (let i = 1; i < workoutsData.length; i++) {
-    workoutNames[workoutsData[i][workoutsHeaders['workout_id']]] = workoutsData[i][workoutsHeaders['workout_name']]; // workout_id -> workout_name
-  }
+  // PERFORMANCE OPTIMIZATION: Filter by challenge_id FIRST
+  for (let i = 1; i < data.length; i++) {
+    // Skip rows not belonging to this challenge
+    if (data[i][headerMap['challenge_id']] !== challengeId) {
+      continue;
+    }
 
-  // First pass: count totals going forward
-  for (let i = 1; i < completionsData.length; i++) {
-    const completionDate = new Date(completionsData[i][0]);
+    totalCompletions++;
 
-    if (completionDate >= startDate && completionDate <= endDate) {
-      totalCompletions++;
-
-      // Track team totals
-      const teamName = completionsData[i][3];
-      if (teamName) {
-        teamTotals[teamName] = (teamTotals[teamName] || 0) + 1;
-      }
+    const teamName = data[i][headerMap['team_name']];
+    if (teamName) {
+      teamTotals[teamName] = (teamTotals[teamName] || 0) + 1;
     }
   }
 
-  // Second pass: get recent completions going backwards (newest first)
-  for (let i = completionsData.length - 1; i >= 1; i--) {
-    if (recentCompletions.length >= 10) break; // Stop once we have 10
+  // Second pass for recent completions (reverse iteration)
+  for (let i = data.length - 1; i >= 1 && recentCompletions.length < 10; i--) {
+    if (data[i][headerMap['challenge_id']] === challengeId) {
+      const userId = data[i][headerMap['user_id']];
+      const timestamp = data[i][headerMap['timestamp']];
+      const workoutId = data[i][headerMap['workout_id']];
 
-    const completionDate = new Date(completionsData[i][0]);
+      const userInfo = getUserInfo(ss, userId);
+      const displayName = userInfo ? userInfo.display_name : userId;
 
-    if (completionDate >= startDate && completionDate <= endDate && completionsData[i][1]) {
-      const userInfo = getUserInfo(ss, completionsData[i][1]);
-      if (userInfo) {
-        const workoutId = completionsData[i][2];
-        const workoutName = workoutId === 'Other Workout' ? 'Other Workout' : (workoutNames[workoutId] || 'Workout');
+      // Since we're already filtering by challengeId, all workouts here are challenge workouts
+      const workoutDescription = 'completed a challenge workout!';
 
-        recentCompletions.push({
-          display_name: userInfo.display_name,
-          workout_id: workoutId,
-          workout_name: workoutName,
-          timestamp: formatDateTime(completionsData[i][0], ss)
-        });
-      }
+      recentCompletions.push({
+        user: displayName,
+        workout: workoutDescription,
+        timestamp: formatDate(new Date(timestamp), ss)
+      });
     }
   }
-
-  // Get all teams from Users sheet
-  const usersData = usersSheet.getDataRange().getValues();
-  const usersHeaders = getHeaderMapping(usersSheet);
-  const allTeams = new Set();
-  for (let i = 1; i < usersData.length; i++) {
-    if (usersData[i][usersHeaders['team_name']]) {
-      allTeams.add(usersData[i][usersHeaders['team_name']]);
-    }
-  }
-
-  // Ensure all teams are in teamTotals
-  allTeams.forEach(team => {
-    if (!teamTotals[team]) {
-      teamTotals[team] = 0;
-    }
-  });
-
-  const totalGoal = parseInt(settings.total_goal) || 200;
-  const percentage = Math.round((totalCompletions / totalGoal) * 100);
 
   return {
     total_completions: totalCompletions,
-    total_goal: totalGoal,
-    percentage: percentage,
+    total_goal: challenge.total_goal,
+    percentage: Math.round((totalCompletions / challenge.total_goal) * 100),
     team_totals: teamTotals,
-    recent_completions: recentCompletions // Already in order (most recent first)
+    recent_completions: recentCompletions
   };
 }
 
 // Mark workout as complete
 function markWorkoutComplete(userId, workoutType, workoutDetails, completionDate) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // Get active challenge
+  const activeChallenge = getActiveChallenge(ss);
+
+  // Allow year-round logging even without active challenge
+  const challengeId = activeChallenge ? activeChallenge.challenge_id : 'year_round';
 
   // Get timezone from settings
   const settings = getSettings(ss);
@@ -495,14 +515,14 @@ function markWorkoutComplete(userId, workoutType, workoutDetails, completionDate
     }
 
     // Check if already completed on this specific date
-    if (hasCompletedOnDate(ss, userId, targetDate)) {
+    if (hasCompletedOnDate(ss, userId, targetDate, challengeId)) {
       const dateStr = Utilities.formatDate(targetDate, appTimezone, 'MMM d, yyyy');
       return { success: false, message: `You already logged a workout for ${dateStr}!` };
     }
   } else {
     targetDate = new Date();
     // Check if already completed today (original behavior)
-    if (hasCompletedToday(ss, userId)) {
+    if (hasCompletedToday(ss, userId, challengeId)) {
       return { success: false, message: 'Already completed today!' };
     }
   }
@@ -513,6 +533,15 @@ function markWorkoutComplete(userId, workoutType, workoutDetails, completionDate
     return { success: false, message: 'User not found' };
   }
 
+  // Get user's team for this challenge
+  let teamName = null;
+  if (activeChallenge) {
+    const userTeam = getUserTeamForChallenge(ss, userId, activeChallenge.challenge_id);
+    if (userTeam) {
+      teamName = userTeam.team_name;
+    }
+  }
+
   // Determine workout_id
   let workoutId;
   if (workoutType === 'ai') {
@@ -520,7 +549,7 @@ function markWorkoutComplete(userId, workoutType, workoutDetails, completionDate
   } else if (workoutType === 'other') {
     workoutId = 'Other Workout';
   } else {
-    const activeWorkout = getActiveWorkout(ss);
+    const activeWorkout = getActiveWorkout(ss, challengeId);
     if (!activeWorkout) {
       return { success: false, message: 'No active workout today' };
     }
@@ -537,8 +566,9 @@ function markWorkoutComplete(userId, workoutType, workoutDetails, completionDate
     timestamp,
     userId,
     workoutId,
-    user.team_name,
-    workoutDetails || '' // Add the workout details in column E (new column)
+    teamName,
+    workoutDetails || '', // Add the workout details in column E
+    challengeId // Add challenge_id in column F
   ]);
 
   // Update user stats
@@ -560,41 +590,62 @@ function updateUserStats(ss, userId) {
   const data = usersSheet.getDataRange().getValues();
   const headers = getHeaderMapping(usersSheet);
 
+  Logger.log('DEBUG updateUserStats - Headers mapping: ' + JSON.stringify(headers));
+  Logger.log('DEBUG updateUserStats - Looking for userId: ' + userId);
+
   // Find user row
   const userIdLower = userId.toLowerCase().trim();
   for (let i = 1; i < data.length; i++) {
     if (data[i][headers['user_id']] && data[i][headers['user_id']].toString().toLowerCase().trim() === userIdLower) {
       // Get the actual user_id from the sheet (with correct casing)
       const actualUserId = data[i][headers['user_id']];
+      Logger.log('DEBUG updateUserStats - Found user at row: ' + (i + 1));
 
-      // Count total workouts for current challenge
-      const settings = getSettings(ss);
-      const startDate = new Date(settings.start_date);
-      const endDate = new Date(settings.end_date);
+      // Get active challenge
+      const activeChallenge = getActiveChallenge(ss);
+      const challengeId = activeChallenge ? activeChallenge.challenge_id : null;
+      Logger.log('DEBUG updateUserStats - Active challenge ID: ' + challengeId);
 
       const completionsSheet = ss.getSheetByName('Completions');
       const completionsData = completionsSheet.getDataRange().getValues();
+      const completionsHeaders = completionsData[0];
+
+      // Create header mapping for Completions
+      const completionsHeaderMap = {};
+      for (let k = 0; k < completionsHeaders.length; k++) {
+        completionsHeaderMap[completionsHeaders[k]] = k;
+      }
+      Logger.log('DEBUG updateUserStats - Completions headers: ' + JSON.stringify(completionsHeaderMap));
 
       let totalWorkouts = 0;
       let lastCompleted = null;
 
       for (let j = 1; j < completionsData.length; j++) {
-        if (completionsData[j][1] === actualUserId) {
-          const completionDate = new Date(completionsData[j][0]);
-          if (completionDate >= startDate && completionDate <= endDate) {
-            totalWorkouts++;
-            if (!lastCompleted || completionDate > lastCompleted) {
-              lastCompleted = completionDate;
-            }
+        const rowUserId = completionsData[j][completionsHeaderMap['user_id']];
+        const rowChallengeId = completionsData[j][completionsHeaderMap['challenge_id']];
+
+        // Match by user_id and challenge_id
+        if (rowUserId === actualUserId && rowChallengeId === challengeId) {
+          totalWorkouts++;
+          const completionDate = new Date(completionsData[j][completionsHeaderMap['timestamp']]);
+          if (!lastCompleted || completionDate > lastCompleted) {
+            lastCompleted = completionDate;
           }
         }
       }
+
+      Logger.log('DEBUG updateUserStats - Calculated totalWorkouts: ' + totalWorkouts);
+      Logger.log('DEBUG updateUserStats - Calculated lastCompleted: ' + lastCompleted);
+      Logger.log('DEBUG updateUserStats - total_workouts column index: ' + headers['total_workouts']);
+      Logger.log('DEBUG updateUserStats - last_completed column index: ' + headers['last_completed']);
 
       // Update the user row using header-based column indices
       usersSheet.getRange(i + 1, headers['total_workouts'] + 1).setValue(totalWorkouts);
       if (lastCompleted) {
         usersSheet.getRange(i + 1, headers['last_completed'] + 1).setValue(lastCompleted);
       }
+
+      Logger.log('DEBUG updateUserStats - Updated row ' + (i + 1) + ' columns ' + (headers['total_workouts'] + 1) + ' and ' + (headers['last_completed'] + 1));
 
       break;
     }
@@ -662,29 +713,53 @@ function resetAllUserStats() {
 // Get user's completion history (dates they completed workouts)
 function getUserCompletionHistory(userId) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // Get active challenge
+  const activeChallenge = getActiveChallenge(ss);
+
+  // If no active challenge, return empty array
+  if (!activeChallenge) {
+    return [];
+  }
+
+  return getUserCompletionHistoryForChallenge(userId, activeChallenge.challenge_id);
+}
+
+/**
+ * Get user completion history for a specific challenge
+ * @param {string} userId - User ID
+ * @param {string} challengeId - Challenge ID
+ * @returns {Array} Array of dates (YYYY-MM-DD format)
+ */
+function getUserCompletionHistoryForChallenge(userId, challengeId) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const completionsSheet = ss.getSheetByName('Completions');
   const data = completionsSheet.getDataRange().getValues();
+  const headers = data[0];
 
-  // Get settings for challenge date range
-  const settings = getSettings(ss);
-  const startDate = new Date(settings.start_date);
-  const endDate = new Date(settings.end_date);
+  // Create header mapping
+  const headerMap = {};
+  for (let i = 0; i < headers.length; i++) {
+    headerMap[headers[i]] = i;
+  }
 
   // Get timezone
+  const settings = getSettings(ss);
   const appTimezone = settings.timezone || Session.getScriptTimeZone();
 
   const completionDates = [];
 
   for (let i = 1; i < data.length; i++) { // Skip header
-    if (data[i][1] === userId) {
-      const completionDate = new Date(data[i][0]);
+    const rowUserId = data[i][headerMap['user_id']];
+    const rowChallengeId = data[i][headerMap['challenge_id']];
 
-      // Only include dates within current challenge
-      if (completionDate >= startDate && completionDate <= endDate) {
-        const dateStr = Utilities.formatDate(completionDate, appTimezone, 'yyyy-MM-dd');
-        if (!completionDates.includes(dateStr)) {
-          completionDates.push(dateStr);
-        }
+    // Filter by user and challenge
+    if (rowUserId && rowUserId.toString().toLowerCase().trim() === userId.toLowerCase().trim() &&
+        rowChallengeId === challengeId) {
+      const completionDate = new Date(data[i][headerMap['timestamp']]);
+      const dateStr = Utilities.formatDate(completionDate, appTimezone, 'yyyy-MM-dd');
+      if (!completionDates.includes(dateStr)) {
+        completionDates.push(dateStr);
       }
     }
   }
@@ -695,6 +770,25 @@ function getUserCompletionHistory(userId) {
 // Get all workouts (for workout library)
 function getAllWorkouts() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // Get active challenge
+  const activeChallenge = getActiveChallenge(ss);
+
+  // If no active challenge, return empty array
+  if (!activeChallenge) {
+    return [];
+  }
+
+  return getAllWorkoutsForChallenge(activeChallenge.challenge_id);
+}
+
+/**
+ * Get all workouts for a specific challenge
+ * @param {string} challengeId - Challenge ID
+ * @returns {Array} Array of workout objects
+ */
+function getAllWorkoutsForChallenge(challengeId) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const workoutsSheet = ss.getSheetByName('Workouts');
   const data = workoutsSheet.getDataRange().getValues();
   const headers = getWorkoutsHeaderMapping(workoutsSheet);
@@ -702,6 +796,17 @@ function getAllWorkouts() {
   const workouts = [];
 
   for (let i = 1; i < data.length; i++) { // Skip header
+    const workoutId = data[i][headers['workout_id']];
+    const rowChallengeId = data[i][headers['challenge_id']];
+
+    // Skip empty rows
+    if (!workoutId) continue;
+
+    // Filter by challenge
+    if (challengeId && rowChallengeId !== challengeId) {
+      continue;
+    }
+
     // Skip workouts with missing dates
     if (!data[i][headers['start_date']] || !data[i][headers['end_date']]) {
       continue;
@@ -768,4 +873,201 @@ function getAllWorkouts() {
   workouts.sort((a, b) => a.start_date_raw - b.start_date_raw);
 
   return workouts;
+}
+
+/**
+ * ============================================
+ * MULTI-CHALLENGE HELPER FUNCTIONS
+ * Added: October 30, 2025
+ * ============================================
+ */
+
+/**
+ * Get active challenge from Challenges sheet
+ * @param {Spreadsheet} ss - Spreadsheet object
+ * @returns {Object|null} Active challenge or null if no active challenge
+ */
+function getActiveChallenge(ss) {
+  const challengesSheet = ss.getSheetByName('Challenges');
+  if (!challengesSheet) {
+    Logger.log('Challenges sheet not found');
+    return null;
+  }
+
+  const data = challengesSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  // Build header mapping
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  // Find active challenge
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][headerMap['is_active']] === true) {
+      return {
+        challenge_id: data[i][headerMap['challenge_id']],
+        challenge_name: data[i][headerMap['challenge_name']],
+        start_date: data[i][headerMap['start_date']],
+        end_date: data[i][headerMap['end_date']],
+        total_goal: data[i][headerMap['total_goal']],
+        is_active: true,
+        status: data[i][headerMap['status']]
+      };
+    }
+  }
+
+  return null; // No active challenge
+}
+
+/**
+ * Get challenge by ID
+ * @param {Spreadsheet} ss - Spreadsheet object
+ * @param {string} challengeId - Challenge ID to find
+ * @returns {Object|null} Challenge or null
+ */
+function getChallengeById(ss, challengeId) {
+  const challengesSheet = ss.getSheetByName('Challenges');
+  if (!challengesSheet) return null;
+
+  const data = challengesSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][headerMap['challenge_id']] === challengeId) {
+      return {
+        challenge_id: data[i][headerMap['challenge_id']],
+        challenge_name: data[i][headerMap['challenge_name']],
+        start_date: data[i][headerMap['start_date']],
+        end_date: data[i][headerMap['end_date']],
+        total_goal: data[i][headerMap['total_goal']],
+        is_active: data[i][headerMap['is_active']],
+        status: data[i][headerMap['status']]
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Get user's team for a specific challenge
+ * @param {Spreadsheet} ss - Spreadsheet object
+ * @param {string} userId - User ID
+ * @param {string} challengeId - Challenge ID
+ * @returns {Object|null} Team info {team_name, team_color} or null
+ */
+function getUserTeamForChallenge(ss, userId, challengeId) {
+  const teamsSheet = ss.getSheetByName('Challenge_Teams');
+
+  if (!teamsSheet) {
+    // Challenge_Teams sheet doesn't exist - users must be explicitly assigned
+    return null;
+  }
+
+  const data = teamsSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  const userIdLower = userId.toLowerCase().trim();
+
+  for (let i = 1; i < data.length; i++) {
+    const rowChallengeId = data[i][headerMap['challenge_id']];
+    const rowUserId = data[i][headerMap['user_id']];
+
+    if (rowChallengeId === challengeId &&
+        rowUserId && rowUserId.toString().toLowerCase().trim() === userIdLower) {
+      return {
+        team_name: data[i][headerMap['team_name']],
+        team_color: data[i][headerMap['team_color']]
+      };
+    }
+  }
+
+  // User not found in Challenge_Teams - they are not participating in this challenge
+  return null;
+}
+
+/**
+ * Get user's stats for all challenges (for Me page history)
+ * @param {Spreadsheet} ss - Spreadsheet object
+ * @param {string} userId - User ID
+ * @returns {Array} Array of {challenge_id, challenge_name, workout_count, team_name, start_date, end_date}
+ */
+function getUserAllChallengeStats(ss, userId) {
+  const completionsSheet = ss.getSheetByName('Completions');
+  const data = completionsSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  const userIdLower = userId.toLowerCase().trim();
+  const statsByChallenge = {};
+
+  // Count completions by challenge
+  for (let i = 1; i < data.length; i++) {
+    const rowUserId = data[i][headerMap['user_id']];
+    const challengeId = data[i][headerMap['challenge_id']];
+
+    if (rowUserId && rowUserId.toString().toLowerCase().trim() === userIdLower) {
+      if (!statsByChallenge[challengeId]) {
+        statsByChallenge[challengeId] = {
+          challenge_id: challengeId,
+          workout_count: 0
+        };
+      }
+      statsByChallenge[challengeId].workout_count++;
+    }
+  }
+
+  // Enrich with challenge details
+  const results = [];
+  for (const challengeId in statsByChallenge) {
+    if (challengeId === 'year_round') {
+      results.push({
+        challenge_id: 'year_round',
+        challenge_name: 'Year-Round Workouts',
+        workout_count: statsByChallenge[challengeId].workout_count,
+        team_name: null,
+        start_date: null,
+        end_date: null
+      });
+    } else {
+      const challenge = getChallengeById(ss, challengeId);
+      const teamInfo = getUserTeamForChallenge(ss, userId, challengeId);
+
+      if (challenge) {
+        results.push({
+          challenge_id: challengeId,
+          challenge_name: challenge.challenge_name,
+          workout_count: statsByChallenge[challengeId].workout_count,
+          team_name: teamInfo ? teamInfo.team_name : null,
+          start_date: formatDate(challenge.start_date, ss),
+          end_date: formatDate(challenge.end_date, ss)
+        });
+      }
+    }
+  }
+
+  // Sort by start_date (most recent first)
+  results.sort((a, b) => {
+    if (!a.start_date) return 1; // year_round goes to end
+    if (!b.start_date) return -1;
+    return new Date(b.start_date) - new Date(a.start_date);
+  });
+
+  return results;
 }

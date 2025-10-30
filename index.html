@@ -221,14 +221,27 @@
                     </div>
                 </div>
 
-                <!-- My Calendar Card -->
+                <!-- My Workout Calendar Card -->
                 <div class="card calendar-card">
                     <div class="card-header">
-                        <h2>My Calendar</h2>
+                        <h2>My Workouts</h2>
                     </div>
                     <div class="card-body">
                         <div id="calendar-grid" class="calendar-grid">
                             <!-- Calendar will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Past Challenges Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Past Challenges</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="past-challenges-container">
+                            <!-- Will be populated by JavaScript -->
+                            <p style="color: #9CA3AF; text-align: center;">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -420,7 +433,7 @@
                 </span>
                 <span class="nav-label">Today</span>
             </button>
-            <button class="nav-btn" data-page="progress">
+            <button class="nav-btn" data-page="progress" id="team-nav-btn">
                 <span class="nav-icon">
                     <img src="assets/team.svg" alt="Team" class="nav-icon-svg">
                 </span>
@@ -473,6 +486,12 @@
                 // Fetch user dashboard data from API
                 userData = await API.getDashboard(userId);
 
+                // Handle no active challenge (off-season mode)
+                if (userData.error && userData.error === 'No active challenge') {
+                    showOffSeasonMode(userData);
+                    return;
+                }
+
                 if (userData.error) {
                     showError(userData.error);
                     return;
@@ -499,6 +518,14 @@
 
         // Initialize app with user data
         function initializeApp() {
+            // Hide Team navigation if user is not in a challenge
+            if (!userData.user.team_name || !userData.challenge) {
+                const teamNavBtn = document.getElementById('team-nav-btn');
+                if (teamNavBtn) {
+                    teamNavBtn.style.display = 'none';
+                }
+            }
+
             // Update all pages with data
             updateWorkoutPage();
             updateProgressPage();
@@ -519,6 +546,71 @@
             setTimeout(() => {
                 loadingScreen.remove();
             }, 500);
+        }
+
+        /**
+         * Display off-season mode when no active challenge
+         */
+        function showOffSeasonMode(data) {
+            // Hide loading screen and show app
+            const loadingScreen = document.getElementById('loading-screen');
+            const app = document.getElementById('app');
+            loadingScreen.classList.add('fade-out');
+            app.classList.add('loaded');
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 500);
+
+            // Update challenge title
+            document.getElementById('challenge-title').textContent = 'Off-Season';
+
+            // Update user greeting
+            if (data.user) {
+                document.getElementById('user-greeting').textContent = `Hey ${data.user.display_name}!`;
+            }
+
+            // Show off-season message
+            document.getElementById('completion-status').innerHTML =
+                `<div style="padding: 20px; background: #FFF3CD; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; color: #856404; font-weight: 500;">🌴 Off-Season Mode</p>
+                    <p style="margin: 10px 0 0 0; color: #856404; font-size: 14px;">${data.message}</p>
+                </div>`;
+
+            // Hide workout card (no prescribed workout available)
+            const workoutCard = document.getElementById('workout-card');
+            if (workoutCard) {
+                workoutCard.style.display = 'none';
+            }
+
+            // Show "Log Other Workout" button (users can still track workouts)
+            const logOtherBtn = document.getElementById('log-other-workout-btn');
+            if (logOtherBtn) {
+                logOtherBtn.style.display = 'block';
+                logOtherBtn.textContent = 'Log Workout (Year-Round)';
+            }
+
+            // Hide Team page content or show off-season message
+            const goalSection = document.getElementById('goal-section');
+            if (goalSection) {
+                goalSection.innerHTML =
+                    `<div style="text-align: center; padding: 40px 20px;">
+                        <h3 style="color: #6B7280;">No Active Challenge</h3>
+                        <p style="color: #9CA3AF;">Join us for the next challenge!</p>
+                    </div>`;
+            }
+
+            // Hide Library page or show message
+            const libraryContent = document.getElementById('library-content');
+            if (libraryContent) {
+                libraryContent.innerHTML =
+                    `<div style="text-align: center; padding: 40px 20px;">
+                        <h3 style="color: #6B7280;">No Workouts Available</h3>
+                        <p style="color: #9CA3AF;">Workouts will appear when a challenge is active.</p>
+                    </div>`;
+            }
+
+            // Store off-season state
+            userData = data;
         }
 
         // Update workout page with user data
@@ -623,12 +715,12 @@
             const progress = userData.goalProgress;
 
             // Update challenge name and dates
-            if (userData.settings) {
-                document.getElementById('progress-challenge-name').textContent = userData.settings.challenge_name || 'Challenge';
+            if (userData.challenge) {
+                document.getElementById('progress-challenge-name').textContent = userData.challenge.challenge_name || 'Challenge';
 
                 // Format dates to MM/DD/YYYY
-                const startDate = new Date(userData.settings.start_date);
-                const endDate = new Date(userData.settings.end_date);
+                const startDate = new Date(userData.challenge.start_date);
+                const endDate = new Date(userData.challenge.end_date);
                 const formattedStart = `${startDate.getMonth() + 1}/${startDate.getDate()}/${startDate.getFullYear()}`;
                 const formattedEnd = `${endDate.getMonth() + 1}/${endDate.getDate()}/${endDate.getFullYear()}`;
 
@@ -688,10 +780,9 @@
                 progress.recent_completions.forEach(completion => {
                     const activityDiv = document.createElement('div');
                     activityDiv.className = 'activity-item';
-                    const workoutName = completion.workout_name || 'Workout';
                     activityDiv.innerHTML = `
-                        <span class="activity-user">${completion.display_name}</span>
-                        <span class="activity-action">completed ${workoutName}</span>
+                        <span class="activity-user">${completion.user}</span>
+                        <span class="activity-action">${completion.workout}</span>
                         <span class="activity-time">${completion.timestamp}</span>
                     `;
                     activityList.appendChild(activityDiv);
@@ -710,8 +801,13 @@
             const summaryWorkouts = document.getElementById('my-summary-workouts');
             const summaryLast = document.getElementById('my-summary-last');
 
-            summaryName.textContent = `${userData.user.display_name} - Team ${userData.user.team_name}`;
-            summaryName.style.color = userData.user.team_color || '#000000';
+            if (userData.user.team_name) {
+                summaryName.textContent = `${userData.user.display_name} - Team ${userData.user.team_name}`;
+                summaryName.style.color = userData.user.team_color || '#000000';
+            } else {
+                summaryName.textContent = `${userData.user.display_name}`;
+                summaryName.style.color = '#000000';
+            }
             summaryWorkouts.textContent = `${userData.user.total_workouts} workouts completed`;
             summaryLast.textContent = userData.user.last_completed ? `Last Workout: ${userData.user.last_completed}` : 'No workouts yet';
 
@@ -721,6 +817,9 @@
                 .catch(function(error) {
                     console.error('Failed to fetch completion history:', error);
                 });
+
+            // Load past challenge history
+            loadPastChallengeHistory();
         }
 
         // Build calendar grid with checkmarks
@@ -728,11 +827,19 @@
             const calendarGrid = document.getElementById('calendar-grid');
             calendarGrid.innerHTML = '';
 
-            if (!userData || !userData.settings) return;
+            if (!userData) return;
 
             // Parse challenge dates
-            const startDate = new Date(userData.settings.start_date);
-            const endDate = new Date(userData.settings.end_date);
+            // Handle off-season: show current month
+            let startDate, endDate;
+            if (!userData.challenge) {
+                const today = new Date();
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else {
+                startDate = new Date(userData.challenge.start_date);
+                endDate = new Date(userData.challenge.end_date);
+            }
 
             // Get month and year from start date
             const month = startDate.getMonth();
@@ -809,6 +916,90 @@
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+
+        /**
+         * Load and display past challenge history
+         */
+        function loadPastChallengeHistory() {
+            const container = document.getElementById('past-challenges-container');
+
+            if (!container) return;
+
+            // Show loading state
+            container.innerHTML = '<p style="color: #9CA3AF; text-align: center;">Loading past challenges...</p>';
+
+            // Fetch past challenge stats from backend
+            API.getUserAllChallengeStats(userData.user.user_id)
+                .then(function(challenges) {
+                    if (!challenges || challenges.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-past-challenges">
+                                <div class="empty-past-challenges-icon">📭</div>
+                                <p><strong>No Past Challenges Yet</strong></p>
+                                <p style="font-size: 14px;">Your challenge history will appear here</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Build HTML for past challenges
+                    let html = '';
+
+                    challenges.forEach(challenge => {
+                        const isYearRound = challenge.challenge_id === 'year_round';
+
+                        html += `
+                            <div class="past-challenge-card">
+                                <div class="past-challenge-header">
+                                    <div class="past-challenge-name">
+                                        ${challenge.challenge_name}
+                                        ${isYearRound ? '<span class="year-round-badge">Year-Round</span>' : ''}
+                                    </div>
+                                    <div class="past-challenge-count">
+                                        ${challenge.workout_count} workout${challenge.workout_count !== 1 ? 's' : ''}
+                                    </div>
+                                </div>
+                                <div class="past-challenge-details">
+                                    ${challenge.team_name ? `
+                                        <div class="past-challenge-detail-item">
+                                            <span>👥</span>
+                                            <span>${challenge.team_name}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${challenge.start_date && challenge.end_date ? `
+                                        <div class="past-challenge-detail-item">
+                                            <span>📅</span>
+                                            <span>${formatDateShort(challenge.start_date)} - ${formatDateShort(challenge.end_date)}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                })
+                .catch(function(error) {
+                    console.error('Error loading past challenges:', error);
+                    container.innerHTML = `
+                        <div class="empty-past-challenges">
+                            <p style="color: #EF4444;"><strong>Error loading past challenges</strong></p>
+                            <p style="font-size: 14px;">${error.message || 'Please try refreshing the page'}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        /**
+         * Format date for display (MM/DD/YYYY)
+         */
+        function formatDateShort(dateInput) {
+            const date = new Date(dateInput);
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const year = date.getFullYear();
+            return `${month}/${day}/${year}`;
         }
 
         // Update Library page with all workouts
@@ -1072,9 +1263,9 @@
             dateInput.value = yesterday.toISOString().split('T')[0];
 
             // Also set min date to challenge start if available
-            if (userData && userData.settings && userData.settings.start_date) {
+            if (userData && userData.challenge && userData.challenge.start_date) {
                 try {
-                    const startDate = new Date(userData.settings.start_date);
+                    const startDate = new Date(userData.challenge.start_date);
                     dateInput.min = startDate.toISOString().split('T')[0];
                 } catch (e) {
                     console.log('Could not parse start date for min constraint');

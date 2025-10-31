@@ -217,6 +217,7 @@
                             <p id="my-summary-name" class="summary-name"></p>
                             <p id="my-summary-workouts" class="summary-workouts"></p>
                             <p id="my-summary-last" class="summary-last"></p>
+                            <p id="my-summary-joined" class="summary-joined"></p>
                         </div>
                     </div>
                 </div>
@@ -233,10 +234,10 @@
                     </div>
                 </div>
 
-                <!-- Past Challenges Section -->
+                <!-- Challenge History Section -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>Past Challenges</h2>
+                        <h2>My Challenges</h2>
                     </div>
                     <div class="card-body">
                         <div id="past-challenges-container">
@@ -800,6 +801,7 @@
             const summaryName = document.getElementById('my-summary-name');
             const summaryWorkouts = document.getElementById('my-summary-workouts');
             const summaryLast = document.getElementById('my-summary-last');
+            const summaryJoined = document.getElementById('my-summary-joined');
 
             if (userData.user.team_name) {
                 summaryName.textContent = `${userData.user.display_name} - Team ${userData.user.team_name}`;
@@ -808,8 +810,14 @@
                 summaryName.textContent = `${userData.user.display_name}`;
                 summaryName.style.color = '#000000';
             }
-            summaryWorkouts.textContent = `${userData.user.total_workouts} workouts completed`;
+            summaryWorkouts.textContent = `${userData.user.lifetime_workouts} workouts completed`;
             summaryLast.textContent = userData.user.last_completed ? `Last Workout: ${userData.user.last_completed}` : 'No workouts yet';
+
+            // Debug: Log join_date value
+            console.log('DEBUG - join_date value:', userData.user.join_date);
+            console.log('DEBUG - full user object:', userData.user);
+
+            summaryJoined.textContent = userData.user.join_date ? `Member since: ${userData.user.join_date}` : '';
 
             // Fetch and build calendar
             API.getUserCompletionHistory(userData.user.user_id)
@@ -946,15 +954,20 @@
                     // Build HTML for past challenges
                     let html = '';
 
+                    // Check if there's an active challenge to identify it
+                    const activeChallengeId = userData.challenge ? userData.challenge.challenge_id : null;
+
                     challenges.forEach(challenge => {
                         const isYearRound = challenge.challenge_id === 'year_round';
+                        const isCurrent = challenge.challenge_id === activeChallengeId;
 
                         html += `
-                            <div class="past-challenge-card">
+                            <div class="past-challenge-card ${isCurrent ? 'current-challenge' : ''}">
                                 <div class="past-challenge-header">
                                     <div class="past-challenge-name">
                                         ${challenge.challenge_name}
                                         ${isYearRound ? '<span class="year-round-badge">Year-Round</span>' : ''}
+                                        ${isCurrent ? '<span class="current-badge">Current</span>' : ''}
                                     </div>
                                     <div class="past-challenge-count">
                                         ${challenge.workout_count} workout${challenge.workout_count !== 1 ? 's' : ''}
@@ -963,13 +976,11 @@
                                 <div class="past-challenge-details">
                                     ${challenge.team_name ? `
                                         <div class="past-challenge-detail-item">
-                                            <span>👥</span>
                                             <span>${challenge.team_name}</span>
                                         </div>
                                     ` : ''}
                                     ${challenge.start_date && challenge.end_date ? `
                                         <div class="past-challenge-detail-item">
-                                            <span>📅</span>
                                             <span>${formatDateShort(challenge.start_date)} - ${formatDateShort(challenge.end_date)}</span>
                                         </div>
                                     ` : ''}
@@ -995,7 +1006,16 @@
          * Format date for display (MM/DD/YYYY)
          */
         function formatDateShort(dateInput) {
+            // If input is already in MM/DD/YYYY format, return as-is
+            if (typeof dateInput === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateInput)) {
+                return dateInput;
+            }
+
+            // Otherwise parse and format
             const date = new Date(dateInput);
+            if (isNaN(date.getTime())) {
+                return dateInput; // Return original if parsing fails
+            }
             const month = date.getMonth() + 1;
             const day = date.getDate();
             const year = date.getFullYear();

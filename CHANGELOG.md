@@ -2,6 +2,66 @@
 
 ## Current Status (Latest Update - October 30, 2025)
 
+### 🎯 Lifetime Workouts & User Experience Improvements (October 30, 2025 - Evening)
+
+**Major Features**:
+- **Lifetime Workout Tracking**
+  - Added `getLifetimeWorkoutCount()` function to count ALL workouts across all challenges
+  - Me page summary now shows lifetime total (e.g., "15 workouts completed")
+  - Backend sends `lifetime_workouts` field in user object
+  - Consistent across both active challenge and off-season modes
+
+- **Join Date Display**
+  - Added `join_date` field to `getUserInfo()` function
+  - Displays "Member since: [date]" on Me page summary
+  - Formatted using `formatDate()` for consistency
+  - Added to both active challenge and off-season user responses
+
+- **Enhanced Challenge History**
+  - Renamed "Past Challenges" to "My Challenges"
+  - Now includes CURRENT active challenge with green "Current" badge
+  - Current challenge highlighted with green border and light green background
+  - Each challenge shows individual workout count (not lifetime)
+  - Clear distinction between current and past challenges
+
+**Bug Fixes**:
+- **Date Parsing Issue** (Carolina's "2000" year bug)
+  - Created `formatDateNumeric()` function for MM/DD/YYYY format
+  - Updated `getUserAllChallengeStats()` to use numeric date format
+  - Frontend `formatDateShort()` now handles MM/DD/YYYY strings properly
+  - Prevents JavaScript date parsing errors across browsers/timezones
+
+**Files Changed**:
+- backend/Code.gs:
+  - Added `formatDateNumeric()` helper function (lines 683-690)
+  - Added `getLifetimeWorkoutCount()` function (lines 263-285)
+  - Updated `getUserDashboardData()` to include `lifetime_workouts` and `join_date`
+  - Updated off-season mode response structure for consistency
+- index.html:
+  - Updated Me page to show lifetime workouts instead of challenge-specific
+  - Added join_date display with italic styling
+  - Updated Past Challenges to "My Challenges" section
+  - Added current challenge detection and badge display
+  - Improved `formatDateShort()` with validation
+- styles.css:
+  - Added `.current-badge` styling (green badge)
+  - Added `.current-challenge` card styling (green border/background)
+  - Added `.summary-joined` styling (italic, muted)
+
+**User Experience Impact**:
+- Users now see their TOTAL workout count at top of Me page (bragging rights!)
+- Each challenge shows specific count (e.g., October: 12, September: 3)
+- Join date adds personal touch and tenure recognition
+- Current challenge clearly distinguished from past challenges
+- No more confusing date displays (2000 vs 2025)
+
+**Deployment Notes**:
+- Required new Google Apps Script deployment to clear cache
+- Frontend changes compatible with existing deployments
+- Cache-busting version remains 20251030-1
+
+---
+
 ### 🏗️ Multi-Challenge Architecture Complete (October 30, 2025)
 
 **Major Backend Changes**:

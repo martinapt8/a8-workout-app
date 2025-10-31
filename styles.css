@@ -895,6 +895,13 @@ body {
     margin: 0;
 }
 
+.summary-joined {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 4px 0 0 0;
+    font-style: italic;
+}
+
 /* Challenge name and dates on Team page */
 .challenge-name {
     text-align: center;
@@ -1478,6 +1485,25 @@ body {
     border-radius: 4px;
     font-size: 12px;
     font-weight: 500;
+}
+
+.current-badge {
+    background: #10B981;
+    color: #FFFFFF;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.current-challenge {
+    border: 2px solid #10B981;
+    background: #F0FDF4;
+}
+
+.current-challenge:hover {
+    background: #DCFCE7;
 }
 
 .empty-past-challenges {

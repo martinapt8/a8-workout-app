@@ -173,10 +173,22 @@ function getUserDashboardData(userId) {
 
     // Handle no active challenge (off-season mode)
     if (!activeChallenge) {
+      // Get lifetime workout count for off-season mode
+      const lifetimeWorkouts = getLifetimeWorkoutCount(ss, userId);
+
       return {
         error: 'No active challenge',
         message: 'The app is currently in off-season. You can still log "Other Workouts" to track your year-round fitness!',
-        user: user,
+        user: {
+          user_id: user.user_id,
+          display_name: user.display_name,
+          team_name: null,
+          team_color: null,
+          total_workouts: user.total_workouts || 0,
+          lifetime_workouts: lifetimeWorkouts,
+          last_completed: user.last_completed || null,
+          join_date: user.join_date || null
+        },
         challenge: null,
         activeWorkout: null,
         completedToday: false,
@@ -196,6 +208,9 @@ function getUserDashboardData(userId) {
     // Get goal progress (now filtered by challenge_id)
     const goalProgress = getGoalProgress(ss, activeChallenge.challenge_id);
 
+    // Get lifetime workout count
+    const lifetimeWorkouts = getLifetimeWorkoutCount(ss, userId);
+
     return {
       user: {
         user_id: user.user_id,
@@ -203,7 +218,9 @@ function getUserDashboardData(userId) {
         team_name: userTeam ? userTeam.team_name : null,
         team_color: userTeam ? userTeam.team_color : null,
         total_workouts: user.total_workouts || 0,
-        last_completed: user.last_completed || null
+        lifetime_workouts: lifetimeWorkouts,
+        last_completed: user.last_completed || null,
+        join_date: user.join_date || null
       },
       challenge: activeChallenge, // RENAMED from "settings"
       activeWorkout: activeWorkout,
@@ -251,12 +268,37 @@ function getUserInfo(ss, userId) {
         user_id: data[i][headers['user_id']],
         display_name: data[i][headers['display_name']],
         total_workouts: data[i][headers['total_workouts']] || 0,
-        last_completed: data[i][headers['last_completed']] ? formatDate(data[i][headers['last_completed']], ss) : null
+        last_completed: data[i][headers['last_completed']] ? formatDate(data[i][headers['last_completed']], ss) : null,
+        join_date: data[i][headers['join_date']] ? formatDate(data[i][headers['join_date']], ss) : null
       };
     }
   }
 
   return null;
+}
+
+// Get lifetime workout count across all challenges for a user
+function getLifetimeWorkoutCount(ss, userId) {
+  const completionsSheet = ss.getSheetByName('Completions');
+  const data = completionsSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  const userIdLower = userId.toLowerCase().trim();
+  let count = 0;
+
+  for (let i = 1; i < data.length; i++) {
+    const rowUserId = data[i][headerMap['user_id']];
+    if (rowUserId && rowUserId.toString().toLowerCase().trim() === userIdLower) {
+      count++;
+    }
+  }
+
+  return count;
 }
 
 // Get header mapping for any sheet
@@ -680,6 +722,15 @@ function formatDateTime(date, ss) {
   return Utilities.formatDate(d, timezone, 'MMM d, h:mm a');
 }
 
+// Utility function to format date as MM/DD/YYYY (numeric format for frontend parsing)
+function formatDateNumeric(date, ss) {
+  if (!date) return '';
+  const d = new Date(date);
+  // If ss is provided, use app timezone, otherwise fallback to script timezone
+  const timezone = ss ? getAppTimezone(ss) : Session.getScriptTimeZone();
+  return Utilities.formatDate(d, timezone, 'MM/dd/yyyy');
+}
+
 // Test function for debugging
 function testAPI() {
   const result = getUserDashboardData('meg');
@@ -1055,8 +1106,8 @@ function getUserAllChallengeStats(ss, userId) {
           challenge_name: challenge.challenge_name,
           workout_count: statsByChallenge[challengeId].workout_count,
           team_name: teamInfo ? teamInfo.team_name : null,
-          start_date: formatDate(challenge.start_date, ss),
-          end_date: formatDate(challenge.end_date, ss)
+          start_date: formatDateNumeric(challenge.start_date, ss),
+          end_date: formatDateNumeric(challenge.end_date, ss)
         });
       }
     }

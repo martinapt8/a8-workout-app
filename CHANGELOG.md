@@ -1,6 +1,81 @@
 # A8 Workout Challenge App
 
-## Current Status (Latest Update - October 30, 2025)
+## Current Status (Latest Update - October 31, 2025)
+
+### 🎉 User Signup System (October 31, 2025)
+
+**Major Features**:
+- **Self-Service Signup Page**
+  - New standalone `signup.html` page for user registration
+  - User-controlled username field (forms personal app link)
+  - Display name with emoji support for profiles and progress boards
+  - Email, full name, and username collection
+  - Mobile-optimized design with A8 branding
+
+- **Workout Preferences Collection**
+  - Duration preference selector (10/20/30 minutes)
+  - Equipment availability multi-select (Bodyweight, Kettlebell, Dumbbell, Bands, Full Gym)
+  - Preferences stored in Users table for future personalization
+  - Button-based selection matching AI workout generator UX
+
+- **Backend Signup Module** (`backend/Signup.gs`)
+  - `createSignupRequest()` - Creates new user with validation
+  - `updateUserPreferences()` - For future /update page
+  - `validateSignupData()` - Client and server-side validation
+  - `getUserPreferences()` - Retrieve user preferences
+  - Duplicate email and username checking
+
+- **Validation & Error Handling**
+  - Username format validation (lowercase letters, numbers, periods only)
+  - Length validation (3-30 characters)
+  - Email format validation
+  - Real-time error feedback with user-friendly messages
+  - Success state with admin review instructions
+
+**Database Changes**:
+- Added `preferred_duration` column to Users table (values: "10", "20", "30")
+- Added `equipment_available` column to Users table (comma-separated equipment list)
+- Username field now user-controlled instead of auto-generated
+
+**Admin Workflow**:
+1. Review new signups in Users sheet (filter by empty `active_user` column)
+2. Set `active_user = TRUE` for approved users
+3. Run "Send Welcome Email" from custom menu
+4. User receives personalized app link via email
+
+**Files Changed**:
+- `signup.html` (new):
+  - Self-service signup form with validation
+  - Helper text for username and display name fields
+  - Equipment and duration preference selectors
+  - Loading states and success/error feedback
+- `backend/Signup.gs` (new):
+  - Complete signup backend module
+  - Validation functions
+  - Duplicate checking
+  - Preference management
+- `backend/Code.gs`:
+  - Added `createSignup` action to doPost() (lines 127-137)
+  - Routes signup requests to Signup.gs module
+
+**User Experience**:
+- Clean, mobile-optimized signup flow
+- Clear helper text explaining username and display name purposes
+- Visual feedback during submission
+- Success message with next steps
+- No deployment_URL formula conflicts (respects existing spreadsheet formulas)
+
+**Access URL**:
+```
+https://your-domain.github.io/signup.html
+```
+
+**Future Enhancements**:
+- `/update` page for existing users to update preferences
+- Personalized workout recommendations based on equipment and duration preferences
+- Reusable preference selection components
+
+---
 
 ### 🎯 Lifetime Workouts & User Experience Improvements (October 30, 2025 - Evening)
 

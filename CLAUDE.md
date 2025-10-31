@@ -38,12 +38,23 @@ https://script.google.com/[app-id]/exec?user=alex
 ### Sheet 1: Users
 | Column | Field | Example | Description |
 |--------|-------|---------|-------------|
-| A | user_id | meg | Unique identifier (lowercase) |
-| B | display_name | 🎯 Megan | Display name with optional emoji |
-| C | team_name | Red | Team assignment |
-| D | team_color | #FF0000 | Team color in hex |
+| A | user_id | meg | Unique identifier (lowercase, user-controlled) |
+| B | display_name | 🎯 Megan | Display name with optional emoji (shown in app/boards) |
+| C | team_name | Red | Team assignment (legacy - now in Challenge_Teams) |
+| D | team_color | #FF0000 | Team color in hex (legacy - now in Challenge_Teams) |
 | E | total_workouts | 5 | Total for current challenge |
 | F | last_completed | 10/3/2025 | Date of last workout |
+| - | email | megan@example.com | User email address |
+| - | full_name | Megan Smith | Full legal name |
+| - | join_date | 10/1/2025 | Date user joined |
+| - | active_user | TRUE | User activation status (set by admin) |
+| - | preferred_duration | 20 | Workout duration preference (10/20/30 min) |
+| - | equipment_available | Bodyweight,Kettlebell | Comma-separated equipment list |
+| - | welcome_email_sent | TRUE | Tracking flag for welcome email |
+| - | update_email_sent | TRUE | Tracking flag for update email |
+| - | deployment_URL | (formula) | Auto-generated personal app link |
+
+**Note**: Column order may vary. Backend uses header-based mapping for flexibility.
 
 ### Sheet 2: Workouts
 | Column | Field | Example | Description |
@@ -471,6 +482,58 @@ Automatically migrates user data from Google Form responses to the Users table:
 **Test Functions:**
 - `testMigrationPreview()`: Preview migration without making changes
 - `resetMigrationStatus()`: Clear migration flags (testing only)
+
+### User Signup System (Signup.gs + signup.html)
+
+Self-service user registration with preference collection:
+
+**Key Features:**
+- Standalone signup page at `/signup.html`
+- User-controlled username (forms personal app link)
+- Display name with emoji support (shown in app and progress boards)
+- Workout preferences collection:
+  - Duration preference (10/20/30 minutes)
+  - Equipment availability (Bodyweight, Kettlebell, Dumbbell, Bands, Full Gym)
+- Comprehensive validation (client and server-side)
+- Duplicate email and username checking
+- Mobile-optimized design with A8 branding
+
+**Backend Functions** (Signup.gs):
+- `createSignupRequest(data)`: Creates new user with preferences
+- `updateUserPreferences(userId, preferences)`: Updates user preferences (for future /update page)
+- `getUserPreferences(userId)`: Retrieves user preferences
+- `validateSignupData(data)`: Validates signup form data
+- `generateUserId()`: Legacy function (now users provide their own username)
+
+**Required Columns in Users Sheet:**
+- email, display_name, user_id, full_name, join_date
+- preferred_duration, equipment_available
+- active_user (left empty for admin review)
+
+**Admin Workflow:**
+1. Users submit signup form at `/signup.html`
+2. New users appear in Users sheet with empty `active_user` column
+3. Admin reviews signup details
+4. Admin sets `active_user = TRUE` to approve
+5. Admin runs "Send Welcome Email" to notify user
+6. User receives personalized app link via email
+
+**Validation Rules:**
+- Username: lowercase letters, numbers, periods only (3-30 characters)
+- Email: standard email format
+- Display name: any characters including emojis
+- Duration: 10, 20, or 30 (optional)
+- Equipment: one or more valid equipment types (optional)
+
+**Access URL:**
+```
+https://your-domain.github.io/signup.html
+```
+
+**Future Enhancements:**
+- `/update` page for existing users to update preferences
+- Personalized workout recommendations based on equipment/duration
+- Auto-approval option for trusted domains
 
 ### Welcome Email System (welcome_email.gs)
 

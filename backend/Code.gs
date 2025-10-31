@@ -124,8 +124,20 @@ function doPost(e) {
         }
         break;
 
+      case 'createSignup':
+        const signupData = {
+          email: requestData.email,
+          userId: requestData.userId,
+          displayName: requestData.displayName,
+          fullName: requestData.fullName,
+          preferredDuration: requestData.preferredDuration,
+          equipment: requestData.equipment
+        };
+        result = createSignupRequest(signupData);
+        break;
+
       default:
-        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete' };
+        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete, createSignup' };
     }
 
     return createCORSResponse(result);

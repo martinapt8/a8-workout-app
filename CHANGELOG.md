@@ -1,6 +1,114 @@
 # A8 Workout Challenge App
 
-## Current Status (Latest Update - October 31, 2025)
+## Current Status (Latest Update - November 4, 2025)
+
+### ♻️ Database Schema Simplification (November 4, 2025)
+
+**Removed Redundant is_active Column**:
+- **Challenges Table Simplified**
+  - Removed `is_active` boolean column (redundant with `status` column)
+  - Single source of truth: `status` column with values: `active`, `upcoming`, `completed`
+  - More informative state management (distinguishes upcoming vs completed challenges)
+
+- **Backend Functions Updated**
+  - `getActiveChallenge()`: Now checks `status === 'active'` instead of `is_active === true`
+  - `getChallengeById()`: Removed `is_active` field from returned challenge objects
+  - `createNewChallenge()`: Only sets `status` field (6 columns instead of 7)
+  - `setActiveChallenge()`: Updates `status` only, removed `is_active` setValue calls
+  - `endChallenge()`: Simplified to single status update
+  - `getAllChallenges()`: Removed `is_active` from returned objects
+
+- **Supporting Files Updated**
+  - `MigrationScripts.gs`: Removed `is_active` from required columns validation
+  - `menu.gs`: Updated to check `status === 'active'` and updated user prompts
+  - `TestingFunctions.gs`: Updated test logging and instructions to reference `status`
+
+- **Cache Busting**
+  - Version bumped to `20251104-1` for browser cache refresh
+
+**Benefits**:
+- Cleaner data model with single source of truth
+- More semantic code (`status === 'active'` vs `is_active === true`)
+- Eliminates risk of `is_active` and `status` getting out of sync
+- Better state granularity (upcoming vs completed)
+
+---
+
+### 🔍 CLAUDE.md Accuracy Audit & Corrections (November 1, 2025)
+
+**Documentation Refinement**:
+- **Backend Files List Corrected**
+  - Removed obsolete `SetupSheets.gs` reference
+  - Added 3 undocumented files: `MigrationScripts.gs`, `TestingFunctions.gs`, `AutoSort.gs`
+
+- **Core Functions Documentation Enhanced**
+  - Added 6 previously undocumented functions:
+    - `getLifetimeWorkoutCount()` - Calculates total workouts across all challenges
+    - `getUserAllChallengeStats()` - Powers "My Challenges" history on Me page
+    - `getUserCompletionHistoryForChallenge()` - Challenge-specific completion dates
+    - `getAllWorkoutsForChallenge()` - Challenge-filtered workout library
+    - `getChallengeById()` - Critical helper for challenge lookups
+    - `formatDateNumeric()` - Date formatting for frontend parsing
+
+- **Behavioral Clarifications**
+  - Fixed `total_workouts` description (4 locations): Clarified it tracks active challenge only, not lifetime
+  - Updated `updateUserStats()` documentation with accurate behavior
+  - Clarified `markWorkoutComplete()` triggers per-challenge updates
+  - Documented that lifetime counts are calculated via separate function
+
+- **API Endpoints Updated**
+  - Added `getUserAllChallengeStats` endpoint documentation
+  - Added `createSignup` POST endpoint documentation
+
+- **Menu System Documentation Fixed**
+  - Updated to match actual implementation in menu.gs
+  - Added "View Challenge Stats" menu item (was missing)
+  - Renamed "End Current Challenge" → "End Challenge"
+  - Clarified team assignment workflow (no menu item, use Script Editor or manual)
+
+- **Sheet 7 (Coaching) Enhanced**
+  - Added integration details with Slack.gs
+  - Documented how coaching tips appear in daily progress updates
+  - Clarified optional nature and date-matching behavior
+
+**Result**: CLAUDE.md now accurately reflects the actual codebase implementation with all functions, endpoints, and behaviors properly documented.
+
+---
+
+### 📚 Documentation Cleanup for V3 (November 1, 2025)
+
+**Documentation Overhaul**:
+- **CLAUDE.md Updated to V3**
+  - Rewritten for multi-challenge architecture
+  - Updated project overview: "Daily Dose - A8 Workout Challenge App V3"
+  - Added Challenges and Challenge_Teams sheet documentation
+  - Updated all backend function descriptions with `challenge_id` parameters
+  - Added Admin Challenge Management functions section
+  - Rewrote Configuration Guide for multi-challenge setup
+  - Added Year-Round (Off-Challenge) Management section
+  - Updated deployment architecture (GitHub Pages + Google Apps Script)
+  - Replaced "Development Phases" with comprehensive "Features" section
+  - Updated project information to V3.0 status
+
+- **Documentation Folder Cleanup**
+  - Created `/Documentation/archive/` folder
+  - Archived 13 obsolete migration planning docs:
+    - MULTI_CHALLENGE_QUICK_START.md
+    - IMPLEMENTATION_SUMMARY.md
+    - MIGRATION_SUMMARY.md
+    - MULTI_CHALLENGE_IMPLEMENTATION_PLAN.md
+    - DEPLOYMENT_STATUS.md
+    - All PHASE_*.md files (0, 1, 3, 4, 5, 7, 8)
+  - Retained 7 ongoing reference docs (README, ROADMAP, testing guides, etc.)
+
+- **Updated Documentation Files**
+  - ROADMAP.md: Updated to V3.0, added multi-challenge version history
+  - FILE_ORGANIZATION.md: Removed references to archived files
+  - GITHUB_WORKFLOW.md: Genericized directory paths
+
+**Result**: Clean, focused documentation that accurately reflects the V3 multi-challenge architecture with year-round logging capabilities. All obsolete migration planning docs safely archived for historical reference.
+
+---
 
 ### 🎉 User Signup System (October 31, 2025)
 

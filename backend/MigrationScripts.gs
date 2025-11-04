@@ -30,7 +30,7 @@ function validateSchemaBeforeMigration() {
     errors.push('❌ Challenges sheet not found');
   } else {
     const challengesHeaders = challengesSheet.getDataRange().getValues()[0];
-    const requiredChallengesCols = ['challenge_id', 'challenge_name', 'start_date', 'end_date', 'total_goal', 'is_active', 'status'];
+    const requiredChallengesCols = ['challenge_id', 'challenge_name', 'start_date', 'end_date', 'total_goal', 'status'];
     requiredChallengesCols.forEach(col => {
       if (!challengesHeaders.includes(col)) {
         errors.push(`❌ Challenges sheet missing column: ${col}`);

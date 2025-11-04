@@ -45,7 +45,7 @@ function testGetUserDashboard() {
       Logger.log('✅ Has "challenge" object (correct API structure)');
       Logger.log('   Challenge ID: ' + result.challenge.challenge_id);
       Logger.log('   Challenge Name: ' + result.challenge.challenge_name);
-      Logger.log('   Is Active: ' + result.challenge.is_active);
+      Logger.log('   Status: ' + result.challenge.status);
     } else if (result.settings) {
       Logger.log('❌ Has "settings" object - WRONG! Should be "challenge"');
       Logger.log('   Phase 3 backend changes not applied correctly');
@@ -109,7 +109,7 @@ function testOffSeasonMode() {
       Logger.log('Challenge: ' + activeChallenge.challenge_name + ' (' + activeChallenge.challenge_id + ')');
       Logger.log('\nTo test off-season mode:');
       Logger.log('1. Go to Challenges sheet');
-      Logger.log('2. Set is_active = FALSE for all challenges');
+      Logger.log('2. Set status to "completed" or "upcoming" for all challenges');
       Logger.log('3. Run this test again');
     } else {
       Logger.log('✅ OFF-SEASON MODE ACTIVE (no active challenge)');

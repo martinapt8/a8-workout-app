@@ -84,8 +84,7 @@ function createNewChallenge(challengeId, challengeName, startDate, endDate, tota
   // If setting as active, deactivate all other challenges
   if (setActive) {
     for (let i = 1; i < data.length; i++) {
-      if (data[i][5] === true) { // is_active column
-        challengesSheet.getRange(i + 1, 6).setValue(false);
+      if (data[i][6] === 'active') { // status column
         challengesSheet.getRange(i + 1, 7).setValue('completed'); // status
       }
     }
@@ -98,7 +97,6 @@ function createNewChallenge(challengeId, challengeName, startDate, endDate, tota
     startDate,
     endDate,
     totalGoal,
-    setActive || false,
     setActive ? 'active' : 'upcoming'
   ]);
 
@@ -129,14 +127,12 @@ function setActiveChallenge(challengeId) {
   for (let i = 1; i < data.length; i++) {
     if (data[i][0] === challengeId) {
       // Activate this challenge
-      challengesSheet.getRange(i + 1, 6).setValue(true); // is_active
-      challengesSheet.getRange(i + 1, 7).setValue('active'); // status
+      challengesSheet.getRange(i + 1, 6).setValue('active'); // status
       found = true;
       Logger.log(`✅ Activated challenge: ${data[i][1]} (${challengeId})`);
-    } else if (data[i][5] === true) {
+    } else if (data[i][5] === 'active') {
       // Deactivate other challenges
-      challengesSheet.getRange(i + 1, 6).setValue(false);
-      challengesSheet.getRange(i + 1, 7).setValue('completed');
+      challengesSheet.getRange(i + 1, 6).setValue('completed');
       Logger.log(`Deactivated challenge: ${data[i][1]} (${data[i][0]})`);
     }
   }
@@ -313,8 +309,7 @@ function endChallenge(challengeId) {
 
   for (let i = 1; i < data.length; i++) {
     if (data[i][0] === challengeId) {
-      challengesSheet.getRange(i + 1, 6).setValue(false); // is_active
-      challengesSheet.getRange(i + 1, 7).setValue('completed'); // status
+      challengesSheet.getRange(i + 1, 6).setValue('completed'); // status
       Logger.log(`✅ Ended challenge: ${data[i][1]} (${challengeId})`);
       return true;
     }
@@ -407,8 +402,7 @@ function getAllChallenges() {
       start_date: data[i][2],
       end_date: data[i][3],
       total_goal: data[i][4],
-      is_active: data[i][5],
-      status: data[i][6]
+      status: data[i][5]
     });
   }
 

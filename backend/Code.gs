@@ -968,14 +968,13 @@ function getActiveChallenge(ss) {
 
   // Find active challenge
   for (let i = 1; i < data.length; i++) {
-    if (data[i][headerMap['is_active']] === true) {
+    if (data[i][headerMap['status']] === 'active') {
       return {
         challenge_id: data[i][headerMap['challenge_id']],
         challenge_name: data[i][headerMap['challenge_name']],
         start_date: data[i][headerMap['start_date']],
         end_date: data[i][headerMap['end_date']],
         total_goal: data[i][headerMap['total_goal']],
-        is_active: true,
         status: data[i][headerMap['status']]
       };
     }
@@ -1010,7 +1009,6 @@ function getChallengeById(ss, challengeId) {
         start_date: data[i][headerMap['start_date']],
         end_date: data[i][headerMap['end_date']],
         total_goal: data[i][headerMap['total_goal']],
-        is_active: data[i][headerMap['is_active']],
         status: data[i][headerMap['status']]
       };
     }

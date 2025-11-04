@@ -156,7 +156,7 @@ function promptSetActiveChallenge() {
 
     let challengeList = 'Available Challenges:\n\n';
     challenges.forEach(c => {
-      const activeStatus = c.is_active ? ' (ACTIVE)' : '';
+      const activeStatus = c.status === 'active' ? ' (ACTIVE)' : '';
       challengeList += `• ${c.challenge_id} - ${c.challenge_name}${activeStatus}\n`;
     });
 
@@ -290,7 +290,6 @@ function promptEndChallenge() {
         'Confirm',
         `Are you sure you want to end challenge "${challengeId}"?\n\n` +
         `This will:\n` +
-        `• Set is_active = FALSE\n` +
         `• Set status = "completed"\n` +
         `• Keep all data intact\n\n` +
         `Continue?`,

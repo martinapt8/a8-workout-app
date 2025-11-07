@@ -2,6 +2,57 @@
 
 ## Current Status (Latest Update - November 7, 2025)
 
+### 🏖️ Off-Season Mode Fix (November 7, 2025 - Late Evening)
+
+**Fixed App Failure During Off-Season (Between Challenges)**:
+- **Root Cause**: App was throwing errors when no active challenge exists
+  - Backend returned `error: 'No active challenge'` which frontend treated as failure
+  - Frontend API helper rejected all responses with `error` field
+  - Navigation and UI setup functions weren't running in off-season mode
+  - Button IDs were incorrect, preventing navigation from working
+
+- **Backend Fixes** (`backend/Code.gs`):
+  - Changed `getUserDashboardData()` to return `offSeasonMode: true` instead of `error` field
+  - Returns valid user data structure even when no challenge is active
+  - Enables year-round workout logging with `challenge_id = 'year_round'`
+
+- **Frontend Fixes** (`index.html`):
+  - Updated dashboard loading to check for `userData.offSeasonMode` instead of `userData.error`
+  - Added comprehensive null checks to `showOffSeasonMode()` function
+  - Fixed button ID mismatches:
+    - Team navigation: `nav-progress` → `team-nav-btn` ✅
+    - Library navigation: `nav-library` → `button[data-page="library"]` ✅
+    - Log workout button: `log-other-workout-btn` → `log-other-btn` ✅
+  - Fixed navigation setup flow - now runs for both active challenge and off-season
+  - Removed early `return` statement that prevented setup functions from running
+  - Updated refresh function to handle off-season mode after data refresh
+
+- **Off-Season UI Features**:
+  - "🌴 Off-Season Mode" message with friendly year-round logging instructions
+  - Hides Team Progress and Library navigation buttons (only Today, Me, A8AI visible)
+  - Shows "Log Workout (Year-Round)" button for continued tracking
+  - Me page displays user stats and full workout history across all challenges
+  - Graceful degradation with helpful messaging on all pages
+
+**Files Changed** (3 commits):
+- `backend/Code.gs`: Changed off-season response structure (offSeasonMode flag)
+- `index.html`: Added null checks, fixed button IDs, updated control flow
+- Deployed to GitHub Pages and Google Apps Script
+
+**Testing Status**:
+- ✅ App now loads successfully with no active challenge
+- ✅ Navigation works correctly in off-season mode
+- ✅ Users can log "Other Workouts" year-round
+- ✅ Me page shows lifetime workout history
+- ✅ Clean console with no errors
+
+**Impact**:
+- Enables seamless operation between challenges (e.g., Nov 6-16 gap before Year-End Challenge)
+- Users can maintain workout tracking year-round without interruption
+- App remains functional and accessible even when no challenge is scheduled
+
+---
+
 ### 🐛 Deployment Fix: Multi-Month Calendar API (November 7, 2025 - Evening)
 
 **Fixed "Failed to load workout history" Error on Web Deployment**:

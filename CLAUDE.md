@@ -1,14 +1,17 @@
 # Daily Dose - A8 Workout Challenge App V3
 
 ## Project Overview
-A year-round workout tracking web app for A8 with multi-challenge support. Users can participate in time-bound challenges with team competitions and collective goals, or log workouts independently during off-challenge periods. Each challenge features rotating prescribed workouts, flexible team assignments, and shared company-wide goals. Built as a lightweight GitHub Pages frontend with Google Apps Script API backend.
+A year-round workout tracking web app for A8 with multi-challenge support. Users can participate in time-bound challenges with team competitions and collective goals, or log workouts independently during off-challenge periods or if they have not taken part of the challenge. 
+
+Each challenge features rotating prescribed workouts, flexible team assignments, and shared company-wide goals. Built as a lightweight GitHub Pages frontend with Google Apps Script API backend.
 
 ## Core Philosophy
 - **Year-Round Engagement**: Log workouts anytime, whether in an active challenge or not
-- **Multi-Challenge Support**: Run multiple challenges with different teams, goals, and timeframes
+- **Multi-Challenge Support**: Run multiple challenges with different teams, goals, and timeframes, although never multiple challenges at once
 - **Collective Achievement**: Focus on group goal vs individual streaks during challenges
-- **Workout Variety**: Rotating prescribed workouts, AI-generated options, and custom logging
+- **Workout Variety**: Rotating prescribed workouts, AI-generated options, and custom "other workout" logging
 - **Team Flexibility**: Team assignments per challenge, users can be on different teams each time
+- **Historical Tracking**: A user can see their lifetime workouts, previous challenges, and logged workouts in a calendar UI
 - **Minimal Friction**: No passwords, no app downloads, bookmark your personal URL
 
 ## Technical Architecture
@@ -31,7 +34,7 @@ A year-round workout tracking web app for A8 with multi-challenge support. Users
 - **No Authentication**: URL parameters identify users (`?user=martin`)
 - **CORS Solution**: Uses form-encoded POST (URLSearchParams) instead of JSON to bypass CORS preflight restrictions
 
-### User Access Pattern
+### User Access Pattern via GitHub
 ```
 https://martinapt8.github.io/a8-workout-app/?user=megan
 https://martinapt8.github.io/a8-workout-app/?user=alex
@@ -117,8 +120,6 @@ Daily Dose Dev/
 |--------|-------|---------|-------------|
 | A | user_id | meg | Unique identifier (lowercase, user-controlled) |
 | B | display_name | 🎯 Megan | Display name with optional emoji (shown in app/boards) |
-| C | team_name | Red | **LEGACY** - Team assignment (now in Challenge_Teams) |
-| D | team_color | #FF0000 | **LEGACY** - Team color in hex (now in Challenge_Teams) |
 | E | total_workouts | 47 | Workout count for active challenge only (per-challenge tracking) |
 | F | last_completed | 10/31/2025 | Date of last workout (any challenge) |
 | - | email | megan@example.com | User email address |
@@ -231,7 +232,7 @@ The app is a five-page SPA with mobile-first design and bottom navigation:
 - Team breakdown with individual totals
 
 **Page 3: Me**
-- Personal summary (name, team, workout count, last workout date)
+- Personal summary (name, team, lifetime workout count, last workout date, user join date)
 - Multi-month calendar with navigation (◀ ▶)
 - Checkmarks on completed dates
 - Past workout backfill form with date picker
@@ -250,7 +251,7 @@ The app is a five-page SPA with mobile-first design and bottom navigation:
 - Actions: Refresh / Change Options / Log This Workout
 - Logs as "AI Workout" with parameters stored
 
-**Navigation**: Fixed bottom bar with icons (💪📈👤📚🤖) for quick page switching.
+**Navigation**: Fixed bottom bar with svg icons for quick page switching.
 
 See `Documentation/FRONTEND_PAGES.md` for detailed UI mockups.
 
@@ -321,6 +322,24 @@ Returns collective progress data for a specific challenge:
 - Team breakdowns (from Challenge_Teams for this challenge)
 - Recent completions (last 10, from newest to oldest, filtered by challenge_id)
 - Returns null if challengeId is null (no active challenge)
+
+#### `getRecentCompletionsAll(ss, limit)`
+Returns recent completions across ALL users and challenges for agency-wide activity feed:
+- Works year-round regardless of active challenge or user participation
+- Fetches most recent completions from Completions sheet (default 15)
+- Shows descriptive workout info:
+  - Prescribed workouts: Displays workout name from Workouts sheet
+  - AI Workouts: "completed an AI Workout"
+  - Other Workouts: Shows user's workout description or "logged a workout"
+- Returns array with user display name, workout description, and formatted timestamp
+- **Use Case**: Powers "Recent Activity" feed on Today page for all users
+
+#### `getWorkoutById(ss, workoutId)`
+Helper function to fetch workout details by ID:
+- Searches Workouts sheet for matching workout_id
+- Returns workout object with workout_id and workout_name
+- Used by `getRecentCompletionsAll()` to show proper workout names
+- Returns null if workout not found
 
 #### `hasCompletedOnDate(ss, userId, targetDate)`
 Checks if user has already logged a workout on a specific date:
@@ -535,7 +554,12 @@ Ends the active challenge gracefully:
   - Logs as "AI Workout" (distinct from "Other Workout")
   - Stores parameters in other_workout_details column
 - Goal progress tracking with color-coded progress bar
-- Recent Activity feed on Today page (newest first, filtered by challenge dates)
+- **Agency-Wide Activity Feed** (on Today page)
+  - Shows recent completions from ALL users across ALL challenges
+  - Works year-round regardless of active challenge or user team status
+  - Displays last 15 workouts with user names, workout descriptions, and timestamps
+  - Maintains social/community engagement even during off-season
+  - Automatically shows descriptive workout names for prescribed workouts
 - Team totals aggregation on Team page
 - Mobile-responsive design with touch-optimized UI
 - Instructions display in workout cards
@@ -652,6 +676,7 @@ fetch(API_URL, {
 - `getUserCompletionHistory` - Get user's completion dates for active challenge
 - `getUserAllCompletions` - Get all completion dates across all challenges (with optional date range filtering)
 - `getUserAllChallengeStats` - Get user's past challenge history (for Me page)
+- `getRecentCompletionsAll` - Get recent completions across all users/challenges for activity feed (works year-round)
 - `generateAIWorkout` - Generate AI workout
 - `markWorkoutComplete` - Log a workout (POST only)
 - `createSignup` - Create new user signup (POST only)

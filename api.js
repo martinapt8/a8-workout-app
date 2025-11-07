@@ -139,6 +139,15 @@ const API = {
   },
 
   /**
+   * Get recent completions across all users and challenges
+   * Works year-round regardless of active challenge or user participation
+   * @param {number} limit - Number of recent completions to fetch (default: 15)
+   */
+  async getRecentCompletionsAll(limit = 15) {
+    return this.get('getRecentCompletionsAll', { limit });
+  },
+
+  /**
    * Mark a workout as complete
    */
   async markWorkoutComplete(userId, workoutType, workoutDetails = '', completionDate = null) {

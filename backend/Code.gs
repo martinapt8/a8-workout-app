@@ -78,8 +78,14 @@ function doGet(e) {
         }
         break;
 
+      case 'getRecentCompletionsAll':
+        const ss3 = SpreadsheetApp.getActiveSpreadsheet();
+        const limit = e.parameter.limit ? parseInt(e.parameter.limit) : 15;
+        result = getRecentCompletionsAll(ss3, limit);
+        break;
+
       default:
-        result = { error: 'Invalid action parameter. Valid actions: getDashboard, getGoalProgress, getAllWorkouts, getUserCompletionHistory, getUserAllChallengeStats, generateAIWorkout' };
+        result = { error: 'Invalid action parameter. Valid actions: getDashboard, getGoalProgress, getAllWorkouts, getUserCompletionHistory, getUserAllChallengeStats, generateAIWorkout, getRecentCompletionsAll' };
     }
 
     const jsonResponse = JSON.stringify(result);
@@ -542,6 +548,85 @@ function getGoalProgress(ss, challengeId) {
     team_totals: teamTotals,
     recent_completions: recentCompletions
   };
+}
+
+// Get recent completions across all completions (for agency-wide activity feed - works year-round)
+function getRecentCompletionsAll(ss, limit) {
+  const completionsSheet = ss.getSheetByName('Completions');
+  const data = completionsSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  const maxResults = limit || 15;  // Default to 15 recent completions
+  const recentCompletions = [];
+
+  // Reverse iteration to get most recent completions first
+  for (let i = data.length - 1; i >= 1 && recentCompletions.length < maxResults; i--) {
+    const userId = data[i][headerMap['user_id']];
+    const timestamp = data[i][headerMap['timestamp']];
+    const workoutId = data[i][headerMap['workout_id']];
+    const otherWorkoutDetails = data[i][headerMap['other_workout_details']];
+
+    // Get user display name
+    const userInfo = getUserInfo(ss, userId);
+    const displayName = userInfo ? userInfo.display_name : userId;
+
+    // Determine workout description
+    let workoutDescription;
+    if (workoutId === 'AI Workout') {
+      workoutDescription = 'completed an AI Workout';
+    } else if (workoutId === 'Other Workout') {
+      // Show brief description if available
+      if (otherWorkoutDetails && otherWorkoutDetails.trim()) {
+        workoutDescription = otherWorkoutDetails;
+      } else {
+        workoutDescription = 'logged a workout';
+      }
+    } else {
+      // Prescribed workout - try to get workout name
+      const workout = getWorkoutById(ss, workoutId);
+      if (workout && workout.workout_name) {
+        workoutDescription = workout.workout_name;
+      } else {
+        workoutDescription = 'completed a workout';
+      }
+    }
+
+    recentCompletions.push({
+      user: displayName,
+      workout: workoutDescription,
+      timestamp: formatDate(new Date(timestamp), ss)
+    });
+  }
+
+  return recentCompletions;
+}
+
+// Helper function to get workout by ID
+function getWorkoutById(ss, workoutId) {
+  const workoutsSheet = ss.getSheetByName('Workouts');
+  const data = workoutsSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  const headerMap = {};
+  headers.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][headerMap['workout_id']] === workoutId) {
+      return {
+        workout_id: data[i][headerMap['workout_id']],
+        workout_name: data[i][headerMap['workout_name']]
+      };
+    }
+  }
+
+  return null;
 }
 
 // Mark workout as complete

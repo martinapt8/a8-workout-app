@@ -2,6 +2,63 @@
 
 ## Current Status (Latest Update - November 7, 2025)
 
+### 🏖️ Off-Season Mode UI Improvements + Agency-Wide Activity Feed (November 7, 2025 - Night)
+
+**Fixed Missing Workout Logging in Off-Season Mode**:
+- **Root Cause**: Previous fix enabled off-season mode but UI was incomplete
+  - "Log Other Workout" button was hidden inside the workout-card div
+  - Activity feed was showing but empty (no data available)
+  - Off-season message was in wrong location (status badge instead of card)
+  - Users couldn't actually log workouts despite the feature being enabled
+
+- **UI Fixes** (`index.html`):
+  - Now shows `no-workout-card` with off-season message instead of hiding all cards
+  - Off-season message properly displayed in card body with clear styling
+  - "Log Workout (Year-Round)" button and input field are now visible and functional
+  - Completion status badge hidden (not relevant when no challenge active)
+  - Updated button text to "Log Workout (Year-Round)" for clarity
+
+**New Feature: Agency-Wide Activity Feed** (`backend/Code.gs`, `api.js`, `index.html`):
+- **Purpose**: Maintain social/community engagement year-round
+- **Backend** (`Code.gs`):
+  - Added `getRecentCompletionsAll(ss, limit)` function (lines 547-601)
+  - Returns most recent completions across ALL users and challenges
+  - Shows workout names for prescribed workouts, descriptions for "Other Workouts"
+  - Added `getWorkoutById(ss, workoutId)` helper function (lines 603-624)
+  - Added `getRecentCompletionsAll` API endpoint to `doGet()` (lines 81-85)
+- **Frontend API** (`api.js`):
+  - Added `getRecentCompletionsAll(limit)` method with clear documentation
+- **Frontend UI** (`index.html`):
+  - Refactored `updateActivityFeed()` to call new agency-wide endpoint
+  - Works year-round regardless of challenge status or user participation
+  - Changed card title from "Recent Team Activity" → "Recent Activity"
+  - Shows loading state while fetching data
+  - Displays user names, workout descriptions, and timestamps
+
+**User Experience**:
+- ✅ Off-season message clearly visible in dedicated card
+- ✅ Workout input field and submit button fully functional
+- ✅ Users can describe and log any workout during off-season
+- ✅ Workouts logged with `challenge_id = 'year_round'`
+- ✅ Activity feed shows REAL data from entire agency (not just during challenges)
+- ✅ Activity feed works for users not on a team
+- ✅ Me page continues to show all workout history
+- ✅ Social aspect maintained even between challenges
+
+**Files Changed**:
+- `backend/Code.gs`: Added 2 new functions + API endpoint (78 lines added)
+- `api.js`: Added getRecentCompletionsAll method
+- `index.html`: Rewrote `showOffSeasonMode()` and `updateActivityFeed()` functions
+
+**Testing Needed**:
+- [ ] Test workout logging during off-season
+- [ ] Verify workouts appear in Me page calendar
+- [ ] Confirm workouts stored with 'year_round' challenge_id
+- [ ] Check activity feed displays real data from all users
+- [ ] Verify activity feed works for non-team users
+
+---
+
 ### 🏖️ Off-Season Mode Fix (November 7, 2025 - Late Evening)
 
 **Fixed App Failure During Off-Season (Between Challenges)**:

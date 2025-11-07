@@ -49,13 +49,17 @@ All pages feature bottom navigation with icons for quick switching between views
 ```
 
 **Key Components:**
-- Challenge name and personal greeting
-- Completion status indicator
-- Current workout card with instructions
+- Challenge name and personal greeting (or "Off-Season Mode" during off-season)
+- Completion status indicator (hidden during off-season)
+- Current workout card with instructions (or off-season message card with "Log Workout (Year-Round)" button)
 - Exercise list with alternatives
 - Action buttons (Complete/Log Other)
-- Recent activity feed
-- Bottom navigation bar
+- **Recent Activity feed** - Agency-wide workout feed that works year-round
+  - Shows last 15 completions from ALL users across ALL challenges
+  - Displays user names, workout descriptions, and timestamps
+  - Works regardless of active challenge or user team status
+  - Maintains community engagement even during off-season
+- Bottom navigation bar (Team and Library hidden during off-season)
 
 ---
 

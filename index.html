@@ -452,16 +452,13 @@
                 // Handle no active challenge (off-season mode)
                 if (userData.offSeasonMode) {
                     showOffSeasonMode(userData);
-                    return;
-                }
-
-                if (userData.error) {
+                } else if (userData.error) {
                     showError(userData.error);
                     return;
+                } else {
+                    // Initialize the app with fetched data
+                    initializeApp();
                 }
-
-                // Initialize the app with fetched data
-                initializeApp();
 
             } catch (error) {
                 console.error('Failed to load dashboard:', error);
@@ -469,7 +466,7 @@
                 return;
             }
 
-            // Setup navigation
+            // Setup navigation (works for both active challenge and off-season)
             setupNavigation();
 
             // Setup button handlers
@@ -564,7 +561,7 @@
             }
 
             // Show "Log Other Workout" button (users can still track workouts)
-            const logOtherBtn = document.getElementById('log-other-workout-btn');
+            const logOtherBtn = document.getElementById('log-other-btn');
             if (logOtherBtn) {
                 logOtherBtn.style.display = 'block';
                 logOtherBtn.textContent = 'Log Workout (Year-Round)';
@@ -591,13 +588,13 @@
             }
 
             // Hide Team Progress navigation button (no team progress in off-season)
-            const teamNavBtn = document.getElementById('nav-progress');
+            const teamNavBtn = document.getElementById('team-nav-btn');
             if (teamNavBtn) {
                 teamNavBtn.style.display = 'none';
             }
 
             // Hide Library navigation button (no workouts in off-season)
-            const libraryNavBtn = document.getElementById('nav-library');
+            const libraryNavBtn = document.querySelector('button[data-page="library"]');
             if (libraryNavBtn) {
                 libraryNavBtn.style.display = 'none';
             }

@@ -5,86 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A8 Workout Challenge</title>
 
+    <!-- Performance: DNS prefetch and preconnect for faster API calls -->
+    <link rel="dns-prefetch" href="https://script.google.com">
+    <link rel="preconnect" href="https://script.google.com" crossorigin>
+
+    <!-- Performance: Preload critical font -->
+    <link rel="preload" href="fonts/Roobert-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+
     <!-- Apple Touch Icon and PWA settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Daily Dose">
 
-    <!-- Dynamic icon generator - Black background with yellow logo -->
-    <script>
-        (function() {
-            // Load SVG and create icons with black background
-            fetch('assets/daily_dose_logo.svg')
-                .then(r => r.text())
-                .then(svgText => {
-                    // Modify SVG to use yellow instead of black
-                    const yellowSvg = svgText.replace(/fill="#000000"/g, 'fill="#FFC107"');
-
-                    // Create blob for image loading
-                    const blob = new Blob([yellowSvg], {type: 'image/svg+xml'});
-                    const url = URL.createObjectURL(blob);
-
-                    const img = new Image();
-                    img.onload = function() {
-                        // Create 180x180 icon with black background
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 180;
-                        canvas.height = 180;
-                        const ctx = canvas.getContext('2d');
-
-                        // Black background
-                        ctx.fillStyle = '#000000';
-                        ctx.fillRect(0, 0, 180, 180);
-
-                        // Draw yellow logo centered (80% of canvas)
-                        const logoSize = 144;
-                        const offset = (180 - logoSize) / 2;
-                        ctx.drawImage(img, offset, offset, logoSize, logoSize);
-
-                        const iconUrl = canvas.toDataURL('image/png');
-
-                        // Regular favicon
-                        const icon = document.createElement('link');
-                        icon.rel = 'icon';
-                        icon.type = 'image/png';
-                        icon.href = iconUrl;
-                        document.head.appendChild(icon);
-
-                        // Apple touch icons
-                        const appleTouchIcon = document.createElement('link');
-                        appleTouchIcon.rel = 'apple-touch-icon';
-                        appleTouchIcon.href = iconUrl;
-                        document.head.appendChild(appleTouchIcon);
-
-                        // Multiple sizes for better compatibility
-                        const sizes = [152, 167, 180];
-                        sizes.forEach(size => {
-                            const link = document.createElement('link');
-                            link.rel = 'apple-touch-icon';
-                            link.sizes = `${size}x${size}`;
-                            link.href = iconUrl;
-                            document.head.appendChild(link);
-                        });
-
-                        URL.revokeObjectURL(url);
-                    };
-                    img.src = url;
-                })
-                .catch(err => {
-                    console.log('Could not load logo for icon generation:', err);
-                });
-        })();
-    </script>
-
     <!-- Theme color for browser chrome -->
     <meta name="theme-color" content="#000000">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20251104-1">
+    <link rel="stylesheet" href="styles.css?v=20251107-1">
 
     <!-- API Configuration and Helper -->
-    <script src="config.js?v=20251104-1"></script>
-    <script src="api.js?v=20251104-1"></script>
+    <script src="config.js?v=20251107-1"></script>
+    <script src="api.js?v=20251107-1"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -228,6 +169,12 @@
                         <h2>My Workouts</h2>
                     </div>
                     <div class="card-body">
+                        <!-- Calendar Navigation -->
+                        <div class="calendar-header">
+                            <button id="prev-month-btn" class="calendar-nav-btn" aria-label="Previous month">◀</button>
+                            <div id="calendar-month-year-display"></div>
+                            <button id="next-month-btn" class="calendar-nav-btn" aria-label="Next month">▶</button>
+                        </div>
                         <div id="calendar-grid" class="calendar-grid">
                             <!-- Calendar will be generated here -->
                         </div>
@@ -470,8 +417,20 @@
         let currentPage = 'workout';
         let isRefreshing = false;
 
+        // Calendar state management for multi-month navigation
+        const CalendarState = {
+            currentMonth: new Date().getMonth(),  // 0-11
+            currentYear: new Date().getFullYear(),
+            allCompletionDates: [],  // Array of all loaded completion dates
+            loadedRangeStart: null,  // Start of loaded date range (Date object)
+            loadedRangeEnd: null     // End of loaded date range (Date object)
+        };
+
         // Initialize app when DOM is ready
         document.addEventListener('DOMContentLoaded', async function() {
+            // Performance tracking
+            const perfStart = performance.now();
+
             // Get userId from URL parameter
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user');
@@ -485,7 +444,10 @@
             // Just fetch the data
             try {
                 // Fetch user dashboard data from API
+                const apiStart = performance.now();
                 userData = await API.getDashboard(userId);
+                const apiEnd = performance.now();
+                console.log(`API call completed in ${(apiEnd - apiStart).toFixed(0)}ms`);
 
                 // Handle no active challenge (off-season mode)
                 if (userData.error && userData.error === 'No active challenge') {
@@ -515,6 +477,13 @@
 
             // Setup AI workout handlers
             setupAIWorkoutHandlers();
+
+            // Defer icon generation (non-critical, runs after app loads)
+            generateAppIcons();
+
+            // Performance tracking
+            const perfEnd = performance.now();
+            console.log(`🚀 Total app load time: ${(perfEnd - perfStart).toFixed(0)}ms`);
         });
 
         // Initialize app with user data
@@ -819,47 +788,87 @@
 
             summaryJoined.textContent = userData.user.join_date ? `Member since: ${userData.user.join_date}` : '';
 
-            // Fetch and build calendar
-            API.getUserCompletionHistory(userData.user.user_id)
-                .then(buildCalendar)
+            // Load completion dates for current month and build calendar
+            loadCompletionDateRange(userData.user.user_id, CalendarState.currentMonth, CalendarState.currentYear)
+                .then(() => {
+                    buildCalendar(CalendarState.allCompletionDates, CalendarState.currentMonth, CalendarState.currentYear);
+                })
                 .catch(function(error) {
-                    console.error('Failed to fetch completion history:', error);
+                    console.error('Failed to load calendar:', error);
                 });
 
             // Load past challenge history
             loadPastChallengeHistory();
         }
 
-        // Build calendar grid with checkmarks
-        function buildCalendar(completionDates) {
+        /**
+         * Load completion dates for a range around the center month/year
+         * Implements hybrid loading: fetch ±3 months from center
+         * @param {string} userId - User ID
+         * @param {number} centerMonth - Month (0-11)
+         * @param {number} centerYear - Year
+         */
+        async function loadCompletionDateRange(userId, centerMonth, centerYear) {
+            // Calculate date range: ±3 months from center
+            const rangeStart = new Date(centerYear, centerMonth - 3, 1);
+            const rangeEnd = new Date(centerYear, centerMonth + 4, 0); // Last day of month+3
+
+            // Check if range is already loaded
+            if (CalendarState.loadedRangeStart && CalendarState.loadedRangeEnd) {
+                const isRangeLoaded = rangeStart >= CalendarState.loadedRangeStart &&
+                                     rangeEnd <= CalendarState.loadedRangeEnd;
+                if (isRangeLoaded) {
+                    // Range already loaded, no need to fetch
+                    return;
+                }
+            }
+
+            // Fetch completion dates for the range
+            try {
+                const startDateStr = formatDateForComparison(rangeStart);
+                const endDateStr = formatDateForComparison(rangeEnd);
+
+                const completions = await API.getUserAllCompletions(userId, startDateStr, endDateStr);
+
+                // Merge with existing dates (avoid duplicates)
+                completions.forEach(date => {
+                    if (!CalendarState.allCompletionDates.includes(date)) {
+                        CalendarState.allCompletionDates.push(date);
+                    }
+                });
+
+                // Update loaded range
+                if (!CalendarState.loadedRangeStart || rangeStart < CalendarState.loadedRangeStart) {
+                    CalendarState.loadedRangeStart = rangeStart;
+                }
+                if (!CalendarState.loadedRangeEnd || rangeEnd > CalendarState.loadedRangeEnd) {
+                    CalendarState.loadedRangeEnd = rangeEnd;
+                }
+            } catch (error) {
+                console.error('Error loading completion date range:', error);
+                showError('Failed to load workout history');
+            }
+        }
+
+        /**
+         * Build calendar grid with checkmarks for a specific month/year
+         * @param {Array} completionDates - Array of completion dates (YYYY-MM-DD)
+         * @param {number} month - Month to display (0-11)
+         * @param {number} year - Year to display
+         */
+        function buildCalendar(completionDates, month, year) {
             const calendarGrid = document.getElementById('calendar-grid');
             calendarGrid.innerHTML = '';
 
             if (!userData) return;
 
-            // Parse challenge dates
-            // Handle off-season: show current month
-            let startDate, endDate;
-            if (!userData.challenge) {
-                const today = new Date();
-                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            } else {
-                startDate = new Date(userData.challenge.start_date);
-                endDate = new Date(userData.challenge.end_date);
-            }
-
-            // Get month and year from start date
-            const month = startDate.getMonth();
-            const year = startDate.getFullYear();
-
-            // Create calendar header
+            // Update month/year display in navigation header
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                                'July', 'August', 'September', 'October', 'November', 'December'];
-            const monthHeader = document.createElement('div');
-            monthHeader.className = 'calendar-month-header';
-            monthHeader.textContent = `${monthNames[month]} ${year}`;
-            calendarGrid.appendChild(monthHeader);
+            const monthYearDisplay = document.getElementById('calendar-month-year-display');
+            if (monthYearDisplay) {
+                monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
+            }
 
             // Create day headers
             const dayHeaders = document.createElement('div');
@@ -897,18 +906,11 @@
 
                 dayCell.className = 'calendar-day';
 
-                // Check if date is within challenge range
-                if (currentDate >= startDate && currentDate <= endDate) {
-                    // Check if user completed workout on this day
-                    if (completionDates.includes(dateStr)) {
-                        dayCell.classList.add('completed');
-                        dayCell.innerHTML = `<span class="day-number">${day}</span><span class="checkmark">✓</span>`;
-                    } else {
-                        dayCell.innerHTML = `<span class="day-number">${day}</span>`;
-                    }
+                // Check if user completed workout on this day
+                if (completionDates.includes(dateStr)) {
+                    dayCell.classList.add('completed');
+                    dayCell.innerHTML = `<span class="day-number">${day}</span><span class="checkmark">✓</span>`;
                 } else {
-                    // Outside challenge range
-                    dayCell.classList.add('outside-range');
                     dayCell.innerHTML = `<span class="day-number">${day}</span>`;
                 }
 
@@ -916,6 +918,22 @@
             }
 
             calendarGrid.appendChild(daysContainer);
+        }
+
+        /**
+         * Navigate to a specific month/year
+         * Loads data if needed and rebuilds calendar
+         * @param {number} month - Month (0-11)
+         * @param {number} year - Year
+         */
+        async function navigateToMonth(month, year) {
+            if (!userData || !userData.user) return;
+
+            // Load date range if needed
+            await loadCompletionDateRange(userData.user.user_id, month, year);
+
+            // Rebuild calendar with new month
+            buildCalendar(CalendarState.allCompletionDates, month, year);
         }
 
         // Format date for comparison (YYYY-MM-DD)
@@ -1249,6 +1267,27 @@
             // Log past workout button on Me page
             document.getElementById('me-log-past-workout-btn').addEventListener('click', function() {
                 logPastWorkoutFromMePage();
+            });
+
+            // Calendar navigation buttons
+            document.getElementById('prev-month-btn').addEventListener('click', async function() {
+                // Go to previous month
+                CalendarState.currentMonth--;
+                if (CalendarState.currentMonth < 0) {
+                    CalendarState.currentMonth = 11;
+                    CalendarState.currentYear--;
+                }
+                await navigateToMonth(CalendarState.currentMonth, CalendarState.currentYear);
+            });
+
+            document.getElementById('next-month-btn').addEventListener('click', async function() {
+                // Go to next month
+                CalendarState.currentMonth++;
+                if (CalendarState.currentMonth > 11) {
+                    CalendarState.currentMonth = 0;
+                    CalendarState.currentYear++;
+                }
+                await navigateToMonth(CalendarState.currentMonth, CalendarState.currentYear);
             });
 
             // Library back buttons (top and bottom)
@@ -2009,6 +2048,70 @@
                 logBtn.textContent = 'Log This Workout';
                 logBtn.classList.remove('btn-disabled');
             }
+        }
+
+        // Generate app icons (favicon and apple touch icons)
+        // Deferred to run after critical content loads
+        function generateAppIcons() {
+            fetch('assets/daily_dose_logo.svg')
+                .then(r => r.text())
+                .then(svgText => {
+                    // Modify SVG to use yellow instead of black
+                    const yellowSvg = svgText.replace(/fill="#000000"/g, 'fill="#FFC107"');
+
+                    // Create blob for image loading
+                    const blob = new Blob([yellowSvg], {type: 'image/svg+xml'});
+                    const url = URL.createObjectURL(blob);
+
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create 180x180 icon with black background
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 180;
+                        canvas.height = 180;
+                        const ctx = canvas.getContext('2d');
+
+                        // Black background
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(0, 0, 180, 180);
+
+                        // Draw yellow logo centered (80% of canvas)
+                        const logoSize = 144;
+                        const offset = (180 - logoSize) / 2;
+                        ctx.drawImage(img, offset, offset, logoSize, logoSize);
+
+                        const iconUrl = canvas.toDataURL('image/png');
+
+                        // Regular favicon
+                        const icon = document.createElement('link');
+                        icon.rel = 'icon';
+                        icon.type = 'image/png';
+                        icon.href = iconUrl;
+                        document.head.appendChild(icon);
+
+                        // Apple touch icons
+                        const appleTouchIcon = document.createElement('link');
+                        appleTouchIcon.rel = 'apple-touch-icon';
+                        appleTouchIcon.href = iconUrl;
+                        document.head.appendChild(appleTouchIcon);
+
+                        // Multiple sizes for better compatibility
+                        const sizes = [152, 167, 180];
+                        sizes.forEach(size => {
+                            const link = document.createElement('link');
+                            link.rel = 'apple-touch-icon';
+                            link.sizes = `${size}x${size}`;
+                            link.href = iconUrl;
+                            document.head.appendChild(link);
+                        });
+
+                        URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                })
+                .catch(err => {
+                    console.log('Could not load logo for icon generation:', err);
+                });
         }
     </script>
 </body>

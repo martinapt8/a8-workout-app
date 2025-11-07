@@ -200,7 +200,7 @@ function getUserDashboardData(userId) {
       const lifetimeWorkouts = getLifetimeWorkoutCount(ss, userId);
 
       return {
-        error: 'No active challenge',
+        offSeasonMode: true,
         message: 'The app is currently in off-season. You can still log "Other Workouts" to track your year-round fitness!',
         user: {
           user_id: user.user_id,

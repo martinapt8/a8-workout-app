@@ -450,7 +450,7 @@
                 console.log(`API call completed in ${(apiEnd - apiStart).toFixed(0)}ms`);
 
                 // Handle no active challenge (off-season mode)
-                if (userData.error && userData.error === 'No active challenge') {
+                if (userData.offSeasonMode) {
                     showOffSeasonMode(userData);
                     return;
                 }
@@ -1594,10 +1594,17 @@
                     console.log('Fetched fresh data:', freshData);
                     if (freshData && !freshData.error) {
                         userData = freshData;
-                        // Update entire UI with the new data
-                        updateWorkoutPage();
-                        updateProgressPage();
-                        updateMePage();
+
+                        // Handle off-season mode after refresh
+                        if (freshData.offSeasonMode) {
+                            // Update off-season UI
+                            showOffSeasonMode(freshData);
+                        } else {
+                            // Update entire UI with the new data
+                            updateWorkoutPage();
+                            updateProgressPage();
+                            updateMePage();
+                        }
                     } else {
                         showError('Could not refresh data. Please reload the page.');
                         console.error('Failed to refresh data:', freshData ? freshData.error : 'No data returned');

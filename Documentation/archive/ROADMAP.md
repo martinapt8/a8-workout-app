@@ -1,15 +1,16 @@
 # A8 Workout Challenge App - Product Roadmap
 
-**Last Updated:** October 28, 2025
+**Last Updated:** November 1, 2025
+**Current Version:** 3.0 (Multi-Challenge Architecture)
 **Status:** Active Development
 
-This roadmap outlines planned enhancements for the A8 Workout Challenge App, prioritized by implementation complexity and user value.
+This roadmap outlines planned enhancements for the Daily Dose workout app, prioritized by implementation complexity and user value.
 
 ---
 
-## Current State
+## Current State (V3)
 
-The app is in production with the following features:
+The app is in production with multi-challenge support and the following features:
 - 5-page navigation (Today, Team, Me, Library, A8AI)
 - Prescribed and custom workout logging
 - AI-powered workout generator (Claude API)
@@ -230,18 +231,28 @@ Long-term ideas (from CLAUDE.md):
 
 ## Version History
 
-### Current Version: 2.0 (October 28, 2025)
+### Current Version: 3.0 (November 1, 2025)
+**Major Release: Multi-Challenge Architecture**
+- Multiple challenges with different teams and goals
+- Year-round workout logging (off-challenge periods)
+- Flexible team assignments per challenge
+- Challenge management via admin menu
+- 10-20x faster queries with challenge_id filtering
+- Historical challenge data preservation
+- Backward compatible with V2 data
+
+### Version 2.0 (October 28, 2025)
 - 5-page navigation system
 - AI workout generator
 - Branded loading screen and app icon
 - Calendar-based completion history
 - Past workout backfilling
 
-### Previous Updates
+### Previous Updates (V1-V2)
+- **October 27, 2025:** Daily Dose logo integration
 - **October 24, 2025:** A8AI Workout Generator added
 - **October 17-24, 2025:** Expanded to 5-page navigation
 - **October 15, 2025:** Past workout backfill feature
-- **October 27, 2025:** Daily Dose logo integration
 
 ---
 
@@ -260,5 +271,5 @@ Document ideas in this ROADMAP.md under "Future Considerations" section.
 ## Contact & Feedback
 
 Project Owner: A8 Team
-Last Review: October 28, 2025
+Last Review: November 1, 2025 (V3 Multi-Challenge Release)
 Next Review: TBD based on implementation progress

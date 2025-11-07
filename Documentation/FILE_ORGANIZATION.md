@@ -10,10 +10,9 @@
 
 ### Documentation
 - `README.md` - Deployment guide ✅
-- `QUICK_START.md` - Quick reference ✅
-- `TESTING_CHECKLIST.md` - Testing guide ✅
-- `MIGRATION_SUMMARY.md` - Migration details ✅
-- `CLAUDE.md` - Original project docs ✅
+- `CLAUDE.md` - Complete project documentation ✅
+- `CHANGELOG.md` - Version history ✅
+- `Documentation/` - Additional guides and references ✅
 
 ### Development Tools
 - `.gitignore` - Git ignore rules ✅

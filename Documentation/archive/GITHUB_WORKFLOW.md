@@ -28,8 +28,8 @@ Production Environment:
 
 ### 1. Clean Up Your Folder
 ```bash
-cd "/Users/martinobo/Documents/Skunk Works/A8 Workout Challenge App/October Challenge Dev"
-./cleanup.sh
+cd "/path/to/your/project/folder"
+./cleanup.sh  # If you have a cleanup script
 ```
 
 This will:

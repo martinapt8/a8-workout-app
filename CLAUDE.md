@@ -1,37 +1,114 @@
-# A8 Workout Challenge App V2
+# Daily Dose - A8 Workout Challenge App V3
 
 ## Project Overview
-A collective goal-oriented workout tracking web app for team building at A8. Features a single challenge period with rotating workouts and a shared company-wide goal. Teams and individuals contribute to one collective target (e.g., 200 workouts in October). Built as a lightweight Google Apps Script web app with personalized URL access.
+A year-round workout tracking web app for A8 with multi-challenge support. Users can participate in time-bound challenges with team competitions and collective goals, or log workouts independently during off-challenge periods. Each challenge features rotating prescribed workouts, flexible team assignments, and shared company-wide goals. Built as a lightweight GitHub Pages frontend with Google Apps Script API backend.
 
 ## Core Philosophy
-- **Collective Achievement**: Focus on group goal vs individual streaks
-- **Workout Variety**: Multiple workouts scheduled throughout challenge period
-- **Team Contribution**: Teams work together toward single company goal
-- **Flexibility**: Users can log prescribed workouts or external workouts
+- **Year-Round Engagement**: Log workouts anytime, whether in an active challenge or not
+- **Multi-Challenge Support**: Run multiple challenges with different teams, goals, and timeframes
+- **Collective Achievement**: Focus on group goal vs individual streaks during challenges
+- **Workout Variety**: Rotating prescribed workouts, AI-generated options, and custom logging
+- **Team Flexibility**: Team assignments per challenge, users can be on different teams each time
 - **Minimal Friction**: No passwords, no app downloads, bookmark your personal URL
 
 ## Technical Architecture
 
-### Frontend
-- **Two HTML Files**:
+### Frontend (GitHub Pages)
+- **Static Files**:
   - `index.html`: Core HTML structure and JavaScript logic
-  - `styles.html`: Separated CSS with Base64 embedded Roobert fonts (5 weights)
+  - `styles.css`: All styling (28KB - optimized with external fonts)
+  - `config.js`: API endpoint configuration
+  - `api.js`: API helper functions
+  - `fonts/`: External WOFF2 font files (3 weights: Regular, SemiBold, Bold)
 - **Five-Page SPA**: Today, Team Progress, Me, Workout Library, and A8AI Generator
-- **Mobile-First Design**: Optimized for quick phone access
+- **Mobile-First Design**: Optimized for quick phone access, PWA-capable
 - **A8 Brand Colors**: Black (#000000), Yellow (#FFC107), White (#FFFFFF)
 - **AI Integration**: Claude API for dynamic workout generation
 
-### Backend
-- **Google Sheets Database**: 5 sheets for Users, Workouts, Completions, Settings, Coaching
-- **Google Apps Script**: Server logic with simplified operations
+### Backend (Google Apps Script)
+- **Google Sheets Database**: 7 sheets for Users, Workouts, Completions, Challenges, Challenge_Teams, Settings, Coaching
+- **RESTful API**: Form-encoded POST endpoints for all operations
 - **No Authentication**: URL parameters identify users (`?user=martin`)
 - **CORS Solution**: Uses form-encoded POST (URLSearchParams) instead of JSON to bypass CORS preflight restrictions
 
 ### User Access Pattern
 ```
-https://script.google.com/[app-id]/exec?user=megan
-https://script.google.com/[app-id]/exec?user=alex
+https://martinapt8.github.io/a8-workout-app/?user=megan
+https://martinapt8.github.io/a8-workout-app/?user=alex
 ```
+
+## Project Folder Structure
+
+```
+Daily Dose Dev/
+├── Root Files
+│   ├── index.html              # Main app HTML (89KB, 5-page SPA)
+│   ├── signup.html             # User signup page (17KB)
+│   ├── styles.css              # All styling (28KB - optimized)
+│   ├── config.js               # API endpoint configuration (930B)
+│   ├── api.js                  # API helper functions (3.3KB)
+│   ├── CLAUDE.md               # Primary project documentation
+│   ├── CHANGELOG.md            # Version history
+│   └── deploy.sh               # Deployment script
+│
+├── fonts/                      # WOFF2 font files (3 files, 96KB total)
+│   ├── Roobert-Regular.woff2   # 32KB, font-weight: 400
+│   ├── Roobert-SemiBold.woff2  # 32KB, font-weight: 600
+│   └── Roobert-Bold.woff2      # 32KB, font-weight: 700
+│
+├── assets/                     # Images and icons (12 files)
+│   ├── A8_Logo.png
+│   ├── daily_dose_logo_*.png   # 3 sizes
+│   ├── daily_dose_logo.svg
+│   └── *.svg                   # today, team, me, library, ai icons
+│
+├── backend/                    # Google Apps Script files (12 files)
+│   ├── Code.gs                 # Core REST API (37KB)
+│   ├── AdminChallenges.gs      # Challenge management (14KB)
+│   ├── Signup.gs               # User signup (13KB)
+│   ├── ClaudeAPI.gs            # AI workout generation (6KB)
+│   ├── Slack.gs                # Slack integration (16KB)
+│   ├── welcome_email.gs        # Welcome emails (11KB)
+│   ├── update_email.gs         # Update emails (13KB)
+│   ├── FormMigration.gs        # Form response migration (12KB)
+│   ├── MigrationScripts.gs     # Multi-challenge migration (18KB)
+│   ├── TestingFunctions.gs     # Testing suite (12KB)
+│   ├── AutoSort.gs             # Auto-sort functionality (3KB)
+│   └── menu.gs                 # Custom spreadsheet menu (9KB)
+│
+├── Documentation/              # Active documentation (6 files)
+│   ├── README.md               # Deployment guide
+│   ├── FILE_ORGANIZATION.md    # File management guide
+│   ├── DEPLOYMENT_AND_WORKFLOW.md # Complete deployment and git workflow
+│   ├── ROADMAP.md              # Product roadmap
+│   ├── TESTING_CHECKLIST.md    # Feature testing
+│   ├── TESTING_FUNCTIONS_GUIDE.md # Backend testing
+│   └── archive/                # Historical migration docs
+│
+└── SampleData/                 # CSV exports (ignored by git)
+    ├── Users.csv
+    ├── Workouts.csv
+    ├── Completions.csv
+    ├── Settings.csv
+    └── Coaching.csv
+```
+
+## Backend Files Reference
+
+| File | Size | Purpose | Key Functions |
+|------|------|---------|---------------|
+| Code.gs | 37KB | Core REST API, main entry point | doGet(), doPost(), getUserDashboardData() |
+| AdminChallenges.gs | 14KB | Challenge management | createNewChallenge(), setActiveChallenge() |
+| Signup.gs | 13KB | User signup & preferences | createSignupRequest(), updateUserPreferences() |
+| ClaudeAPI.gs | 6KB | AI workout generation | generateAIWorkout(), callClaudeAPI() |
+| Slack.gs | 16KB | Slack notifications | sendDailyProgressSummary(), sendDailyReminder() |
+| welcome_email.gs | 11KB | Welcome emails | sendWelcomeEmail() |
+| update_email.gs | 13KB | Update emails | sendUpdateEmail() |
+| FormMigration.gs | 12KB | Form response import | migrateFormResponses() |
+| MigrationScripts.gs | 18KB | V2→V3 migration utilities | (historical, not actively used) |
+| TestingFunctions.gs | 12KB | Backend testing suite | testUserDashboard(), testWorkoutCompletion() |
+| AutoSort.gs | 3KB | Auto-sort completions | onEdit() trigger |
+| menu.gs | 9KB | Custom admin menu | onOpen(), promptCreateChallenge() |
 
 ## Google Sheets Structure
 
@@ -40,14 +117,15 @@ https://script.google.com/[app-id]/exec?user=alex
 |--------|-------|---------|-------------|
 | A | user_id | meg | Unique identifier (lowercase, user-controlled) |
 | B | display_name | 🎯 Megan | Display name with optional emoji (shown in app/boards) |
-| C | team_name | Red | Team assignment (legacy - now in Challenge_Teams) |
-| D | team_color | #FF0000 | Team color in hex (legacy - now in Challenge_Teams) |
-| E | total_workouts | 5 | Total for current challenge |
-| F | last_completed | 10/3/2025 | Date of last workout |
+| C | team_name | Red | **LEGACY** - Team assignment (now in Challenge_Teams) |
+| D | team_color | #FF0000 | **LEGACY** - Team color in hex (now in Challenge_Teams) |
+| E | total_workouts | 47 | Workout count for active challenge only (per-challenge tracking) |
+| F | last_completed | 10/31/2025 | Date of last workout (any challenge) |
 | - | email | megan@example.com | User email address |
 | - | full_name | Megan Smith | Full legal name |
-| - | join_date | 10/1/2025 | Date user joined |
+| - | join_date | 10/1/2025 | Date user first joined app |
 | - | active_user | TRUE | User activation status (set by admin) |
+| - | active_challenge_id | nov_2025 | Current challenge user is participating in (NULL = none) |
 | - | preferred_duration | 20 | Workout duration preference (10/20/30 min) |
 | - | equipment_available | Bodyweight,Kettlebell | Comma-separated equipment list |
 | - | welcome_email_sent | TRUE | Tracking flag for welcome email |
@@ -55,6 +133,8 @@ https://script.google.com/[app-id]/exec?user=alex
 | - | deployment_URL | (formula) | Auto-generated personal app link |
 
 **Note**: Column order may vary. Backend uses header-based mapping for flexibility.
+
+**Important**: `total_workouts` tracks workouts for the ACTIVE challenge only (updated by `updateUserStats()` when workouts are logged). Lifetime workout counts are calculated on-demand via `getLifetimeWorkoutCount()` and returned in API responses as `lifetime_workouts`. Per-challenge historical totals are calculated from Completions by filtering on `challenge_id`.
 
 ### Sheet 2: Workouts
 | Column | Field | Example | Description |
@@ -64,10 +144,13 @@ https://script.google.com/[app-id]/exec?user=alex
 | C | instructions | Complete all exercises back-to-back | Workout instructions/notes |
 | D | start_date | 10/1/2025 | When workout becomes active |
 | E | end_date | 10/3/2025 | When workout expires |
-| F | movement_1 | Push-ups | First exercise |
-| G | reps_1 | 15 | Reps/duration for movement_1 |
-| H | alt_1 | Knee push-ups | Alternative for movement_1 |
-| I-K | movement_2... | (repeats for up to 5 movements) | Additional exercises |
+| F | challenge_id | oct_2025 | Which challenge this workout belongs to (NULL = available anytime) |
+| G | movement_1 | Push-ups | First exercise |
+| H | reps_1 | 15 | Reps/duration for movement_1 |
+| I | alt_1 | Knee push-ups | Alternative for movement_1 |
+| J-L | movement_2... | (repeats for up to 5 movements) | Additional exercises |
+
+**Note**: Workouts with NULL `challenge_id` are available year-round. Challenge-specific workouts only appear during their challenge's date range.
 
 ### Sheet 3: Completions
 | Column | Field | Example | Description |
@@ -75,168 +158,101 @@ https://script.google.com/[app-id]/exec?user=alex
 | A | timestamp | 10/3/2025 09:15:00 | When completed |
 | B | user_id | meg | Who completed |
 | C | workout_id | oct_week1_a | Which workout: prescribed ID, "AI Workout", or "Other Workout" |
-| D | team_name | Red | User's team |
+| D | team_name | Red | User's team at time of completion |
 | E | other_workout_details | 15min, Intermediate, Bodyweight | Optional details (AI params or user description) |
+| F | challenge_id | oct_2025 | Which challenge this belongs to (NULL = off-challenge workout) |
 
-### Sheet 4: Settings
+**Note**: `challenge_id` enables fast filtering of completions by challenge (10-20x faster than date-range queries). NULL values represent workouts logged outside of any active challenge period.
+
+### Sheet 4: Challenges
 | Column | Field | Example | Description |
 |--------|-------|---------|-------------|
-| A | key | challenge_name | Setting identifier |
-| B | value | October Challenge | Setting value |
+| A | challenge_id | oct_2025 | Unique identifier (no spaces) |
+| B | challenge_name | October Challenge | Display name shown in app |
+| C | start_date | 10/1/2025 | Challenge start date |
+| D | end_date | 10/31/2025 | Challenge end date |
+| E | total_goal | 200 | Target number of workouts for the challenge |
+| F | is_active | TRUE | Whether this is the currently active challenge |
+
+**Note**: Only ONE challenge should have `is_active = TRUE` at a time. The active challenge determines which workouts appear on the Today page and which teams are shown.
+
+### Sheet 5: Challenge_Teams
+| Column | Field | Example | Description |
+|--------|-------|---------|-------------|
+| A | challenge_id | oct_2025 | Which challenge this team assignment is for |
+| B | user_id | meg | User being assigned to team |
+| C | team_name | Red | Team name for this challenge |
+| D | team_color | #FF0000 | Team color in hex |
+
+**Purpose**: Flexible team assignments per challenge. Users can be on different teams in different challenges. Teams are created/managed via admin menu when setting up a new challenge.
+
+### Sheet 6: Settings
+| Column | Field | Example | Description |
+|--------|-------|---------|-------------|
+| A | key | company_name | Setting identifier |
+| B | value | A8 | Setting value |
 
 **Required Settings Keys**:
-- `challenge_name`: Display name for the challenge
-- `start_date`: Challenge start date (e.g., 10/1/2025)
-- `end_date`: Challenge end date (e.g., 11/1/2025)
-- `total_goal`: Target number of workouts (e.g., 200)
 - `company_name`: Company name for branding (e.g., A8)
 - `timezone`: Application timezone for consistent day boundaries (e.g., America/New_York)
+- `deployed_URL`: Base URL for email links (e.g., https://martinapt8.github.io/a8-workout-app/)
 
-### Sheet 5: Coaching
+**Note**: Challenge-specific settings (name, dates, goals) are now in the Challenges sheet. Settings sheet is for app-wide configuration only.
+
+### Sheet 7: Coaching
 | Column | Field | Example | Description |
 |--------|-------|---------|-------------|
 | A | date | 10/16/2025 | Date for coaching tip |
 | B | coaching_tip | Remember to focus on form over speed today! | Daily coaching message |
 
-**Purpose**: Provides daily coaching tips that appear in Slack progress updates when triggered on matching dates.
+**Purpose**: Provides optional daily coaching tips that appear in Slack progress updates when triggered on matching dates.
 
-## Frontend Structure
+**Integration**: Used by `sendDailyProgressSummary()` in Slack.gs:
+- Searches for row where date matches current date
+- Includes coaching tip in "Today's Coaching Tip" section
+- If no matching date found, section is omitted
+- Enables personalized motivational messages throughout challenge
 
-### Page 1: Today (Default Landing)
-```
-┌─────────────────────────┐
-│  A8 October Challenge   │
-│  Hey 🎯 Megan!          │
-│  ✅ Completed Today     │
-├─────────────────────────┤
-│  Today's Workout        │
-│  Power Monday           │
-│  Oct 1-3                │
-│                         │
-│  Complete all exercises │
-│  back-to-back, rest 60  │
-│  seconds between rounds │
-│                         │
-│  • Push-ups: 15         │
-│    (or knee push-ups)   │
-│  • Squats: 20           │
-│    (or wall sits)       │
-│                         │
-│  [Complete Workout]     │
-│  [Log Other Workout]    │
-├─────────────────────────┤
-│  Recent Activity        │
-│  • Megan completed...   │
-│  • Martin completed...  │
-├─────────────────────────┤
-│  [💪Today|📈Team|👤Me|📚Library] │
-└─────────────────────────┘
-```
+## Frontend Pages Overview
 
-### Page 2: Team Progress
-```
-┌─────────────────────────┐
-│  A8 October Challenge   │
-├─────────────────────────┤
-│  Total A8 Goal          │
-│  60/200 workouts - 30%  │
-│  ████████░░░░░░░░░░     │
-│                         │
-│  Team Breakdown:        │
-│  Team Red: 20           │
-│  Team Blue: 20          │
-│  Team Green: 20         │
-├─────────────────────────┤
-│  [💪Today|📈Team|👤Me|📚Library] │
-└─────────────────────────┘
-```
+The app is a five-page SPA with mobile-first design and bottom navigation:
 
-### Page 3: Me (NEW)
-```
-┌─────────────────────────┐
-│  My Summary             │
-│  🎯 Megan - Team Red    │
-│  15 workouts completed  │
-│  Last Workout: Oct 16   │
-├─────────────────────────┤
-│  My Calendar            │
-│  Oct 2025               │
-│  Su Mo Tu We Th Fr Sa   │
-│     1✓ 2✓ 3✓ 4  5       │
-│   6✓ 7✓ 8  9✓10✓11✓     │
-│  12✓13✓14✓15✓16✓        │
-├─────────────────────────┤
-│  📅 Log Past Workout    │
-│  Date: [10/14 ▼]        │
-│  Workout: [________]    │
-│  [Log Past Workout]     │
-├─────────────────────────┤
-│  [💪Today|📈Team|👤Me|📚Library] │
-└─────────────────────────┘
-```
+**Page 1: Today** (Default Landing)
+- Challenge name and personal greeting
+- Completion status indicator
+- Current workout card with instructions and exercises
+- Exercise alternatives displayed for accessibility
+- Action buttons (Complete Workout / Log Other Workout)
+- Recent Activity feed (newest first)
 
-### Page 4: Workout Library
-```
-┌─────────────────────────┐
-│  Workout Library        │
-├─────────────────────────┤
-│  Past Workouts:         │
-│  • Power Monday         │
-│    Oct 1-3              │
-│  • Core Burner          │
-│    Oct 4-6              │
-│                         │
-│  Current Workout:       │
-│  • Full Body ⭐         │
-│    Oct 14-16            │
-│                         │
-│  Upcoming Workouts:     │
-│  • HIIT Mix             │
-│    Oct 17-19            │
-├─────────────────────────┤
-│  [💪Today|📈Team|👤Me|📚Library|🤖A8AI] │
-└─────────────────────────┘
-```
+**Page 2: Team Progress**
+- Total goal progress (number and percentage)
+- Visual progress bar
+- Team breakdown with individual totals
 
-### Page 5: A8AI Workout Generator
-```
-┌─────────────────────────┐
-│  A8AI Workout Generator │
-│  🤖                     │
-├─────────────────────────┤
-│  How much time do you   │
-│  have?                  │
-│  [10 min][15 min][20 min]│
-│  ───────────            │
-│  What difficulty level? │
-│  [Beginner][Inter][Hard]│
-│  ───────────            │
-│  What equipment do you  │
-│  have?                  │
-│  [Bodyweight][Kettlebell]│
-│  [Dumbbell][Bands]      │
-│  [Full Gym]             │
-│                         │
-│  [Generate Workout 🤖]  │
-├─────────────────────────┤
-│  OR (after generation): │
-├─────────────────────────┤
-│  ## Warm-up (2 min)     │
-│  • Arm circles          │
-│  • Jumping jacks        │
-│                         │
-│  ## Main Workout        │
-│  **Round 1:**           │
-│  • Push-ups: 15 reps    │
-│  • Squats: 20 reps      │
-│                         │
-│  [🔄 Refresh]           │
-│  [⚙️ Change Options]    │
-│  [Log This Workout]     │
-├─────────────────────────┤
-│  [💪Today|📈Team|👤Me|📚Library|🤖A8AI] │
-└─────────────────────────┘
-```
+**Page 3: Me**
+- Personal summary (name, team, workout count, last workout date)
+- Multi-month calendar with navigation (◀ ▶)
+- Checkmarks on completed dates
+- Past workout backfill form with date picker
+- Shows all workouts across all challenges and year-round
+
+**Page 4: Workout Library**
+- Three sections: Past, Current (⭐), Upcoming
+- Workout cards with names and date ranges
+- Click to view full exercise details
+- Dual back buttons for navigation
+
+**Page 5: A8AI Workout Generator**
+- Parameter selection: Time (10/15/20 min), Difficulty (Beginner/Intermediate/Hard), Equipment
+- Claude Haiku 4.5 API integration
+- Markdown-formatted workout display
+- Actions: Refresh / Change Options / Log This Workout
+- Logs as "AI Workout" with parameters stored
+
+**Navigation**: Fixed bottom bar with icons (💪📈👤📚🤖) for quick page switching.
+
+See `Documentation/FRONTEND_PAGES.md` for detailed UI mockups.
 
 ## Backend Functions
 
@@ -244,29 +260,42 @@ https://script.google.com/[app-id]/exec?user=alex
 
 The project includes several Google Apps Script files for different functionalities:
 
-1. **Code.gs**: Core web app functions (main entry point)
+1. **Code.gs**: Core web app functions and REST API (main entry point)
 2. **ClaudeAPI.gs**: AI workout generation via Claude API
-3. **SetupSheets.gs**: Automated sheet creation and validation
-4. **FormMigration.gs**: Migrates form responses to Users table
+3. **FormMigration.gs**: Migrates form responses to Users table
+4. **Signup.gs**: User signup and preference management
 5. **welcome_email.gs**: Sends personalized welcome emails with app links
 6. **update_email.gs**: Sends mid-challenge update emails with new deployment links
 7. **Slack.gs**: Slack notifications and progress updates
-8. **menu.gs**: Creates custom spreadsheet menu for admin functions
+8. **AdminChallenges.gs**: Challenge creation and management functions
+9. **menu.gs**: Creates custom spreadsheet menu for admin functions
+10. **MigrationScripts.gs**: Multi-challenge migration utilities
+11. **TestingFunctions.gs**: Testing suite for backend validation
+12. **AutoSort.gs**: Auto-sorts Completions sheet by timestamp
 
 ### Core Functions
 
-#### `doGet(e)`
-Main entry point for web app. Handles URL parameters and serves HTML.
+#### `doGet(e)` / `doPost(e)`
+Main REST API entry points. Handles URL parameters and JSON payloads. Routes to appropriate action handlers based on `action` parameter.
 
 #### `getUserDashboardData(userId)`
 Returns all data needed for the user's dashboard:
 - User info (name, team, completion status)
-- Today's workout details
+- Active challenge details (or null if no active challenge)
+- Today's workout details (from active challenge or year-round workouts)
 - Completion status for today
-- Challenge metadata
+- Challenge metadata and progress
 
-#### `getActiveWorkout()`
-Returns the current workout based on today's date:
+#### `getActiveChallenge()`
+Returns the currently active challenge from Challenges sheet:
+- Finds challenge where `is_active = TRUE`
+- Returns challenge object with id, name, dates, and goal
+- Returns null if no active challenge
+- **Critical**: Only one challenge should be marked active at a time
+
+#### `getActiveWorkout(challengeId)`
+Returns the current workout based on today's date and challenge:
+- Filters workouts by `challenge_id` (or NULL for year-round workouts)
 - Uses header-based mapping for column access
 - Checks date ranges in Workouts sheet
 - Includes instructions field if available
@@ -275,36 +304,51 @@ Returns the current workout based on today's date:
 
 #### `markWorkoutComplete(userId, workoutType, workoutDetails, completionDate)`
 Records a workout completion:
-- `workoutType`: "prescribed" (uses active workout_id) or "other" (logs as "Other Workout")
-- `workoutDetails`: Optional text description for "other" workouts (e.g., "30 min run")
+- `workoutType`: "prescribed" (uses active workout_id), "other" (logs as "Other Workout"), or "ai" (logs as "AI Workout")
+- `workoutDetails`: Optional text description for "other" workouts (e.g., "30 min run") or AI parameters
 - `completionDate`: Optional date string (YYYY-MM-DD) for backfilling past workouts
-- Updates user's total_workouts
-- Updates last_completed date
-- Adds entry to Completions sheet with optional details in column E
+- **Automatically assigns `challenge_id`** from active challenge (or "year_round" if no active challenge)
+- Triggers `updateUserStats()` to update total_workouts and last_completed
+- Adds entry to Completions sheet with challenge_id in column F
 - Prevents duplicate logging for same date
 - Validates dates are not in the future
+- **Supports year-round logging** even when no challenge is active
 
-#### `getGoalProgress()`
-Returns collective progress data:
-- Total workouts completed vs goal
+#### `getGoalProgress(challengeId)`
+Returns collective progress data for a specific challenge:
+- Total workouts completed vs goal for the challenge
 - Percentage complete
-- Team breakdowns
-- Recent completions (last 10, from newest to oldest, filtered by challenge dates)
+- Team breakdowns (from Challenge_Teams for this challenge)
+- Recent completions (last 10, from newest to oldest, filtered by challenge_id)
+- Returns null if challengeId is null (no active challenge)
 
 #### `hasCompletedOnDate(ss, userId, targetDate)`
 Checks if user has already logged a workout on a specific date:
 - Used by backfill feature to prevent duplicate logging
 - Returns boolean
 
-#### `getUserCompletionHistory(userId)`
+#### `getUserCompletionHistory(userId, challengeId)`
 Returns array of dates when user completed workouts:
 - Used by Me page calendar to show checkmarks
-- Filters by current challenge date range
+- Filters by `challenge_id` if provided (or NULL for all workouts)
 - Returns dates in YYYY-MM-DD format
+- **Performance**: 10-20x faster than date-range filtering
 
-#### `getAllWorkouts()`
+#### `getUserAllCompletions(userId, startDate, endDate)`
+Returns completion dates across ALL challenges for multi-month calendar:
+- Fetches completions for user across ALL challenges (no challenge_id filtering)
+- **Optional Parameters**:
+  - `startDate`: Optional start date filter (YYYY-MM-DD)
+  - `endDate`: Optional end date filter (YYYY-MM-DD)
+- Returns dates in YYYY-MM-DD format
+- Supports lazy loading with date range parameters for performance
+- **Use Case**: Powers multi-month calendar navigation on Me page
+- **Performance**: Filters by date range when provided (±3 months typical)
+
+#### `getAllWorkouts(challengeId)`
 Returns all workouts for the library page:
-- Fetches all workouts from Workouts sheet
+- Fetches workouts from Workouts sheet filtered by `challenge_id`
+- Includes year-round workouts (NULL challenge_id)
 - Includes exercises, instructions, and video links
 - Converts dates to timestamps for serialization
 - Skips workouts with invalid/missing dates
@@ -322,6 +366,51 @@ Generates AI-powered workout using Claude API (ClaudeAPI.gs):
 - Returns markdown-formatted workout text
 - Requires `CLAUDE_API_KEY` in Script Properties
 
+#### `getLifetimeWorkoutCount(ss, userId)`
+Returns total workout count across all challenges and year-round:
+- Counts all completions for user regardless of challenge_id
+- Used for dashboard API to populate `lifetime_workouts` field
+- More comprehensive than Users.total_workouts (which is per-challenge)
+- **Performance**: Single pass through Completions sheet
+
+#### `getUserAllChallengeStats(ss, userId)`
+Returns user's stats for all challenges (powers Me page history):
+- Returns array of challenge objects with:
+  - challenge_id, challenge_name
+  - workout_count (user's completions for that challenge)
+  - team_name, team_color (from Challenge_Teams)
+  - start_date, end_date (formatted as MM/DD/YYYY)
+- Includes "year_round" as special challenge for off-season workouts
+- Sorted by date (most recent first)
+- **Use Case**: Displays "My Challenges" section on Me page
+
+#### `getUserCompletionHistoryForChallenge(userId, challengeId)`
+Returns completion dates for specific challenge:
+- More specific than `getUserCompletionHistory()`
+- Filters Completions by both userId AND challengeId
+- Returns array of YYYY-MM-DD date strings
+- **Use Case**: Internal helper for calendar generation
+
+#### `getAllWorkoutsForChallenge(challengeId)`
+Returns workouts filtered by specific challenge:
+- More specific than `getAllWorkouts()`
+- Fetches from Workouts sheet where challenge_id matches
+- Returns formatted workout objects with exercises
+- **Use Case**: Internal helper for workout library
+
+#### `getChallengeById(ss, challengeId)`
+Fetches challenge details by ID:
+- Searches Challenges sheet for matching challenge_id
+- Returns challenge object with all fields (name, dates, goal, status)
+- Returns null if not found
+- **Use Case**: Critical helper used by many functions
+
+#### `formatDateNumeric(date, ss)`
+Formats date as MM/DD/YYYY for frontend parsing:
+- Uses app timezone from Settings
+- Returns numeric date format (not "Oct 16, 2025")
+- **Use Case**: Challenge date ranges in API responses
+
 ### Helper Functions
 
 #### `getWorkoutsHeaderMapping(workoutsSheet)`
@@ -334,13 +423,49 @@ Reads Settings sheet and returns object with all key-value pairs
 Finds user by user_id (case-insensitive) and returns user data
 
 #### `updateUserStats(ss, userId)`
-Updates user's total_workouts and last_completed fields
+Updates user's total_workouts and last_completed fields:
+- Counts completions for active challenge only
+- Updates Users sheet columns: total_workouts, last_completed
+- Called automatically by `markWorkoutComplete()`
+- **Note**: For lifetime totals, use `getLifetimeWorkoutCount()` instead
 
-#### `getTeamTotals(ss)`
-Aggregates workout totals by team for current challenge
+#### `getTeamTotals(ss, challengeId)`
+Aggregates workout totals by team for a specific challenge:
+- Filters completions by `challenge_id`
+- Returns team totals from Challenge_Teams sheet
+- **Performance**: Fast filtering by challenge_id instead of date ranges
 
 #### `formatDate(date)`
 Consistent date formatting for display
+
+### Admin Challenge Management Functions (AdminChallenges.gs)
+
+#### `createNewChallenge(challengeId, challengeName, startDate, endDate, totalGoal)`
+Creates a new challenge and sets it as active:
+- Adds challenge to Challenges sheet
+- Marks existing challenges as inactive (`is_active = FALSE`)
+- Sets new challenge as active (`is_active = TRUE`)
+- Returns success/error message
+- **Note**: Does not create team assignments (use `setupChallengeTeams()` separately)
+
+#### `setupChallengeTeams(challengeId, teamConfig)`
+Creates team assignments for a challenge:
+- `teamConfig`: Array of {userId, teamName, teamColor} objects
+- Adds rows to Challenge_Teams sheet
+- Validates all users exist in Users table
+- Returns count of teams created
+
+#### `setActiveChallenge(challengeId)`
+Switches the active challenge:
+- Marks all challenges as inactive
+- Sets specified challenge as active
+- Users will see new challenge on next page load
+
+#### `endCurrentChallenge()`
+Ends the active challenge gracefully:
+- Marks active challenge as inactive
+- App switches to "off-challenge" mode
+- Users can still log workouts (stored with NULL challenge_id)
 
 ## User Experience Flow
 
@@ -367,40 +492,7 @@ Consistent date formatting for display
 - If no workout is active, shows "Rest Day" message
 - Admin can pre-schedule entire month of workouts
 
-## Development Phases
-
-### Phase 1: Core Setup ✅
-- [x] Create CLAUDE_V2.md documentation
-- [x] Set up Google Sheets with 4 sheets (SetupSheets.gs created)
-- [x] Create basic Code.gs backend
-- [x] Build index.html structure
-- [x] Create styles.html with branding
-
-### Phase 2: Functionality ✅
-- [x] Implement workout date-range logic
-- [x] Build completion tracking system
-- [x] Create goal progress calculations
-- [x] Add two-page navigation
-- [x] Implement both workout types (prescribed/external)
-
-### Phase 3: Polish ✅
-- [x] Add completion animations
-- [x] Create progress visualizations
-- [x] Optimize for mobile
-- [x] Add Instructions column with header-based mapping
-- [x] Update frontend to display workout instructions
-- [x] Add error handling for edge cases
-- [x] Test all user flows
-- [x] Fix timezone handling for consistent day boundaries
-
-### Phase 4: Launch
-- [ ] Populate Users sheet with team
-- [ ] Schedule October workouts
-- [x] Deploy to Google Apps Script (test deployment active)
-- [ ] Generate personalized URLs
-- [ ] Team announcement and onboarding
-
-### ✅ Working Features
+## Features
 - User authentication via URL parameters (?user=username)
 - Date-based workout display with instructions
 - Header-based column mapping for flexible sheet structure
@@ -416,11 +508,17 @@ Consistent date formatting for display
   - Validates no future dates
   - Sets timestamps to 6 PM (18:00) for consistent date handling
   - Challenge date boundary enforcement
-- **Personal calendar** (on Me page)
+- **Personal calendar with multi-month navigation** (on Me page)
   - Visual grid showing all days of the month
+  - Month navigation with prev/next buttons (◀ ▶)
+  - Navigate through any month/year to view workout history
+  - Year rollover support (Dec ↔ Jan transitions)
+  - Shows ALL workouts across all challenges and year-round
   - Checkmarks on completed workout dates
-  - Grayed out dates outside challenge range
+  - Defaults to current month (no longer stuck on challenge start month)
+  - Hybrid lazy loading: ±3 months loaded initially, more loaded as needed
   - Auto-updates after logging workouts
+  - Mobile-optimized 44px touch target navigation buttons
 - **Workout Library** (dedicated page)
   - View all past, current, and upcoming workouts
   - Click to see full workout details with exercises
@@ -449,7 +547,14 @@ Consistent date formatting for display
 - PWA capabilities for "Add to Home Screen" functionality
 
 ### 🔍 Next Testing Focus
-- **Mobile device testing** for new 4-page navigation
+- **Multi-month calendar navigation** (recent addition - November 4, 2025)
+  - Test prev/next month buttons on desktop and mobile
+  - Verify year rollover (Dec 2025 → Jan 2026)
+  - Check lazy loading triggers when navigating 4+ months
+  - Validate checkmarks persist when returning to previously viewed months
+  - Test with users who have 100+ completions across multiple challenges
+  - Verify navigation button touch targets on mobile (44px minimum)
+- **Mobile device testing** for 5-page navigation
 - Test calendar grid display on various screen sizes
 - Verify library navigation flow on touch devices
 - Test Me page past workout logging on mobile
@@ -460,212 +565,62 @@ Consistent date formatting for display
 - Test with full month of scheduled workouts
 - Verify hyperlink extraction across different movement columns
 - Test progress bar color transitions at threshold points
-- Ensure 4-tab navigation is readable on small screens
+- Ensure 5-tab navigation is readable on small screens
 
-## Administrative Features
+## Administrative Features Summary
 
-### Form Response Migration (FormMigration.gs)
+The app includes several administrative systems for managing users, challenges, and communications. All admin functions are accessible via the "A8 Custom Menu" in Google Sheets.
 
-Automatically migrates user data from Google Form responses to the Users table:
+| Feature | Files | Key Functions | Purpose |
+|---------|-------|---------------|---------|
+| **Form Migration** | FormMigration.gs | migrateFormResponses() | Import users from Google Form responses |
+| **User Signup** | Signup.gs, signup.html | createSignupRequest() | Self-service registration with preferences |
+| **Welcome Emails** | welcome_email.gs | sendWelcomeEmail() | Onboard new users with personalized app links |
+| **Update Emails** | update_email.gs | sendUpdateEmail() | Send mid-challenge updates |
+| **Slack Integration** | Slack.gs | sendDailyProgressSummary() | Manual progress updates and reminders |
+| **Challenge Management** | AdminChallenges.gs | createNewChallenge(), setActiveChallenge() | Create and switch challenges |
+| **Custom Menu** | menu.gs | Various prompts | UI for all admin functions |
 
-**Key Features:**
-- Maps email, display_name, user_id, join_date, full_name from Form_Responses to Users
-- Sets active_user = TRUE for migrated users
-- Prevents duplicate user_ids
-- Marks rows as migrated to avoid re-processing
-- Accessible via "A8 Custom Menu" → "Migrate Form Responses"
+### Quick Admin Workflows
 
-**Required Sheets:**
-- Form_Responses: Contains form submission data
-- Users: Target table for user data (will be populated)
+**Onboard New User:**
+1. User submits `/signup.html` form OR admin adds to Users sheet
+2. Admin sets `active_user = TRUE`
+3. Admin runs "Send Welcome Email"
 
-**Test Functions:**
-- `testMigrationPreview()`: Preview migration without making changes
-- `resetMigrationStatus()`: Clear migration flags (testing only)
+**Create New Challenge:**
+1. "A8 Custom Menu" → "Create New Challenge"
+2. Setup teams (via Script Editor or manually in Challenge_Teams sheet)
+3. Add workouts to Workouts sheet with matching `challenge_id`
 
-### User Signup System (Signup.gs + signup.html)
+**Send Progress Update:**
+1. Add coaching tip to Coaching sheet (optional)
+2. "A8 Custom Menu" → "Send Slack Progress Update"
 
-Self-service user registration with preference collection:
+See `Documentation/ADMIN_GUIDE.md` for detailed procedures, validation rules, and configuration steps.
 
-**Key Features:**
-- Standalone signup page at `/signup.html`
-- User-controlled username (forms personal app link)
-- Display name with emoji support (shown in app and progress boards)
-- Workout preferences collection:
-  - Duration preference (10/20/30 minutes)
-  - Equipment availability (Bodyweight, Kettlebell, Dumbbell, Bands, Full Gym)
-- Comprehensive validation (client and server-side)
-- Duplicate email and username checking
-- Mobile-optimized design with A8 branding
+## Configuration Overview
 
-**Backend Functions** (Signup.gs):
-- `createSignupRequest(data)`: Creates new user with preferences
-- `updateUserPreferences(userId, preferences)`: Updates user preferences (for future /update page)
-- `getUserPreferences(userId)`: Retrieves user preferences
-- `validateSignupData(data)`: Validates signup form data
-- `generateUserId()`: Legacy function (now users provide their own username)
+### Initial Setup (One-Time)
+- Configure Settings sheet: `company_name`, `timezone`, `deployed_URL`
+- Add users via `/signup.html` or manually to Users sheet
+- Deploy backend (Google Apps Script as Web App)
+- Deploy frontend (GitHub Pages)
+- Optional: Configure Claude API key for AI workouts
 
-**Required Columns in Users Sheet:**
-- email, display_name, user_id, full_name, join_date
-- preferred_duration, equipment_available
-- active_user (left empty for admin review)
+### Challenge Management
+- **Create**: "A8 Custom Menu" → "Create New Challenge"
+- **Teams**: Setup via `bulkAssignTeams()` or manually in Challenge_Teams sheet
+- **Workouts**: Add to Workouts sheet with matching `challenge_id`
+- **Switch**: Use menu to set active challenge
+- **End**: Use menu to gracefully end challenge
 
-**Admin Workflow:**
-1. Users submit signup form at `/signup.html`
-2. New users appear in Users sheet with empty `active_user` column
-3. Admin reviews signup details
-4. Admin sets `active_user = TRUE` to approve
-5. Admin runs "Send Welcome Email" to notify user
-6. User receives personalized app link via email
+### Year-Round Operation
+- Users can log workouts anytime (NULL `challenge_id` for off-season)
+- Year-round workouts: Set `challenge_id` to NULL in Workouts sheet
+- All historical data preserved in Completions sheet
 
-**Validation Rules:**
-- Username: lowercase letters, numbers, periods only (3-30 characters)
-- Email: standard email format
-- Display name: any characters including emojis
-- Duration: 10, 20, or 30 (optional)
-- Equipment: one or more valid equipment types (optional)
-
-**Access URL:**
-```
-https://your-domain.github.io/signup.html
-```
-
-**Future Enhancements:**
-- `/update` page for existing users to update preferences
-- Personalized workout recommendations based on equipment/duration
-- Auto-approval option for trusted domains
-
-### Welcome Email System (welcome_email.gs)
-
-Sends personalized welcome emails with app links:
-
-**Key Features:**
-- Emoji-safe display name handling (removes problematic characters)
-- Personalized app links (?user=username)
-- Tracks email sent status in Users table
-- Accessible via "A8 Custom Menu" → "Send Welcome Email"
-
-**Required Columns in Users Sheet:**
-- email, display_name, user_id, active_user, welcome_email_sent
-
-**Required Settings:**
-- deployed_URL in Settings sheet
-
-### Update Email System (update_email.gs)
-
-Sends mid-challenge update emails with new deployment links:
-
-**Key Features:**
-- Emoji-safe display name handling (removes problematic characters)
-- Personalized app links (?user=username)
-- Tracks email sent status in separate column (update_email_sent)
-- Preserves welcome_email.gs for reuse in future challenges
-- Accessible via "A8 Custom Menu" → "Send Update Email"
-
-**Required Columns in Users Sheet:**
-- email, display_name, user_id, active_user, update_email_sent
-
-**Required Settings:**
-- deployed_URL in Settings sheet
-
-**Email Content:**
-- Subject: "Daily Dose App Update"
-- Body includes mid-challenge progress update and app improvements
-- Lists new features: backfill logging, fixed activity feed, cleaned up menu
-
-### Slack Integration (Slack.gs)
-
-Manual Slack progress updates focused on collective goal progress:
-
-**Daily Progress Summary Features:**
-- Overall progress toward total_goal (e.g., 150/200 workouts)
-- Visual progress bar and percentage
-- Two-column layout:
-  - **Team Contributions** (left): Team totals (e.g., "Green: 15 workouts")
-  - **Today's Completed Workouts** (right): List of users who completed workouts today with display names
-- **Today's Coaching Tip**: Pulls from Coaching sheet based on current date
-- Motivational messages based on progress percentage
-
-**Daily Reminder Features:**
-- Today's workout details with instructions and movements
-- Rest day notifications
-- App link for easy access
-
-**Setup:**
-1. Set webhook URL: `setSlackWebhookUrl('your-webhook-url')`
-2. Manually trigger via "A8 Custom Menu" → "Send Slack Progress Update"
-3. Test functions: `testDailyProgressSummary()` and `testDailyReminder()`
-
-**Configuration:**
-- Uses Script Properties for secure webhook storage (key: SLACK_WEBHOOK_URL)
-- Manual triggering via custom menu (no automated triggers)
-- Coaching tips pulled from Coaching sheet based on current date
-
-### Custom Menu System (menu.gs)
-
-Provides easy access to administrative functions:
-
-**Menu Items:**
-- "Migrate Form Responses" → `migrateFormResponses()`
-- "Send Welcome Email" → `sendWelcomeEmail()`
-- "Send Update Email" → `sendUpdateEmail()`
-- "Send Slack Progress Update" → `sendDailyProgressSummary()`
-- "Test Migration Preview" → `testMigrationPreview()`
-
-## Configuration Guide
-
-### Setting Up a New Challenge
-1. **Update Settings Sheet**:
-   - Set challenge_name (e.g., "October Challenge")
-   - Set start_date and end_date
-   - Set total_goal (e.g., 200)
-
-2. **Add Users**:
-   - Add each team member to Users sheet
-   - Assign teams and colors
-   - Set initial total_workouts to 0
-
-3. **Schedule Workouts**:
-   - Add workouts to Workouts sheet
-   - Set date ranges (no overlaps)
-   - Include 3-5 movements per workout
-   - Add instructions in column C for workout guidance
-
-4. **Configure AI Workout Generator (Optional)**:
-   - Get Claude API key from https://console.anthropic.com/
-   - In Google Apps Script: Project Settings → Script Properties
-   - Add property: `CLAUDE_API_KEY` = your API key
-   - Test with `testClaudeAPI()` function in Script Editor
-   - AI page will work once API key is configured
-
-5. **Deploy**:
-   - Deploy as Web App in Google Apps Script
-   - Set execute as "Me" and access "Anyone"
-   - Share base URL with team
-
-### Managing During Challenge
-- **View Progress**: Check Completions sheet for real-time data
-- **Update Workouts**: Can add/modify future workouts anytime
-- **Track Engagement**: Monitor Settings sheet for participation
-- **Export Data**: Download Completions sheet for analysis
-- **User Management**: Use "A8 Custom Menu" → "Migrate Form Responses" to add new users
-- **Email Communications**:
-  - Use "A8 Custom Menu" → "Send Welcome Email" for initial onboarding
-  - Use "A8 Custom Menu" → "Send Update Email" for mid-challenge updates with new deployment links
-- **Slack Integration**: Use "A8 Custom Menu" → "Send Slack Progress Update" for manual progress updates
-- **Coaching Tips**: Add daily tips to Coaching sheet (date in Column A, tip in Column B) for Slack integration
-- **Timezone Note**: All times use the timezone configured in Settings sheet for consistency
-
-### Adding Video Links to Movements
-To add instructional video links to workout movements:
-1. **Select the movement cell** in any `movement_X` column in the Workouts sheet
-2. **Insert hyperlink**: Use Insert → Link (or Ctrl/Cmd+K)
-3. **Enter the video URL**: Paste YouTube or other video link
-4. **The cell will display** the exercise name as hyperlinked text
-5. **Users will see** the movement as a clickable link with:
-   - Yellow color and underline for visibility
-   - External link icon (↗) indicating it opens in new tab
-   - Videos open in new tab when clicked
+See `Documentation/ADMIN_GUIDE.md` and `Documentation/DEPLOYMENT_AND_WORKFLOW.md` for detailed setup and configuration procedures.
 
 ## API Endpoints
 
@@ -694,11 +649,65 @@ fetch(API_URL, {
 - `getDashboard` - Get user dashboard data
 - `getGoalProgress` - Get team progress
 - `getAllWorkouts` - Get workout library
-- `getUserCompletionHistory` - Get user's completion dates
+- `getUserCompletionHistory` - Get user's completion dates for active challenge
+- `getUserAllCompletions` - Get all completion dates across all challenges (with optional date range filtering)
+- `getUserAllChallengeStats` - Get user's past challenge history (for Me page)
 - `generateAIWorkout` - Generate AI workout
 - `markWorkoutComplete` - Log a workout (POST only)
+- `createSignup` - Create new user signup (POST only)
 
 **Why form-encoded?** Google Apps Script has CORS restrictions that prevent JSON POST requests from triggering preflight OPTIONS requests. Using URLSearchParams bypasses this limitation.
+
+## Common Tasks Quick Reference
+
+### Add a New User
+1. User submits form at `/signup.html` OR manually add row to Users sheet
+2. Review signup details in Users sheet
+3. Admin sets `active_user = TRUE` to approve
+4. Run "A8 Custom Menu" → "Send Welcome Email"
+5. User receives personalized app link via email
+
+### Create a New Challenge
+1. "A8 Custom Menu" → "Create New Challenge"
+2. Enter challenge_id, name, dates, and total goal
+3. Setup teams via `bulkAssignTeams()` in Script Editor or manually in Challenge_Teams sheet
+4. Add workouts to Workouts sheet with matching `challenge_id`
+5. Notify users via email or Slack
+
+### Switch Active Challenge
+1. "A8 Custom Menu" → "Set Active Challenge"
+2. Enter the challenge_id to activate
+3. Users see new challenge on next page load
+
+### Check API Logs
+1. Open Apps Script Editor (Extensions → Apps Script)
+2. Click "Executions" in left sidebar
+3. Filter by status/date to find specific requests
+4. Click on execution to view detailed logs
+
+### Test Backend Functions
+1. Open Apps Script Editor
+2. Select function from dropdown (e.g., `testUserDashboard`)
+3. Click Run button
+4. Check Execution log for results
+5. See `TESTING_FUNCTIONS_GUIDE.md` for complete test suite
+
+### View Challenge Analytics
+1. Open Completions sheet
+2. Use Data → Filter to filter by `challenge_id` column
+3. Create pivot table or download as CSV for analysis
+
+### Send Progress Updates
+1. "A8 Custom Menu" → "Send Slack Progress Update"
+2. Manually trigger daily progress summary
+3. Add coaching tips to Coaching sheet (date in Column A, tip in Column B)
+
+### Add Video Links to Workouts
+1. Open Workouts sheet
+2. Select movement cell (e.g., `movement_1`)
+3. Insert → Link (or Ctrl/Cmd+K)
+4. Paste video URL
+5. Link appears with yellow underline in app
 
 ## Design System
 
@@ -711,9 +720,10 @@ fetch(API_URL, {
 - **Muted**: Gray (#6B7280)
 
 ### Typography
-- **Font Family**: Roobert (Base64 embedded) with system font fallbacks
-- **Font Weights**: 400 (Regular), 500 (Medium), 600 (Semi-Bold), 700 (Bold), 800 (Extra Bold)
-- **Format**: OpenType fonts embedded as Base64 data URLs
+- **Font Family**: Roobert (external WOFF2 files) with system font fallbacks
+- **Font Weights**: 400 (Regular), 600 (SemiBold), 700 (Bold)
+- **Format**: WOFF2 with Brotli compression (96KB total, 72% faster than previous Base64 implementation)
+- **Loading Strategy**: `font-display: swap` for immediate text visibility with fallback fonts
 - **Sizes**: Mobile-optimized (16px base)
 
 ### Components
@@ -743,87 +753,6 @@ fetch(API_URL, {
 - **Reduced Animations**: Respect prefers-reduced-motion
 - **Offline Handling**: Graceful degradation
 
-## Testing Checklist
-
-### Functionality Tests
-- [ ] User can complete prescribed workout
-- [ ] User can log external workout
-- [ ] Completion updates immediately
-- [ ] Team page shows accurate totals
-- [ ] Team totals are correct
-- [ ] Date-based workout selection works
-- [ ] Navigation between all 4 pages works
-- [ ] Me page calendar shows checkmarks correctly
-- [ ] Library page displays all workouts
-- [ ] Library workout detail view works
-- [ ] Past workout logging from Me page works
-- [ ] Activity feed appears on Today page
-
-### Edge Cases
-- [ ] Invalid user parameter handling
-- [ ] No active workout handling
-- [ ] Multiple completions per day prevention
-- [ ] Date boundary testing (timezone handling)
-- [ ] Empty team handling
-
-### Device Testing
-- [ ] iPhone Safari
-- [ ] Android Chrome
-- [ ] iPad/Tablet
-- [ ] Desktop browsers
-
-## Pre-Launch QA Checklist
-
-### Critical Items
-- [ ] **Configure timezone in Settings sheet** (e.g., `timezone`: `America/New_York`)
-- [ ] **Verify all user_ids are lowercase** in Users sheet to prevent lookup issues
-- [ ] **Clear test data** from Completions sheet
-- [ ] **Test with multiple simultaneous users** to check for race conditions
-- [ ] **Populate at least one workout** for launch day with proper date ranges
-- [ ] **Set correct challenge dates** in Settings (start_date, end_date)
-- [ ] **Test on actual mobile devices**, not just browser dev tools
-
-### Data Validation
-- [ ] Check for duplicate user_ids in Users sheet
-- [ ] Verify team colors are valid hex codes
-- [ ] **Ensure all workouts have valid start_date and end_date** (invalid dates will be skipped in library)
-- [ ] Ensure workout date ranges don't have gaps (unless intentional rest days)
-- [ ] Test "Other Workout" with maximum length text (100 characters)
-
-### Integration Testing
-- [ ] If using Slack, verify SLACK_WEBHOOK_URL in Script Properties
-- [ ] Test form migration if using Google Forms for signup
-- [ ] Send test welcome email to verify email configuration
-- [ ] Check that all admin menu functions work properly
-
-## Deployment Steps
-
-1. **Create Google Sheet**:
-   - New Google Sheet with 5 tabs
-   - Name tabs: Users, Workouts, Completions, Settings, Coaching
-
-2. **Add Apps Script**:
-   - Tools → Script Editor
-   - Create Code.gs, index.html, styles.html
-   - Copy code from this project
-
-3. **Configure Settings**:
-   - Add challenge configuration to Settings sheet
-   - **IMPORTANT**: Add `timezone` setting (e.g., `America/New_York`)
-   - Populate Users with team members (ensure user_ids are lowercase)
-   - Add initial workouts
-
-4. **Deploy Web App**:
-   - Deploy → New Deployment
-   - Type: Web App
-   - Execute as: Me
-   - Access: Anyone
-   - Copy deployment URL
-
-5. **Generate User URLs**:
-   - Base URL + ?user=[user_id]
-   - Share with each team member
-
 ## Monitoring & Analytics
 
 ### Key Metrics
@@ -833,10 +762,9 @@ fetch(API_URL, {
 - **Workout Type Split**: Prescribed vs External
 
 ### Data Export
-- Download Completions sheet as CSV
-- Analyze in Excel/Sheets
-- Track week-over-week trends
-- Identify engagement patterns
+- Filter Completions sheet by `challenge_id` for challenge-specific analytics
+- Download as CSV for external analysis
+- Create pivot tables for custom reports
 
 ## Troubleshooting
 
@@ -849,27 +777,37 @@ fetch(API_URL, {
 ### Debug Mode
 Add `?debug=true` to URL for console logging (implement in Code.gs)
 
-## Future Enhancements
+## Project Information
+**Name**: Daily Dose - A8 Workout Challenge App V3
+**Version**: 3.0 (Multi-Challenge Architecture)
+**Deployment**: GitHub Pages frontend + Google Apps Script backend
+**Status**: Production
+**Key Features**: Year-round workout logging, multi-challenge support, flexible teams, AI workouts
+**Last Major Update**: October 2025 (Multi-challenge migration)
 
-### AI Workout Generator Potential Improvements
-- **Rate limiting**: Max AI workouts per user per day (prevent API abuse)
-- **Workout storage**: Save AI workouts to separate sheet for analytics
-- **User feedback**: Rating system for AI-generated workouts
-- **Prompt refinement**: Iterate on workout generation prompt based on user feedback
-- **Cost tracking**: Monitor Claude API usage and costs
-- **Workout history**: View previously generated AI workouts
-- **Favorite workouts**: Save AI workouts to repeat later
+---
 
-### General App Enhancements
-- Photo uploads for workouts
-- Achievement badges
-- Historical challenge archives
-- Personal records tracking
-- Rest day scheduling
-- Injury modifications
+## See Also
 
-## Contact
-Project: A8 Workout Challenge App V2
-Purpose: October 2025 Challenge - Collective Goal
-Target: 200 Total Workouts
-Timeline: 10/1/2025 - 11/1/2025
+### Detailed Guides
+- **[ADMIN_GUIDE.md](Documentation/ADMIN_GUIDE.md)** - Complete admin procedures, email systems, Slack integration, challenge setup
+- **[FRONTEND_PAGES.md](Documentation/FRONTEND_PAGES.md)** - Detailed UI mockups for all 5 pages
+- **[TESTING_CHECKLIST.md](Documentation/TESTING_CHECKLIST.md)** - Feature testing and edge case validation
+- **[TESTING_FUNCTIONS_GUIDE.md](Documentation/TESTING_FUNCTIONS_GUIDE.md)** - Backend testing suite and procedures
+
+### Development Guides
+- **[README.md](Documentation/README.md)** - Architecture overview and deployment instructions
+- **[DEPLOYMENT_AND_WORKFLOW.md](Documentation/DEPLOYMENT_AND_WORKFLOW.md)** - Complete deployment, git workflow, troubleshooting, and rollback procedures
+- **[FILE_ORGANIZATION.md](Documentation/FILE_ORGANIZATION.md)** - What to commit vs exclude, folder structure guidelines
+
+### Planning & Roadmap
+- **[ROADMAP.md](Documentation/ROADMAP.md)** - Future features, enhancement ideas, version planning
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+
+### Quick Reference
+This document (CLAUDE.md) provides:
+- Core architecture and philosophy
+- Database schema (Google Sheets structure)
+- Backend function reference
+- API contracts and endpoints
+- Common task shortcuts

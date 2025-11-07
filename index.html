@@ -21,7 +21,7 @@
     <meta name="theme-color" content="#000000">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20251107-1">
+    <link rel="stylesheet" href="styles.css?v=20251107-2">
 
     <!-- API Configuration and Helper -->
     <script src="config.js?v=20251107-1"></script>
@@ -163,6 +163,19 @@
                     </div>
                 </div>
 
+                <!-- Challenge History Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>My Challenges</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="past-challenges-container">
+                            <!-- Will be populated by JavaScript -->
+                            <p style="color: #9CA3AF; text-align: center;">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- My Workout Calendar Card -->
                 <div class="card calendar-card">
                     <div class="card-header">
@@ -177,19 +190,6 @@
                         </div>
                         <div id="calendar-grid" class="calendar-grid">
                             <!-- Calendar will be generated here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Challenge History Section -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>My Challenges</h2>
-                    </div>
-                    <div class="card-body">
-                        <div id="past-challenges-container">
-                            <!-- Will be populated by JavaScript -->
-                            <p style="color: #9CA3AF; text-align: center;">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -990,8 +990,12 @@
 
             // Fetch past challenge stats from backend
             API.getUserAllChallengeStats(userData.user.user_id)
-                .then(function(challenges) {
-                    if (!challenges || challenges.length === 0) {
+                .then(function(data) {
+                    // Handle new response structure with userChallenges and upcomingChallenges
+                    const upcomingChallenges = data.upcomingChallenges || [];
+                    const userChallenges = data.userChallenges || [];
+
+                    if (upcomingChallenges.length === 0 && userChallenges.length === 0) {
                         container.innerHTML = `
                             <div class="empty-past-challenges">
                                 <div class="empty-past-challenges-icon">📭</div>
@@ -1002,13 +1006,35 @@
                         return;
                     }
 
-                    // Build HTML for past challenges
+                    // Build HTML for challenges
                     let html = '';
 
                     // Check if there's an active challenge to identify it
                     const activeChallengeId = userData.challenge ? userData.challenge.challenge_id : null;
 
-                    challenges.forEach(challenge => {
+                    // Display upcoming challenges first (with yellow styling)
+                    upcomingChallenges.forEach(challenge => {
+                        html += `
+                            <div class="past-challenge-card upcoming-challenge">
+                                <div class="past-challenge-header">
+                                    <div class="past-challenge-name">
+                                        ${challenge.challenge_name}
+                                    </div>
+                                    <div class="past-challenge-count">
+                                        <span class="upcoming-badge">Upcoming</span>
+                                    </div>
+                                </div>
+                                <div class="past-challenge-details">
+                                    <div class="past-challenge-detail-item">
+                                        <span>${formatDateShort(challenge.start_date)} - ${formatDateShort(challenge.end_date)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Display user's challenge history
+                    userChallenges.forEach(challenge => {
                         const isYearRound = challenge.challenge_id === 'year_round';
                         const isCurrent = challenge.challenge_id === activeChallengeId;
 
@@ -1018,7 +1044,6 @@
                                     <div class="past-challenge-name">
                                         ${challenge.challenge_name}
                                         ${isYearRound ? '<span class="year-round-badge">Year-Round</span>' : ''}
-                                        ${isCurrent ? '<span class="current-badge">Current</span>' : ''}
                                     </div>
                                     <div class="past-challenge-count">
                                         ${challenge.workout_count} workout${challenge.workout_count !== 1 ? 's' : ''}

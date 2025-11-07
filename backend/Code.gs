@@ -1216,10 +1216,12 @@ function getUserTeamForChallenge(ss, userId, challengeId) {
 }
 
 /**
- * Get user's stats for all challenges (for Me page history)
+ * Get user's stats for all challenges and upcoming challenges (for Me page)
  * @param {Spreadsheet} ss - Spreadsheet object
  * @param {string} userId - User ID
- * @returns {Array} Array of {challenge_id, challenge_name, workout_count, team_name, start_date, end_date}
+ * @returns {Object} Object with:
+ *   - userChallenges: Array of {challenge_id, challenge_name, workout_count, team_name, start_date, end_date}
+ *   - upcomingChallenges: Array of {challenge_id, challenge_name, start_date, end_date}
  */
 function getUserAllChallengeStats(ss, userId) {
   const completionsSheet = ss.getSheetByName('Completions');
@@ -1251,10 +1253,10 @@ function getUserAllChallengeStats(ss, userId) {
   }
 
   // Enrich with challenge details
-  const results = [];
+  const userChallenges = [];
   for (const challengeId in statsByChallenge) {
     if (challengeId === 'year_round') {
-      results.push({
+      userChallenges.push({
         challenge_id: 'year_round',
         challenge_name: 'Year-Round Workouts',
         workout_count: statsByChallenge[challengeId].workout_count,
@@ -1267,7 +1269,7 @@ function getUserAllChallengeStats(ss, userId) {
       const teamInfo = getUserTeamForChallenge(ss, userId, challengeId);
 
       if (challenge) {
-        results.push({
+        userChallenges.push({
           challenge_id: challengeId,
           challenge_name: challenge.challenge_name,
           workout_count: statsByChallenge[challengeId].workout_count,
@@ -1280,11 +1282,44 @@ function getUserAllChallengeStats(ss, userId) {
   }
 
   // Sort by start_date (most recent first)
-  results.sort((a, b) => {
+  userChallenges.sort((a, b) => {
     if (!a.start_date) return 1; // year_round goes to end
     if (!b.start_date) return -1;
     return new Date(b.start_date) - new Date(a.start_date);
   });
 
-  return results;
+  // Fetch upcoming challenges (status = "upcoming")
+  const upcomingChallenges = [];
+  const challengesSheet = ss.getSheetByName('Challenges');
+  if (challengesSheet) {
+    const challengeData = challengesSheet.getDataRange().getValues();
+    const challengeHeaders = challengeData[0];
+
+    const challengeHeaderMap = {};
+    challengeHeaders.forEach((header, index) => {
+      challengeHeaderMap[header] = index;
+    });
+
+    for (let i = 1; i < challengeData.length; i++) {
+      const status = challengeData[i][challengeHeaderMap['status']];
+      if (status === 'upcoming') {
+        upcomingChallenges.push({
+          challenge_id: challengeData[i][challengeHeaderMap['challenge_id']],
+          challenge_name: challengeData[i][challengeHeaderMap['challenge_name']],
+          start_date: formatDateNumeric(challengeData[i][challengeHeaderMap['start_date']], ss),
+          end_date: formatDateNumeric(challengeData[i][challengeHeaderMap['end_date']], ss)
+        });
+      }
+    }
+
+    // Sort upcoming challenges by start_date (earliest first)
+    upcomingChallenges.sort((a, b) => {
+      return new Date(a.start_date) - new Date(b.start_date);
+    });
+  }
+
+  return {
+    userChallenges: userChallenges,
+    upcomingChallenges: upcomingChallenges
+  };
 }

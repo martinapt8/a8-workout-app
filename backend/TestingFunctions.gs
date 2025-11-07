@@ -148,7 +148,7 @@ function testOffSeasonMode() {
 }
 
 /**
- * Test getUserAllChallengeStats (past challenges)
+ * Test getUserAllChallengeStats (past challenges and upcoming challenges)
  */
 function testGetUserAllChallengeStats() {
   const TEST_USER_ID = 'martin'; // ← CHANGE THIS
@@ -162,12 +162,24 @@ function testGetUserAllChallengeStats() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const result = getUserAllChallengeStats(ss, TEST_USER_ID);
 
-    Logger.log('\n📊 PAST CHALLENGE STATS:');
+    // Display upcoming challenges
+    Logger.log('\n🔔 UPCOMING CHALLENGES:');
+    if (result.upcomingChallenges.length === 0) {
+      Logger.log('(No upcoming challenges found)');
+    } else {
+      result.upcomingChallenges.forEach((challenge, index) => {
+        Logger.log(`\n${index + 1}. ${challenge.challenge_name}`);
+        Logger.log(`   Challenge ID: ${challenge.challenge_id}`);
+        Logger.log(`   Dates: ${challenge.start_date} to ${challenge.end_date}`);
+      });
+    }
 
-    if (result.length === 0) {
+    // Display user's challenge history
+    Logger.log('\n📊 USER CHALLENGE HISTORY:');
+    if (result.userChallenges.length === 0) {
       Logger.log('(No past challenges found - this is normal if user has no completions yet)');
     } else {
-      result.forEach((challenge, index) => {
+      result.userChallenges.forEach((challenge, index) => {
         Logger.log(`\n${index + 1}. ${challenge.challenge_name}`);
         Logger.log(`   Challenge ID: ${challenge.challenge_id}`);
         Logger.log(`   Workouts: ${challenge.workout_count}`);

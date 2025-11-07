@@ -173,9 +173,16 @@ Daily Dose Dev/
 | C | start_date | 10/1/2025 | Challenge start date |
 | D | end_date | 10/31/2025 | Challenge end date |
 | E | total_goal | 200 | Target number of workouts for the challenge |
-| F | is_active | TRUE | Whether this is the currently active challenge |
+| F | status | active | Challenge state: `active`, `upcoming`, or `completed` |
 
-**Note**: Only ONE challenge should have `is_active = TRUE` at a time. The active challenge determines which workouts appear on the Today page and which teams are shown.
+**Important Notes**:
+- **DEPRECATED**: The old `is_active` boolean column was removed in November 2025. Use `status` column instead.
+- **Status Values**:
+  - `active`: Currently running challenge (only ONE challenge should be active at a time)
+  - `upcoming`: Future challenge not yet started (visible to all users for sign-up awareness)
+  - `completed`: Past challenge that has ended
+- The active challenge determines which workouts appear on the Today page and which teams are shown
+- Upcoming challenges appear in the "My Challenges" section for all users regardless of participation
 
 ### Sheet 5: Challenge_Teams
 | Column | Field | Example | Description |
@@ -289,10 +296,10 @@ Returns all data needed for the user's dashboard:
 
 #### `getActiveChallenge()`
 Returns the currently active challenge from Challenges sheet:
-- Finds challenge where `is_active = TRUE`
-- Returns challenge object with id, name, dates, and goal
+- Finds challenge where `status === 'active'`
+- Returns challenge object with id, name, dates, goal, and status
 - Returns null if no active challenge
-- **Critical**: Only one challenge should be marked active at a time
+- **Critical**: Only one challenge should have status='active' at a time
 
 #### `getActiveWorkout(challengeId)`
 Returns the current workout based on today's date and challenge:
@@ -393,15 +400,21 @@ Returns total workout count across all challenges and year-round:
 - **Performance**: Single pass through Completions sheet
 
 #### `getUserAllChallengeStats(ss, userId)`
-Returns user's stats for all challenges (powers Me page history):
-- Returns array of challenge objects with:
-  - challenge_id, challenge_name
-  - workout_count (user's completions for that challenge)
-  - team_name, team_color (from Challenge_Teams)
-  - start_date, end_date (formatted as MM/DD/YYYY)
-- Includes "year_round" as special challenge for off-season workouts
-- Sorted by date (most recent first)
-- **Use Case**: Displays "My Challenges" section on Me page
+Returns user's challenge history AND upcoming challenges for all users (powers Me page):
+- Returns object with two arrays:
+  - **userChallenges**: User's historical challenges with:
+    - challenge_id, challenge_name
+    - workout_count (user's completions for that challenge)
+    - team_name, team_color (from Challenge_Teams)
+    - start_date, end_date (formatted as MM/DD/YYYY)
+    - Includes "year_round" as special challenge for off-season workouts
+    - Sorted by date (most recent first)
+  - **upcomingChallenges**: All challenges where status='upcoming':
+    - challenge_id, challenge_name
+    - start_date, end_date (formatted as MM/DD/YYYY)
+    - Visible to ALL users regardless of participation (for sign-up awareness)
+    - Sorted by start_date (earliest first)
+- **Use Case**: Displays "My Challenges" section on Me page with both historical and upcoming
 
 #### `getUserCompletionHistoryForChallenge(userId, challengeId)`
 Returns completion dates for specific challenge:
@@ -461,9 +474,8 @@ Consistent date formatting for display
 
 #### `createNewChallenge(challengeId, challengeName, startDate, endDate, totalGoal)`
 Creates a new challenge and sets it as active:
-- Adds challenge to Challenges sheet
-- Marks existing challenges as inactive (`is_active = FALSE`)
-- Sets new challenge as active (`is_active = TRUE`)
+- Adds challenge to Challenges sheet with status='active'
+- Updates existing active challenges to status='completed'
 - Returns success/error message
 - **Note**: Does not create team assignments (use `setupChallengeTeams()` separately)
 
@@ -476,15 +488,15 @@ Creates team assignments for a challenge:
 
 #### `setActiveChallenge(challengeId)`
 Switches the active challenge:
-- Marks all challenges as inactive
-- Sets specified challenge as active
+- Updates all active challenges to status='completed'
+- Sets specified challenge to status='active'
 - Users will see new challenge on next page load
 
 #### `endCurrentChallenge()`
 Ends the active challenge gracefully:
-- Marks active challenge as inactive
+- Updates active challenge to status='completed'
 - App switches to "off-challenge" mode
-- Users can still log workouts (stored with NULL challenge_id)
+- Users can still log workouts (stored with challenge_id='year_round')
 
 ## User Experience Flow
 
@@ -527,6 +539,14 @@ Ends the active challenge gracefully:
   - Validates no future dates
   - Sets timestamps to 6 PM (18:00) for consistent date handling
   - Challenge date boundary enforcement
+- **Upcoming Challenges Display** (on Me page)
+  - Shows all challenges with status='upcoming' for sign-up awareness
+  - Visible to ALL users regardless of participation or team status
+  - Displays challenge name, start date, and end date
+  - Yellow card styling with "Upcoming" badge
+  - Appears at top of "My Challenges" section
+  - Sorted by start date (earliest first)
+  - No sign-up integration yet (awareness only)
 - **Personal calendar with multi-month navigation** (on Me page)
   - Visual grid showing all days of the month
   - Month navigation with prev/next buttons (◀ ▶)
@@ -675,7 +695,7 @@ fetch(API_URL, {
 - `getAllWorkouts` - Get workout library
 - `getUserCompletionHistory` - Get user's completion dates for active challenge
 - `getUserAllCompletions` - Get all completion dates across all challenges (with optional date range filtering)
-- `getUserAllChallengeStats` - Get user's past challenge history (for Me page)
+- `getUserAllChallengeStats` - Get user's past challenge history AND upcoming challenges (for Me page)
 - `getRecentCompletionsAll` - Get recent completions across all users/challenges for activity feed (works year-round)
 - `generateAIWorkout` - Generate AI workout
 - `markWorkoutComplete` - Log a workout (POST only)

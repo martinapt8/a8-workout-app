@@ -2,6 +2,57 @@
 
 ## Current Status (Latest Update - November 7, 2025)
 
+### 🔔 Upcoming Challenges Feature + Me Page UI Refinements (November 7, 2025 - Late Night)
+
+**New Feature: Upcoming Challenges Display**:
+- **Purpose**: Give all users visibility into upcoming challenges for sign-up awareness
+- **Backend** (`backend/Code.gs`):
+  - Modified `getUserAllChallengeStats()` to return structured object (lines 1226-1323)
+  - Now returns: `{ userChallenges: [...], upcomingChallenges: [...] }`
+  - Fetches challenges where `status = "upcoming"` from Challenges sheet
+  - Upcoming challenges sorted by start_date (earliest first)
+  - Includes challenge_id, challenge_name, start_date, end_date
+  - Works for all users regardless of participation status
+  - Updated JSDoc to reflect new return type
+- **Frontend** (`index.html`):
+  - Updated `loadPastChallengeHistory()` to handle new response structure (lines 983-1079)
+  - Displays upcoming challenges at top of "My Challenges" section
+  - Shows challenge name and date range (no workout count)
+  - Displays "Upcoming" badge in yellow theme
+- **Styling** (`styles.css`):
+  - Added `.upcoming-challenge` class with yellow border (#FFC107) and light yellow background (#FFFBEB)
+  - Added `.upcoming-badge` class matching A8 yellow brand (#FFC107)
+  - Hover effect for visual feedback (#FEF3C7)
+- **Testing** (`backend/TestingFunctions.gs`):
+  - Updated `testGetUserAllChallengeStats()` to display both upcoming and user challenges
+
+**Me Page UI Improvements**:
+- Removed redundant "Current" badge from active challenge cards (green border/background sufficient)
+- Reordered sections for better information hierarchy:
+  1. My Summary (name, team, workouts, dates)
+  2. My Challenges (upcoming + historical)
+  3. My Workouts (calendar)
+  4. Log Past Workout
+- Visual indicators now clearer:
+  - 🟡 Yellow card with "Upcoming" badge = Future challenges (all users)
+  - 🟢 Green border/background = Currently active challenge
+  - ⚪ Default styling = Past challenges with workout counts
+
+**Files Changed**:
+- `backend/Code.gs`: Modified getUserAllChallengeStats() return structure
+- `backend/TestingFunctions.gs`: Updated test function for new structure
+- `index.html`: Updated loadPastChallengeHistory() + section reordering + removed current-badge
+- `styles.css`: Added upcoming challenge styles
+- Cache busting: styles.css version → `20251107-2`
+
+**Technical Notes**:
+- Uses `status` column in Challenges sheet (values: `active`, `upcoming`, `completed`)
+- Upcoming challenges fetched independently of user participation
+- No signup integration yet (awareness only)
+- Backend change is backwards compatible (still returns challenge data, just structured differently)
+
+---
+
 ### 🏖️ Off-Season Mode UI Improvements + Agency-Wide Activity Feed (November 7, 2025 - Night)
 
 **Fixed Missing Workout Logging in Off-Season Mode**:

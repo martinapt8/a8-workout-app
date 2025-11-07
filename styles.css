@@ -1534,6 +1534,24 @@ body {
     background: #DCFCE7;
 }
 
+.upcoming-challenge {
+    border: 2px solid #FFC107;
+    background: #FFFBEB;
+}
+
+.upcoming-challenge:hover {
+    background: #FEF3C7;
+}
+
+.upcoming-badge {
+    background: #FFC107;
+    color: #000000;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .empty-past-challenges {
     text-align: center;
     padding: 40px 20px;

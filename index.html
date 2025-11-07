@@ -525,26 +525,37 @@
             // Hide loading screen and show app
             const loadingScreen = document.getElementById('loading-screen');
             const app = document.getElementById('app');
-            loadingScreen.classList.add('fade-out');
-            app.classList.add('loaded');
-            setTimeout(() => {
-                loadingScreen.remove();
-            }, 500);
+            if (loadingScreen) {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.remove();
+                }, 500);
+            }
+            if (app) {
+                app.classList.add('loaded');
+            }
 
             // Update challenge title
-            document.getElementById('challenge-title').textContent = 'Off-Season';
+            const challengeTitle = document.getElementById('challenge-title');
+            if (challengeTitle) {
+                challengeTitle.textContent = 'Off-Season';
+            }
 
             // Update user greeting
-            if (data.user) {
-                document.getElementById('user-greeting').textContent = `Hey ${data.user.display_name}!`;
+            const userGreeting = document.getElementById('user-greeting');
+            if (data.user && userGreeting) {
+                userGreeting.textContent = `Hey ${data.user.display_name}!`;
             }
 
             // Show off-season message
-            document.getElementById('completion-status').innerHTML =
-                `<div style="padding: 20px; background: #FFF3CD; border-radius: 8px; margin: 20px 0;">
-                    <p style="margin: 0; color: #856404; font-weight: 500;">🌴 Off-Season Mode</p>
-                    <p style="margin: 10px 0 0 0; color: #856404; font-size: 14px;">${data.message}</p>
-                </div>`;
+            const completionStatus = document.getElementById('completion-status');
+            if (completionStatus) {
+                completionStatus.innerHTML =
+                    `<div style="padding: 20px; background: #FFF3CD; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0; color: #856404; font-weight: 500;">🌴 Off-Season Mode</p>
+                        <p style="margin: 10px 0 0 0; color: #856404; font-size: 14px;">${data.message}</p>
+                    </div>`;
+            }
 
             // Hide workout card (no prescribed workout available)
             const workoutCard = document.getElementById('workout-card');
@@ -578,6 +589,21 @@
                         <p style="color: #9CA3AF;">Workouts will appear when a challenge is active.</p>
                     </div>`;
             }
+
+            // Hide Team Progress navigation button (no team progress in off-season)
+            const teamNavBtn = document.getElementById('nav-progress');
+            if (teamNavBtn) {
+                teamNavBtn.style.display = 'none';
+            }
+
+            // Hide Library navigation button (no workouts in off-season)
+            const libraryNavBtn = document.getElementById('nav-library');
+            if (libraryNavBtn) {
+                libraryNavBtn.style.display = 'none';
+            }
+
+            // Update Me page with user data
+            updateMePage();
 
             // Store off-season state
             userData = data;

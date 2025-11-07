@@ -2,6 +2,40 @@
 
 ## Current Status (Latest Update - November 7, 2025)
 
+### 🐛 Deployment Fix: Multi-Month Calendar API (November 7, 2025 - Evening)
+
+**Fixed "Failed to load workout history" Error on Web Deployment**:
+- **Root Cause**: `api.js` was not deployed to GitHub Pages, missing `getUserAllCompletions()` method
+  - Local development environment had the method (added Nov 4)
+  - Web deployment was serving outdated version from October 27
+  - Frontend was calling `API.getUserAllCompletions()` which didn't exist
+
+- **Immediate Fix**:
+  - Committed and pushed `api.js` with missing `getUserAllCompletions()` method
+  - Deployed external WOFF2 fonts that were also uncommitted
+  - Updated `styles.css` with latest optimizations
+  - GitHub Pages automatically rebuilt within 60 seconds
+
+- **Documentation Cleanup**:
+  - Archived 13 obsolete V2→V3 migration planning docs to `Documentation/archive/`
+  - Added comprehensive guides: ADMIN_GUIDE.md, DEPLOYMENT_AND_WORKFLOW.md, FRONTEND_PAGES.md
+  - Updated CLAUDE.md with latest architecture and all November features
+  - Committed backend Code.gs changes (already deployed via Apps Script)
+
+**Files Committed** (5 commits):
+- `api.js`: Added getUserAllCompletions method for multi-month calendar
+- `styles.css`, `fonts/`: Performance optimizations
+- `backend/Code.gs`: Backend endpoint for getUserAllCompletions
+- `CLAUDE.md`: Updated primary documentation
+- `Documentation/`: Archived 13 old files, added 3 new comprehensive guides
+
+**Lesson Learned**:
+- Frontend changes (HTML/CSS/JS) require git commit + push for GitHub Pages deployment
+- Backend changes (.gs files) require new deployment in Google Apps Script
+- Always verify both frontend and backend are deployed after adding new API endpoints
+
+---
+
 ### 🚀 Phase 1: Critical Path Optimizations (November 7, 2025)
 
 **Reduced Initial Load Time by 200-500ms**:

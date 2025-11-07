@@ -112,6 +112,19 @@ const API = {
   },
 
   /**
+   * Get user's ALL completion dates across all challenges (for multi-month calendar)
+   * @param {string} userId - User ID
+   * @param {string} startDate - Optional start date filter (YYYY-MM-DD)
+   * @param {string} endDate - Optional end date filter (YYYY-MM-DD)
+   */
+  async getUserAllCompletions(userId, startDate = null, endDate = null) {
+    const params = { userId };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    return this.get('getUserAllCompletions', params);
+  },
+
+  /**
    * Get user's stats for all past challenges
    */
   async getUserAllChallengeStats(userId) {

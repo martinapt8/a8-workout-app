@@ -45,6 +45,17 @@ function doGet(e) {
         }
         break;
 
+      case 'getUserAllCompletions':
+        const allCompletionsUserId = e.parameter.userId;
+        if (!allCompletionsUserId) {
+          result = { error: 'Missing userId parameter' };
+        } else {
+          const startDate = e.parameter.startDate || null;
+          const endDate = e.parameter.endDate || null;
+          result = getUserAllCompletions(allCompletionsUserId, startDate, endDate);
+        }
+        break;
+
       case 'getUserAllChallengeStats':
         const statsUserId = e.parameter.userId;
         if (!statsUserId) {
@@ -820,6 +831,66 @@ function getUserCompletionHistoryForChallenge(userId, challengeId) {
     if (rowUserId && rowUserId.toString().toLowerCase().trim() === userId.toLowerCase().trim() &&
         rowChallengeId === challengeId) {
       const completionDate = new Date(data[i][headerMap['timestamp']]);
+      const dateStr = Utilities.formatDate(completionDate, appTimezone, 'yyyy-MM-dd');
+      if (!completionDates.includes(dateStr)) {
+        completionDates.push(dateStr);
+      }
+    }
+  }
+
+  return completionDates;
+}
+
+/**
+ * Get user completion history across ALL challenges (for multi-month calendar)
+ * @param {string} userId - User ID
+ * @param {string} startDate - Optional start date filter (YYYY-MM-DD)
+ * @param {string} endDate - Optional end date filter (YYYY-MM-DD)
+ * @returns {Array} Array of dates (YYYY-MM-DD format)
+ */
+function getUserAllCompletions(userId, startDate, endDate) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const completionsSheet = ss.getSheetByName('Completions');
+  const data = completionsSheet.getDataRange().getValues();
+  const headers = data[0];
+
+  // Create header mapping
+  const headerMap = {};
+  for (let i = 0; i < headers.length; i++) {
+    headerMap[headers[i]] = i;
+  }
+
+  // Get timezone
+  const settings = getSettings(ss);
+  const appTimezone = settings.timezone || Session.getScriptTimeZone();
+
+  // Parse optional date filters
+  let filterStartDate = null;
+  let filterEndDate = null;
+  if (startDate) {
+    filterStartDate = new Date(startDate);
+  }
+  if (endDate) {
+    filterEndDate = new Date(endDate);
+  }
+
+  const completionDates = [];
+
+  for (let i = 1; i < data.length; i++) { // Skip header
+    const rowUserId = data[i][headerMap['user_id']];
+
+    // Filter by user (NO challenge_id filtering - get all completions)
+    if (rowUserId && rowUserId.toString().toLowerCase().trim() === userId.toLowerCase().trim()) {
+      const completionDate = new Date(data[i][headerMap['timestamp']]);
+
+      // Apply optional date range filter
+      if (filterStartDate && completionDate < filterStartDate) {
+        continue;
+      }
+      if (filterEndDate && completionDate > filterEndDate) {
+        continue;
+      }
+
       const dateStr = Utilities.formatDate(completionDate, appTimezone, 'yyyy-MM-dd');
       if (!completionDates.includes(dateStr)) {
         completionDates.push(dateStr);

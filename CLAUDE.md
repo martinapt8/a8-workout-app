@@ -235,8 +235,13 @@ The app is a five-page SPA with mobile-first design and bottom navigation:
 
 **Page 2: Team Progress**
 - Total goal progress (number and percentage)
-- Visual progress bar
-- Team breakdown with individual totals
+- Color-coded visual progress bar (green → blue → yellow → red)
+- Team Totals: Agency-wide team aggregates
+- My Team's Workouts: Individual team member breakdown (NEW - Nov 7, 2025)
+  - Shows user's specific team members alphabetically
+  - Displays challenge-specific workout counts per member
+  - Includes all team members (even 0 workouts)
+  - Only visible when user is assigned to team in active challenge
 
 **Page 3: Me**
 - Personal summary (name, team, lifetime workout count, last workout date, user join date)
@@ -329,6 +334,17 @@ Returns collective progress data for a specific challenge:
 - Team breakdowns (from Challenge_Teams for this challenge)
 - Recent completions (last 10, from newest to oldest, filtered by challenge_id)
 - Returns null if challengeId is null (no active challenge)
+
+#### `getMyTeamBreakdown(ss, userId, challengeId)`
+Returns detailed breakdown of user's team members for a specific challenge (NEW - Nov 7, 2025):
+- Fetches user's team assignment from Challenge_Teams sheet
+- Retrieves all members on the same team
+- Counts workout completions per member (filtered by challenge_id)
+- Returns structured object: `{team_name, team_color, members: [{user_id, display_name, workout_count}]}`
+- Members sorted alphabetically by display_name
+- Includes all team members (even those with 0 workouts)
+- Returns null if user not assigned to team or no active challenge
+- **Use Case**: Powers "My Team's Workouts" section on Team Progress page
 
 #### `getRecentCompletionsAll(ss, limit)`
 Returns recent completions across ALL users and challenges for agency-wide activity feed:

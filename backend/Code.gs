@@ -240,6 +240,9 @@ function getUserDashboardData(userId) {
     // Get lifetime workout count
     const lifetimeWorkouts = getLifetimeWorkoutCount(ss, userId);
 
+    // Get user's team breakdown (new for "My Team Workouts" section)
+    const myTeamBreakdown = getMyTeamBreakdown(ss, userId, activeChallenge.challenge_id);
+
     return {
       user: {
         user_id: user.user_id,
@@ -254,7 +257,8 @@ function getUserDashboardData(userId) {
       challenge: activeChallenge, // RENAMED from "settings"
       activeWorkout: activeWorkout,
       completedToday: completedToday,
-      goalProgress: goalProgress
+      goalProgress: goalProgress,
+      myTeamBreakdown: myTeamBreakdown
     };
   } catch (e) {
     console.error('Error in getUserDashboardData:', e);
@@ -547,6 +551,99 @@ function getGoalProgress(ss, challengeId) {
     percentage: Math.round((totalCompletions / challenge.total_goal) * 100),
     team_totals: teamTotals,
     recent_completions: recentCompletions
+  };
+}
+
+// Get detailed breakdown of current user's team for a specific challenge
+function getMyTeamBreakdown(ss, userId, challengeId) {
+  if (!userId || !challengeId) {
+    return null;
+  }
+
+  // Get user's team for this challenge
+  const userTeam = getUserTeamForChallenge(ss, userId, challengeId);
+  if (!userTeam || !userTeam.team_name) {
+    return null;  // User not assigned to a team for this challenge
+  }
+
+  const teamName = userTeam.team_name;
+  const teamColor = userTeam.team_color;
+
+  // Get all users on the same team from Challenge_Teams sheet
+  const challengeTeamsSheet = ss.getSheetByName('Challenge_Teams');
+  const teamData = challengeTeamsSheet.getDataRange().getValues();
+  const teamHeaders = teamData[0];
+
+  const teamHeaderMap = {};
+  teamHeaders.forEach((header, index) => {
+    teamHeaderMap[header] = index;
+  });
+
+  // Find all team members
+  const teamMemberIds = [];
+  for (let i = 1; i < teamData.length; i++) {
+    const rowChallengeId = teamData[i][teamHeaderMap['challenge_id']];
+    const rowTeamName = teamData[i][teamHeaderMap['team_name']];
+    const rowUserId = teamData[i][teamHeaderMap['user_id']];
+
+    if (rowChallengeId === challengeId && rowTeamName === teamName) {
+      teamMemberIds.push(rowUserId);
+    }
+  }
+
+  if (teamMemberIds.length === 0) {
+    return null;  // No team members found
+  }
+
+  // Get completions for this challenge
+  const completionsSheet = ss.getSheetByName('Completions');
+  const completionsData = completionsSheet.getDataRange().getValues();
+  const completionsHeaders = completionsData[0];
+
+  const completionsHeaderMap = {};
+  completionsHeaders.forEach((header, index) => {
+    completionsHeaderMap[header] = index;
+  });
+
+  // Count workouts per team member
+  const workoutCounts = {};
+  teamMemberIds.forEach(memberId => {
+    workoutCounts[memberId] = 0;
+  });
+
+  for (let i = 1; i < completionsData.length; i++) {
+    const rowUserId = completionsData[i][completionsHeaderMap['user_id']];
+    const rowChallengeId = completionsData[i][completionsHeaderMap['challenge_id']];
+
+    if (rowChallengeId === challengeId && teamMemberIds.includes(rowUserId)) {
+      workoutCounts[rowUserId]++;
+    }
+  }
+
+  // Build member list with display names
+  const members = [];
+  teamMemberIds.forEach(memberId => {
+    const userInfo = getUserInfo(ss, memberId);
+    if (userInfo) {
+      members.push({
+        user_id: memberId,
+        display_name: userInfo.display_name,
+        workout_count: workoutCounts[memberId]
+      });
+    }
+  });
+
+  // Sort alphabetically by display name
+  members.sort((a, b) => {
+    const nameA = a.display_name.toLowerCase();
+    const nameB = b.display_name.toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+
+  return {
+    team_name: teamName,
+    team_color: teamColor,
+    members: members
   };
 }
 

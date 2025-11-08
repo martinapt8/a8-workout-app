@@ -72,21 +72,36 @@ All pages feature bottom navigation with icons for quick switching between views
 │  Total A8 Goal          │
 │  60/200 workouts - 30%  │
 │  ████████░░░░░░░░░░     │
-│                         │
-│  Team Breakdown:        │
+├─────────────────────────┤
+│  Team Totals:           │
 │  Team Red: 20           │
 │  Team Blue: 20          │
 │  Team Green: 20         │
+├─────────────────────────┤
+│  My Team's Workouts     │
+│  Team Red               │
+│  ──────────────────     │
+│  🎯 Megan          15   │
+│  Alex              12   │
+│  Jordan             8   │
+│  Taylor             5   │
+│  Sam                0   │
 ├─────────────────────────┤
 │  [💪Today|📈Team|👤Me|📚Library] │
 └─────────────────────────┘
 ```
 
 **Key Components:**
-- Challenge name
+- Challenge name and date range
 - Total goal progress (number and percentage)
-- Visual progress bar
-- Team breakdown with counts
+- Color-coded progress bar (green → blue → yellow → red based on % complete)
+- **Team Totals** - Agency-wide team aggregates
+- **My Team's Workouts** (NEW) - Individual team member breakdown
+  - Shows user's specific team name (in team color)
+  - Lists all team members alphabetically
+  - Displays workout count per member (challenge-specific)
+  - Includes members with 0 workouts
+  - Only visible when user is assigned to a team in active challenge
 - Bottom navigation bar
 
 ---
@@ -97,8 +112,10 @@ All pages feature bottom navigation with icons for quick switching between views
 ┌─────────────────────────┐
 │  My Summary             │
 │  🎯 Megan - Team Red    │
-│  15 workouts completed  │
-│  Last Workout: Oct 16   │
+│                         │
+│    16      Oct 30  Sep 17│
+│   Total     Last   Member│
+│  Workouts Workout  Since │
 ├─────────────────────────┤
 │  My Calendar            │
 │  Oct 2025               │
@@ -117,8 +134,12 @@ All pages feature bottom navigation with icons for quick switching between views
 ```
 
 **Key Components:**
-- Personal summary (name, team, workout count)
-- Last workout date
+- Personal summary (name, team)
+- **3-column stats grid** (NEW DESIGN - Nov 7, 2025):
+  - **Bold values**: Dynamic data displayed prominently (16, Oct 30, Sep 17)
+  - **Uniform labels**: Consistent weight/size with line breaks
+  - **Compact layout**: Reduced vertical height while maintaining readability
+  - Three metrics: Total Workouts, Last Workout, Member Since
 - Multi-month calendar with navigation
 - Checkmarks on completed dates
 - Past workout backfill form

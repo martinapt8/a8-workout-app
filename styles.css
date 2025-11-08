@@ -492,6 +492,42 @@ body {
     font-size: 20px;
 }
 
+/* My Team Workouts */
+.my-team-header {
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.team-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.team-member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--gray-50);
+    border-radius: var(--border-radius);
+}
+
+.member-name {
+    font-weight: 400;
+    font-size: 16px;
+    color: var(--gray-900);
+}
+
+.member-count {
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--gray-900);
+}
+
 /* Activity List */
 .activity-list {
     display: flex;
@@ -854,7 +890,7 @@ body {
 .summary-card .my-summary {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     align-items: center;
     text-align: center;
 }
@@ -865,24 +901,33 @@ body {
     margin: 0;
 }
 
-.summary-workouts {
-    font-size: 16px;
-    font-weight: 400;
-    margin: 0;
+.summary-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.stat-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
     color: #111827;
 }
 
-.summary-last {
-    font-size: 14px;
+.stat-label {
+    font-size: 12px;
+    font-weight: 400;
     color: #6B7280;
-    margin: 0;
-}
-
-.summary-joined {
-    font-size: 14px;
-    color: #6B7280;
-    margin: 4px 0 0 0;
-    font-style: italic;
+    text-align: center;
+    line-height: 1.3;
 }
 
 /* Challenge name and dates on Team page */

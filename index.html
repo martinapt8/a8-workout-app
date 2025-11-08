@@ -132,11 +132,26 @@
                 <!-- Team Breakdown Card -->
                 <div class="card team-card">
                     <div class="card-header">
-                        <h2>Team Workouts</h2>
+                        <h2>Team Totals</h2>
                     </div>
                     <div class="card-body">
                         <div id="team-list" class="team-list">
                             <!-- Teams will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Team Workouts Card -->
+                <div class="card team-card" id="my-team-card" style="display: none;">
+                    <div class="card-header">
+                        <h2>My Team's Workouts</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="my-team-header" class="my-team-header">
+                            <!-- Team name will go here -->
+                        </div>
+                        <div id="my-team-members" class="team-members-list">
+                            <!-- Team members will populate here -->
                         </div>
                     </div>
                 </div>
@@ -156,9 +171,20 @@
                     <div class="card-body">
                         <div class="my-summary">
                             <p id="my-summary-name" class="summary-name"></p>
-                            <p id="my-summary-workouts" class="summary-workouts"></p>
-                            <p id="my-summary-last" class="summary-last"></p>
-                            <p id="my-summary-joined" class="summary-joined"></p>
+                            <div class="summary-stats-grid">
+                                <div class="stat-column">
+                                    <div id="my-summary-workouts-value" class="stat-value"></div>
+                                    <div class="stat-label">Total<br>Workouts</div>
+                                </div>
+                                <div class="stat-column">
+                                    <div id="my-summary-last-value" class="stat-value"></div>
+                                    <div class="stat-label">Last<br>Workout</div>
+                                </div>
+                                <div class="stat-column">
+                                    <div id="my-summary-joined-value" class="stat-value"></div>
+                                    <div class="stat-label">Member<br>Since</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -759,6 +785,36 @@
                 `;
                 teamList.appendChild(teamDiv);
             });
+
+            // Update My Team Workouts section
+            const myTeamCard = document.getElementById('my-team-card');
+            const myTeamHeader = document.getElementById('my-team-header');
+            const myTeamMembers = document.getElementById('my-team-members');
+
+            if (userData.myTeamBreakdown && userData.myTeamBreakdown.members && userData.myTeamBreakdown.members.length > 0) {
+                // Show the card
+                myTeamCard.style.display = 'block';
+
+                // Set team name with color
+                const teamColor = userData.myTeamBreakdown.team_color || '#FFC107';
+                myTeamHeader.innerHTML = `<span style="color: ${teamColor}">${userData.myTeamBreakdown.team_name}</span>`;
+
+                // Clear and populate members list
+                myTeamMembers.innerHTML = '';
+
+                userData.myTeamBreakdown.members.forEach(member => {
+                    const memberDiv = document.createElement('div');
+                    memberDiv.className = 'team-member-item';
+                    memberDiv.innerHTML = `
+                        <span class="member-name">${member.display_name}</span>
+                        <span class="member-count">${member.workout_count}</span>
+                    `;
+                    myTeamMembers.appendChild(memberDiv);
+                });
+            } else {
+                // Hide the card if no team data
+                myTeamCard.style.display = 'none';
+            }
         }
 
         // Update activity feed (shown on workout page)
@@ -801,9 +857,9 @@
 
             // Update My Summary
             const summaryName = document.getElementById('my-summary-name');
-            const summaryWorkouts = document.getElementById('my-summary-workouts');
-            const summaryLast = document.getElementById('my-summary-last');
-            const summaryJoined = document.getElementById('my-summary-joined');
+            const summaryWorkoutsValue = document.getElementById('my-summary-workouts-value');
+            const summaryLastValue = document.getElementById('my-summary-last-value');
+            const summaryJoinedValue = document.getElementById('my-summary-joined-value');
 
             if (userData.user.team_name) {
                 summaryName.textContent = `${userData.user.display_name} - Team ${userData.user.team_name}`;
@@ -812,14 +868,14 @@
                 summaryName.textContent = `${userData.user.display_name}`;
                 summaryName.style.color = '#000000';
             }
-            summaryWorkouts.textContent = `${userData.user.lifetime_workouts} workouts completed`;
-            summaryLast.textContent = userData.user.last_completed ? `Last Workout: ${userData.user.last_completed}` : 'No workouts yet';
+            summaryWorkoutsValue.textContent = `${userData.user.lifetime_workouts}`;
+            summaryLastValue.textContent = userData.user.last_completed || 'N/A';
 
             // Debug: Log join_date value
             console.log('DEBUG - join_date value:', userData.user.join_date);
             console.log('DEBUG - full user object:', userData.user);
 
-            summaryJoined.textContent = userData.user.join_date ? `Member since: ${userData.user.join_date}` : '';
+            summaryJoinedValue.textContent = userData.user.join_date || 'N/A';
 
             // Load completion dates for current month and build calendar
             loadCompletionDateRange(userData.user.user_id, CalendarState.currentMonth, CalendarState.currentYear)

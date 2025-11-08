@@ -2,6 +2,82 @@
 
 ## Current Status (Latest Update - November 7, 2025)
 
+### 📊 Me Page User Stats Redesign (November 7, 2025 - Latest)
+
+**UI Improvement: 3-Column Stats Grid Layout**:
+- **Purpose**: Cleaner, more compact user stats display with improved visual hierarchy
+- **Frontend** (`index.html`):
+  - Restructured user stats from vertical list to 3-column grid (lines 174-187)
+  - Split data into separate value and label elements for better styling control
+  - Updated `updateMePage()` function to populate new structure (lines 860-878)
+  - Simplified text content (e.g., "16" instead of "16 workouts completed")
+- **Styling** (`styles.css`):
+  - Added `.summary-stats-grid` with 3-column grid layout, 20px gap (lines 904-910)
+  - Added `.stat-column` flexbox vertical alignment, 8px gap (lines 912-917)
+  - Added `.stat-value` with font-weight: 700 (bold), 18px size (lines 919-923)
+  - Added `.stat-label` with font-weight: 400 (regular), 12px size, line breaks (lines 925-931)
+  - Increased `.my-summary` gap from 12px to 16px for better spacing
+
+**Visual Design**:
+- **Bold values**: Dynamic data (16, Oct 30, Sep 17) displayed prominently
+- **Uniform labels**: All labels use consistent weight/size for clean appearance
+- **Line breaks**: Labels split across two lines ("Total" / "Workouts")
+- **Reduced height**: More compact card footprint while maintaining readability
+
+**Files Changed**:
+- `index.html`: New 3-column HTML structure + updated JavaScript
+- `styles.css`: New grid layout styles with bold values and uniform labels
+
+---
+
+### 👥 My Team's Workouts Feature (November 7, 2025 - Late Night)
+
+**New Feature: Individual Team Member Workout Tracking**:
+- **Purpose**: Provide visibility into team-specific stats to encourage participation and friendly competition
+- **Backend** (`backend/Code.gs`):
+  - Added `getMyTeamBreakdown(ss, userId, challengeId)` function (lines 554-644)
+  - Fetches user's team assignment from Challenge_Teams sheet
+  - Retrieves all members on the same team
+  - Counts workout completions per member (filtered by challenge_id)
+  - Returns structured object with team_name, team_color, and members array
+  - Members sorted alphabetically by display_name
+  - Includes all team members (even those with 0 workouts)
+  - Modified `getUserDashboardData()` to include `myTeamBreakdown` field (line 244)
+- **Frontend** (`index.html`):
+  - Added new "My Team's Workouts" card on Team Progress page (lines 144-157)
+  - Card appears below "Team Totals" section
+  - Updated `updateProgressPage()` function to populate team member list (lines 778-806)
+  - Displays team name in team color with separator line
+  - Shows each member's display name and workout count
+  - Hidden when no active challenge or user not assigned to team
+- **Styling** (`styles.css`):
+  - Added `.my-team-header` class with bottom border separator (lines 496-502)
+  - Added `.team-members-list` flexbox layout (lines 504-507)
+  - Added `.team-member-item` for individual member rows (lines 510-517)
+  - Added `.member-name` and `.member-count` styling (lines 519-529)
+- **Header Updates**:
+  - Renamed "Team Workouts" → "Team Totals" (clearer for agency-wide view)
+  - Renamed "My Team Workouts" → "My Team's Workouts" (better grammar)
+
+**Display Logic**:
+- Shows only when active challenge exists AND user is assigned to a team
+- Displays all team members alphabetically (regardless of workout count)
+- Member counts are challenge-specific (not lifetime totals)
+- Uses team color from Challenge_Teams sheet for visual consistency
+
+**Files Changed**:
+- `backend/Code.gs`: New getMyTeamBreakdown() function + getUserDashboardData() modification
+- `index.html`: New HTML card + updateProgressPage() logic
+- `styles.css`: New team member display styles
+
+**Technical Notes**:
+- Leverages existing Challenge_Teams and Completions sheet structure
+- Filters by challenge_id for accurate per-challenge counts
+- Single-pass through data for optimal performance
+- Returns null when user has no team assignment (graceful handling)
+
+---
+
 ### 🔔 Upcoming Challenges Feature + Me Page UI Refinements (November 7, 2025 - Late Night)
 
 **New Feature: Upcoming Challenges Display**:

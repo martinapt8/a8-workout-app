@@ -418,15 +418,22 @@
         <!-- User Type Info -->
         <div id="user-type-info" class="user-type-info"></div>
 
-        <!-- Signup Form -->
-        <form id="signup-form">
-            <!-- Email (required for all users) -->
+        <!-- Email Entry Form (Step 1) -->
+        <form id="email-form">
             <div class="form-group">
                 <label for="email">Email *</label>
-                <input type="email" id="email" name="email" required placeholder="you@example.com">
+                <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
                 <div class="helper-text">We'll check if you already have an account</div>
             </div>
 
+            <button type="submit" class="submit-button">
+                <span class="submit-text">Continue</span>
+                <div class="loading-spinner"></div>
+            </button>
+        </form>
+
+        <!-- Main Signup Form (Step 2 - shown after email verification) -->
+        <form id="signup-form" style="display: none;">
             <!-- New User Fields (shown only for new users) -->
             <div id="new-user-fields" class="new-user-fields">
                 <div class="form-group">
@@ -491,87 +498,118 @@
         let selectedDuration = null;
         let selectedEquipment = [];
         let challengeId = null;
+        let challengeData = null;
+        let userEmail = null;
         let isNewUser = true;
 
         // Get challenge ID from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         challengeId = urlParams.get('challenge');
 
-        // Load challenge info on page load
+        // Load challenge info on page load (in background)
         window.addEventListener('DOMContentLoaded', async function() {
             if (!challengeId) {
                 showError('No challenge specified. Please use a valid signup link.');
-                document.getElementById('signup-form').style.display = 'none';
+                document.getElementById('email-form').style.display = 'none';
                 return;
             }
 
+            // Fetch challenge info in background while user enters email
             try {
-                // Fetch challenge info
                 const result = await API.post('getChallengeInfo', { challengeId });
-
                 if (result.success) {
-                    const challenge = result.challenge;
-
-                    // Update UI with challenge details
-                    document.getElementById('signup-subtitle').textContent = `Join ${challenge.challengeName}`;
-                    document.getElementById('challenge-name').textContent = challenge.challengeName;
-                    document.getElementById('challenge-dates').textContent = `${challenge.startDate} - ${challenge.endDate}`;
-                    document.getElementById('challenge-goal').textContent = challenge.totalGoal;
-
-                    // Show deadline warning if applicable
-                    if (challenge.deadlineMessage) {
-                        const deadlineWarning = document.getElementById('deadline-warning');
-                        deadlineWarning.textContent = challenge.deadlineMessage;
-                        deadlineWarning.style.display = 'block';
-                    }
-
-                    // Check if signup is still open
-                    if (!challenge.signupOpen) {
-                        showError(challenge.deadlineMessage);
-                        document.getElementById('signup-form').style.display = 'none';
-                    }
-
-                    // Show challenge info
-                    document.getElementById('challenge-info').classList.add('show');
-
-                } else {
-                    showError(result.error || 'Invalid challenge. Please check your signup link.');
-                    document.getElementById('signup-form').style.display = 'none';
+                    challengeData = result.challenge;
                 }
             } catch (error) {
-                console.error('Error loading challenge info:', error);
-                showError('Unable to load challenge information. Please try again.');
+                console.error('Error pre-loading challenge info:', error);
             }
         });
 
-        // Email input - check if user exists
-        document.getElementById('email').addEventListener('blur', async function() {
-            const email = this.value.trim();
+        // Email form submission (Step 1)
+        document.getElementById('email-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-            // Validate email format first
+            const email = document.getElementById('email').value.trim();
+
+            // Validate email
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('Please enter a valid email address');
                 return;
             }
 
-            try {
-                // Check if user exists
-                const result = await API.post('checkUserByEmail', { email });
+            userEmail = email;
 
-                if (result.success && result.userExists) {
-                    // EXISTING USER - show preferences with pre-filled data
-                    showExistingUserForm(result.user);
+            // Show loading state
+            const continueButton = this.querySelector('.submit-button');
+            continueButton.classList.add('loading');
+            continueButton.disabled = true;
+            hideError();
+
+            try {
+                // Fetch BOTH challenge info AND user info in parallel
+                const [challengeResult, userResult] = await Promise.all([
+                    challengeData ? Promise.resolve({ success: true, challenge: challengeData }) : API.post('getChallengeInfo', { challengeId }),
+                    API.post('checkUserByEmail', { email })
+                ]);
+
+                // Check challenge result
+                if (!challengeResult.success) {
+                    showError(challengeResult.error || 'Invalid challenge. Please check your signup link.');
+                    continueButton.classList.remove('loading');
+                    continueButton.disabled = false;
+                    return;
+                }
+
+                const challenge = challengeResult.challenge;
+
+                // Update UI with challenge details
+                document.getElementById('signup-subtitle').textContent = `Join ${challenge.challengeName}`;
+                document.getElementById('challenge-name').textContent = challenge.challengeName;
+                document.getElementById('challenge-dates').textContent = `${challenge.startDate} - ${challenge.endDate}`;
+                document.getElementById('challenge-goal').textContent = challenge.totalGoal;
+
+                // Show deadline warning if applicable
+                if (challenge.deadlineMessage) {
+                    const deadlineWarning = document.getElementById('deadline-warning');
+                    deadlineWarning.textContent = challenge.deadlineMessage;
+                    deadlineWarning.style.display = 'block';
+                }
+
+                // Check if signup is still open
+                if (!challenge.signupOpen) {
+                    showError(challenge.deadlineMessage);
+                    continueButton.classList.remove('loading');
+                    continueButton.disabled = false;
+                    return;
+                }
+
+                // Show challenge info
+                document.getElementById('challenge-info').classList.add('show');
+
+                // Check user result
+                if (userResult.success && userResult.userExists) {
+                    // EXISTING USER
+                    showExistingUserForm(userResult.user);
                 } else {
-                    // NEW USER - show all fields
+                    // NEW USER
                     showNewUserForm();
                 }
+
+                // Hide email form, show signup form
+                document.getElementById('email-form').style.display = 'none';
+                document.getElementById('signup-form').style.display = 'block';
+
             } catch (error) {
-                console.error('Error checking user:', error);
-                // Default to new user form if API call fails
-                showNewUserForm();
+                console.error('Error during email verification:', error);
+                showError('Unable to verify email. Please try again.');
+                continueButton.classList.remove('loading');
+                continueButton.disabled = false;
             }
         });
 
         function showNewUserForm() {
+            isNewUser = true;
+
             // Show info message
             const infoDiv = document.getElementById('user-type-info');
             infoDiv.textContent = 'New user - please complete all fields below';
@@ -588,6 +626,8 @@
         }
 
         function showExistingUserForm(userData) {
+            isNewUser = false;
+
             // Show info message
             const infoDiv = document.getElementById('user-type-info');
             infoDiv.textContent = `Welcome back, ${userData.displayName}! Update your preferences below if needed.`;
@@ -653,31 +693,17 @@
             });
         });
 
-        // Form submission
+        // Main signup form submission (Step 2)
         document.getElementById('signup-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             // Get form values
-            const email = document.getElementById('email').value.trim();
             const userId = document.getElementById('user-id').value.trim().toLowerCase();
             const displayName = document.getElementById('display-name').value.trim();
             const fullName = document.getElementById('full-name').value.trim();
 
-            // Validate required fields
-            if (!email) {
-                showError('Please enter your email address');
-                return;
-            }
-
-            // Validate email format
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showError('Please enter a valid email address');
-                return;
-            }
-
-            // Validate new user fields if shown
-            const newUserFieldsVisible = document.getElementById('new-user-fields').classList.contains('show');
-            if (newUserFieldsVisible) {
+            // Validate new user fields if this is a new user
+            if (isNewUser) {
                 if (!userId || !displayName || !fullName) {
                     showError('Please fill in all required fields');
                     return;
@@ -699,7 +725,7 @@
             // Prepare signup data
             const signupData = {
                 challengeId,
-                email,
+                email: userEmail,
                 userId: userId || null,
                 displayName: displayName || null,
                 fullName: fullName || null,

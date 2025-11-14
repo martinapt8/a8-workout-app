@@ -1,8 +1,112 @@
 # A8 Workout Challenge App
 
-## Current Status (Latest Update - November 7, 2025)
+## Current Status (Latest Update - November 14, 2025)
 
-### 📊 Me Page User Stats Redesign (November 7, 2025 - Latest)
+### 🎯 Challenge-Specific Signup System (November 14, 2025 - Latest)
+
+**New Feature: Dedicated Challenge Signup Flow for New and Existing Users**:
+- **Purpose**: Enable users to self-register for specific challenges with automatic user detection and preference pre-filling
+- **Backend Changes** (`backend/Signup.gs`):
+  - Added `getChallengeInfo(challengeId)` function to fetch challenge details and validate signup deadline
+  - Added `checkUserByEmail(email)` function to detect existing users and return their preferences
+  - Added `createChallengeSignup(data)` function to handle both new and existing user signups
+    - New users: Creates full account with auto-approval (`active_user=TRUE`)
+    - Existing users: Updates only `preferred_duration` and `equipment_available`, preserves `user_id`
+    - Both: Adds row to Challenge_Teams table for participation tracking
+    - Validates signup deadline against Settings timezone
+    - Prevents duplicate signups with friendly error messaging
+- **Backend Changes** (`backend/Code.gs`):
+  - Added `checkUserByEmail` API endpoint to doPost()
+  - Added `getChallengeInfo` API endpoint to doPost()
+  - Added `createChallengeSignup` API endpoint to doPost()
+  - Updated error message to list all available actions
+- **Frontend** (`signup_challenge.html`):
+  - Created new standalone signup page (680+ lines)
+  - Two-step signup flow: email entry → full form
+  - Step 1: User enters email, clicks "Continue"
+    - Fetches challenge info and user status in parallel (Promise.all)
+    - Pre-loads challenge info in background on page load
+    - Shows loading spinner during verification
+  - Step 2: Shows appropriate form based on user status
+    - Existing users: Welcome message, pre-filled preferences, username field hidden
+    - New users: All fields (username, display name, full name, preferences)
+  - Displays challenge details (name, dates, goal, signup deadline)
+  - Prevents form submission before email verification
+  - Success screen with registration confirmation
+- **Database Changes**:
+  - Added `signup_deadline` column to Challenges sheet (manual setup required)
+  - Challenge_Teams table used for signup tracking (team assignment by admin later)
+- **Configuration** (`config.js`):
+  - Updated API_URL to new deployment endpoint (fresh deployment to resolve CORS)
+
+**URL Pattern**: `signup_challenge.html?challenge=dd_dec2025`
+
+**UX Improvements**:
+- No race conditions - user cannot submit until email is verified
+- Clear two-step progression with visual feedback
+- Existing users never see username/display name/full name fields
+- Pre-filled preferences (duration + equipment) for returning users
+- Clean success screen without info boxes
+- Type conversion fix for duration preference pre-selection
+
+**Files Created**:
+- `signup_challenge.html`: New challenge signup page
+
+**Files Modified**:
+- `backend/Signup.gs`: Added 3 new functions (getChallengeInfo, checkUserByEmail, createChallengeSignup)
+- `backend/Code.gs`: Added 3 new API endpoints
+- `config.js`: Updated API_URL to new deployment
+
+**Deployment Requirements**:
+- Add `signup_deadline` column to Challenges sheet
+- Deploy backend with new API endpoints
+- Share signup URL with challenge participants
+
+---
+
+### 📚 Documentation Reorganization (November 7, 2025)
+
+**Context Window Optimization**:
+- **Purpose**: Reduce CLAUDE.md file size to prevent context window issues while maintaining comprehensive documentation
+- **New File Created**: `Documentation/BACKEND.md` (comprehensive backend API reference)
+  - Complete documentation for all Google Apps Script functions
+  - Backend Files Reference table (12 .gs files)
+  - Core Functions section (~23 functions with full descriptions)
+  - Helper Functions section (~6 utility functions)
+  - Admin Challenge Management Functions section (~4 admin functions)
+  - Cross-references to related documentation
+- **CLAUDE.md Updated**:
+  - Removed ~360 lines of detailed backend function documentation
+  - Added new "Backend API Reference" section with brief overview and link to BACKEND.md
+  - Kept critical elements: database schema, API endpoints, quick reference
+  - Updated "See Also" section with reorganized categories
+- **Documentation Structure Improved**:
+  - "See Also" section now organized into clear categories:
+    - Technical Reference (BACKEND.md, FRONTEND_PAGES.md, ADMIN_GUIDE.md)
+    - Testing & Validation
+    - Development Guides
+    - Planning & Roadmap
+  - BACKEND.md placed prominently as first item in Technical Reference
+  - Follows FRONTEND_PAGES.md pattern (detailed specifics in separate file)
+
+**File Size Reduction**:
+- CLAUDE.md: Reduced from ~870 lines to ~510 lines (41% reduction)
+- All content preserved, just reorganized for better accessibility
+- Better context window management for Claude Code
+
+**Files Changed**:
+- `Documentation/BACKEND.md`: New comprehensive backend reference document
+- `CLAUDE.md`: Streamlined with backend reference section and updated cross-links
+
+**Benefits**:
+- Improved maintainability with focused documentation files
+- Better context management for AI-assisted development
+- Clear separation of concerns (frontend vs backend documentation)
+- Preserved all technical details with improved discoverability
+
+---
+
+### 📊 Me Page User Stats Redesign (November 7, 2025)
 
 **UI Improvement: 3-Column Stats Grid Layout**:
 - **Purpose**: Cleaner, more compact user stats display with improved visual hierarchy

@@ -153,8 +153,30 @@ function doPost(e) {
         result = createSignupRequest(signupData);
         break;
 
+      case 'getChallengeInfo':
+        const challengeId = requestData.challengeId;
+        if (!challengeId) {
+          result = { success: false, error: 'Missing challengeId parameter' };
+        } else {
+          result = getChallengeInfo(challengeId);
+        }
+        break;
+
+      case 'createChallengeSignup':
+        const challengeSignupData = {
+          challengeId: requestData.challengeId,
+          email: requestData.email,
+          userId: requestData.userId,
+          displayName: requestData.displayName,
+          fullName: requestData.fullName,
+          preferredDuration: requestData.preferredDuration,
+          equipment: requestData.equipment
+        };
+        result = createChallengeSignup(challengeSignupData);
+        break;
+
       default:
-        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete, createSignup' };
+        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete, createSignup, getChallengeInfo, createChallengeSignup' };
     }
 
     return createCORSResponse(result);

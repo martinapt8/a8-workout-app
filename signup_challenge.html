@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Signup - Daily Dose</title>
+
+    <!-- Apple Touch Icon and PWA settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Daily Dose Signup">
+
+    <!-- Dynamic icon generator - Black background with yellow logo -->
+    <script>
+        (function() {
+            // Load SVG and create icons with black background
+            fetch('assets/daily_dose_logo.svg')
+                .then(r => r.text())
+                .then(svgText => {
+                    // Modify SVG to use yellow instead of black
+                    const yellowSvg = svgText.replace(/fill="#000000"/g, 'fill="#FFC107"');
+
+                    // Create blob for image loading
+                    const blob = new Blob([yellowSvg], {type: 'image/svg+xml'});
+                    const url = URL.createObjectURL(blob);
+
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create 180x180 icon with black background
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 180;
+                        canvas.height = 180;
+                        const ctx = canvas.getContext('2d');
+
+                        // Black background
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(0, 0, 180, 180);
+
+                        // Draw yellow logo centered (80% of canvas)
+                        const logoSize = 144;
+                        const offset = (180 - logoSize) / 2;
+                        ctx.drawImage(img, offset, offset, logoSize, logoSize);
+
+                        const iconUrl = canvas.toDataURL('image/png');
+
+                        // Regular favicon
+                        const icon = document.createElement('link');
+                        icon.rel = 'icon';
+                        icon.type = 'image/png';
+                        icon.href = iconUrl;
+                        document.head.appendChild(icon);
+
+                        // Apple touch icons
+                        const appleTouchIcon = document.createElement('link');
+                        appleTouchIcon.rel = 'apple-touch-icon';
+                        appleTouchIcon.href = iconUrl;
+                        document.head.appendChild(appleTouchIcon);
+
+                        // Multiple sizes for better compatibility
+                        const sizes = [152, 167, 180];
+                        sizes.forEach(size => {
+                            const link = document.createElement('link');
+                            link.rel = 'apple-touch-icon';
+                            link.sizes = `${size}x${size}`;
+                            link.href = iconUrl;
+                            document.head.appendChild(link);
+                        });
+
+                        URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                })
+                .catch(err => {
+                    console.log('Could not load logo for icon generation:', err);
+                });
+        })();
+    </script>
+
+    <!-- Theme color for browser chrome -->
+    <meta name="theme-color" content="#000000">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css?v=20251104-1">
+
+    <!-- API Configuration and Helper -->
+    <script src="config.js?v=20251104-1"></script>
+    <script src="api.js?v=20251104-1"></script>
+
+    <style>
+        /* Signup-specific styles */
+        .signup-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .signup-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            display: block;
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .signup-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        .signup-header p {
+            font-size: 16px;
+            color: #6B7280;
+        }
+
+        .challenge-info {
+            background: #FFF9E6;
+            border: 2px solid #FFC107;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .challenge-info.show {
+            display: block;
+        }
+
+        .challenge-info h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        .challenge-detail {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 4px;
+        }
+
+        .challenge-detail strong {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .deadline-warning {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: #FEE2E2;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #991B1B;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            background: #FFFFFF;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #FFC107;
+        }
+
+        .helper-text {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #111827;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .button-group.equipment {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .option-button {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            background: #FFFFFF;
+            color: #111827;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .option-button:hover {
+            border-color: #FFC107;
+        }
+
+        .option-button.selected {
+            border-color: #FFC107;
+            background: #FFC107;
+            color: #000000;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%);
+            color: #000000;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            background: #FEE2E2;
+            border: 1px solid #FCA5A5;
+            border-radius: 8px;
+            color: #991B1B;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            padding: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-message h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #10B981;
+        }
+
+        .success-message p {
+            font-size: 16px;
+            color: #6B7280;
+            line-height: 1.6;
+        }
+
+        .checkmark {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: #10B981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.3s ease;
+        }
+
+        .checkmark::after {
+            content: '✓';
+            font-size: 40px;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-top-color: #000000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading .loading-spinner {
+            display: block;
+        }
+
+        .loading .submit-text {
+            display: none;
+        }
+
+        .new-user-fields {
+            display: none;
+        }
+
+        .new-user-fields.show {
+            display: block;
+        }
+
+        .user-type-info {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            background: #E0F2FE;
+            border: 1px solid #7DD3FC;
+            border-radius: 8px;
+            color: #0C4A6E;
+            font-size: 14px;
+            display: none;
+        }
+
+        .user-type-info.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <img src="assets/daily_dose_logo.svg" alt="Daily Dose" class="signup-logo">
+
+        <div class="signup-header">
+            <h1>Challenge Signup</h1>
+            <p id="signup-subtitle">Loading challenge details...</p>
+        </div>
+
+        <!-- Challenge Info Card -->
+        <div id="challenge-info" class="challenge-info">
+            <h2 id="challenge-name">Challenge Name</h2>
+            <div class="challenge-detail"><strong>Dates:</strong> <span id="challenge-dates"></span></div>
+            <div class="challenge-detail"><strong>Goal:</strong> <span id="challenge-goal"></span> workouts</div>
+            <div id="deadline-warning" class="deadline-warning" style="display: none;"></div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error-message"></div>
+
+        <!-- User Type Info -->
+        <div id="user-type-info" class="user-type-info"></div>
+
+        <!-- Signup Form -->
+        <form id="signup-form">
+            <!-- Email (required for all users) -->
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required placeholder="you@example.com">
+                <div class="helper-text">We'll check if you already have an account</div>
+            </div>
+
+            <!-- New User Fields (shown only for new users) -->
+            <div id="new-user-fields" class="new-user-fields">
+                <div class="form-group">
+                    <label for="user-id">Username *</label>
+                    <input type="text" id="user-id" name="userId" placeholder="johndoe" pattern="[a-z0-9.]+" minlength="3" maxlength="30">
+                    <div class="helper-text">This forms your personal app link. Use lowercase letters, numbers, and periods only.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="display-name">Display Name *</label>
+                    <input type="text" id="display-name" name="displayName" placeholder="🎯 John Doe">
+                    <div class="helper-text">Your profile name shown in the app and on progress boards. Emojis are welcome!</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="full-name">Full Name *</label>
+                    <input type="text" id="full-name" name="fullName" placeholder="Your full name">
+                </div>
+            </div>
+
+            <!-- Workout Preferences (for all users) -->
+            <div class="form-section">
+                <div class="form-section-title">Workout Duration Preference</div>
+                <div class="button-group duration">
+                    <button type="button" class="option-button" data-duration="10">10 min</button>
+                    <button type="button" class="option-button" data-duration="20">20 min</button>
+                    <button type="button" class="option-button" data-duration="30">30 min</button>
+                </div>
+            </div>
+
+            <!-- Equipment Available (for all users) -->
+            <div class="form-section">
+                <div class="form-section-title">Equipment Available (select all that apply)</div>
+                <div class="button-group equipment">
+                    <button type="button" class="option-button" data-equipment="Bodyweight">Bodyweight</button>
+                    <button type="button" class="option-button" data-equipment="Kettlebell">Kettlebell</button>
+                    <button type="button" class="option-button" data-equipment="Dumbbell">Dumbbell</button>
+                    <button type="button" class="option-button" data-equipment="Bands">Bands</button>
+                    <button type="button" class="option-button" data-equipment="Full Gym">Full Gym</button>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-button">
+                <span class="submit-text">Sign Up for Challenge</span>
+                <div class="loading-spinner"></div>
+            </button>
+        </form>
+
+        <!-- Success Message (hidden by default) -->
+        <div id="success-message" class="success-message">
+            <div class="checkmark"></div>
+            <h2>Registration Successful!</h2>
+            <p id="success-message-text"></p>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let selectedDuration = null;
+        let selectedEquipment = [];
+        let challengeId = null;
+        let isNewUser = true;
+
+        // Get challenge ID from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        challengeId = urlParams.get('challenge');
+
+        // Load challenge info on page load
+        window.addEventListener('DOMContentLoaded', async function() {
+            if (!challengeId) {
+                showError('No challenge specified. Please use a valid signup link.');
+                document.getElementById('signup-form').style.display = 'none';
+                return;
+            }
+
+            try {
+                // Fetch challenge info
+                const result = await API.post('getChallengeInfo', { challengeId });
+
+                if (result.success) {
+                    const challenge = result.challenge;
+
+                    // Update UI with challenge details
+                    document.getElementById('signup-subtitle').textContent = `Join ${challenge.challengeName}`;
+                    document.getElementById('challenge-name').textContent = challenge.challengeName;
+                    document.getElementById('challenge-dates').textContent = `${challenge.startDate} - ${challenge.endDate}`;
+                    document.getElementById('challenge-goal').textContent = challenge.totalGoal;
+
+                    // Show deadline warning if applicable
+                    if (challenge.deadlineMessage) {
+                        const deadlineWarning = document.getElementById('deadline-warning');
+                        deadlineWarning.textContent = challenge.deadlineMessage;
+                        deadlineWarning.style.display = 'block';
+                    }
+
+                    // Check if signup is still open
+                    if (!challenge.signupOpen) {
+                        showError(challenge.deadlineMessage);
+                        document.getElementById('signup-form').style.display = 'none';
+                    }
+
+                    // Show challenge info
+                    document.getElementById('challenge-info').classList.add('show');
+
+                } else {
+                    showError(result.error || 'Invalid challenge. Please check your signup link.');
+                    document.getElementById('signup-form').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading challenge info:', error);
+                showError('Unable to load challenge information. Please try again.');
+            }
+        });
+
+        // Email input - check if user exists
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value.trim();
+            if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                // For now, we'll show new user fields by default
+                // In a future enhancement, we could add an API call to check if user exists
+                showNewUserFields();
+            }
+        });
+
+        function showNewUserFields() {
+            document.getElementById('new-user-fields').classList.add('show');
+            document.getElementById('user-id').required = true;
+            document.getElementById('display-name').required = true;
+            document.getElementById('full-name').required = true;
+        }
+
+        // Duration selection (single select)
+        document.querySelectorAll('[data-duration]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove selected from all duration buttons
+                document.querySelectorAll('[data-duration]').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+
+                // Add selected to clicked button
+                this.classList.add('selected');
+                selectedDuration = this.dataset.duration;
+            });
+        });
+
+        // Equipment selection (multi-select)
+        document.querySelectorAll('[data-equipment]').forEach(button => {
+            button.addEventListener('click', function() {
+                const equipment = this.dataset.equipment;
+
+                if (this.classList.contains('selected')) {
+                    // Deselect
+                    this.classList.remove('selected');
+                    selectedEquipment = selectedEquipment.filter(e => e !== equipment);
+                } else {
+                    // Select
+                    this.classList.add('selected');
+                    selectedEquipment.push(equipment);
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get form values
+            const email = document.getElementById('email').value.trim();
+            const userId = document.getElementById('user-id').value.trim().toLowerCase();
+            const displayName = document.getElementById('display-name').value.trim();
+            const fullName = document.getElementById('full-name').value.trim();
+
+            // Validate required fields
+            if (!email) {
+                showError('Please enter your email address');
+                return;
+            }
+
+            // Validate email format
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+
+            // Validate new user fields if shown
+            const newUserFieldsVisible = document.getElementById('new-user-fields').classList.contains('show');
+            if (newUserFieldsVisible) {
+                if (!userId || !displayName || !fullName) {
+                    showError('Please fill in all required fields');
+                    return;
+                }
+
+                // Validate userId format
+                if (!/^[a-z0-9.]+$/.test(userId)) {
+                    showError('Username must contain only lowercase letters, numbers, and periods');
+                    return;
+                }
+
+                // Validate userId length
+                if (userId.length < 3 || userId.length > 30) {
+                    showError('Username must be between 3 and 30 characters');
+                    return;
+                }
+            }
+
+            // Prepare signup data
+            const signupData = {
+                challengeId,
+                email,
+                userId: userId || null,
+                displayName: displayName || null,
+                fullName: fullName || null,
+                preferredDuration: selectedDuration,
+                equipment: selectedEquipment
+            };
+
+            // Show loading state
+            const submitButton = document.querySelector('.submit-button');
+            submitButton.classList.add('loading');
+            submitButton.disabled = true;
+
+            // Hide error message
+            hideError();
+
+            try {
+                // Call API
+                const result = await API.post('createChallengeSignup', signupData);
+
+                if (result.success) {
+                    // Show success message, hide form
+                    document.getElementById('success-message-text').textContent = result.message;
+                    document.getElementById('signup-form').style.display = 'none';
+                    document.getElementById('challenge-info').style.display = 'none';
+                    document.getElementById('success-message').classList.add('show');
+                } else {
+                    // Show error
+                    showError(result.error || 'An error occurred. Please try again.');
+                    submitButton.classList.remove('loading');
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                showError('An unexpected error occurred. Please try again.');
+                submitButton.classList.remove('loading');
+                submitButton.disabled = false;
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.classList.remove('show');
+        }
+    </script>
+</body>
+</html>

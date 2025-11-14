@@ -371,6 +371,14 @@
             display: block;
         }
 
+        .preferences-section {
+            display: none;
+        }
+
+        .preferences-section.show {
+            display: block;
+        }
+
         .user-type-info {
             padding: 12px 16px;
             margin-bottom: 20px;
@@ -439,25 +447,27 @@
                 </div>
             </div>
 
-            <!-- Workout Preferences (for all users) -->
-            <div class="form-section">
-                <div class="form-section-title">Workout Duration Preference</div>
-                <div class="button-group duration">
-                    <button type="button" class="option-button" data-duration="10">10 min</button>
-                    <button type="button" class="option-button" data-duration="20">20 min</button>
-                    <button type="button" class="option-button" data-duration="30">30 min</button>
+            <!-- Workout Preferences (shown after email validation) -->
+            <div id="preferences-section" class="preferences-section">
+                <div class="form-section">
+                    <div class="form-section-title">Workout Duration Preference</div>
+                    <div class="button-group duration">
+                        <button type="button" class="option-button" data-duration="10">10 min</button>
+                        <button type="button" class="option-button" data-duration="20">20 min</button>
+                        <button type="button" class="option-button" data-duration="30">30 min</button>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Equipment Available (for all users) -->
-            <div class="form-section">
-                <div class="form-section-title">Equipment Available (select all that apply)</div>
-                <div class="button-group equipment">
-                    <button type="button" class="option-button" data-equipment="Bodyweight">Bodyweight</button>
-                    <button type="button" class="option-button" data-equipment="Kettlebell">Kettlebell</button>
-                    <button type="button" class="option-button" data-equipment="Dumbbell">Dumbbell</button>
-                    <button type="button" class="option-button" data-equipment="Bands">Bands</button>
-                    <button type="button" class="option-button" data-equipment="Full Gym">Full Gym</button>
+                <!-- Equipment Available (for all users) -->
+                <div class="form-section">
+                    <div class="form-section-title">Equipment Available (select all that apply)</div>
+                    <div class="button-group equipment">
+                        <button type="button" class="option-button" data-equipment="Bodyweight">Bodyweight</button>
+                        <button type="button" class="option-button" data-equipment="Kettlebell">Kettlebell</button>
+                        <button type="button" class="option-button" data-equipment="Dumbbell">Dumbbell</button>
+                        <button type="button" class="option-button" data-equipment="Bands">Bands</button>
+                        <button type="button" class="option-button" data-equipment="Full Gym">Full Gym</button>
+                    </div>
                 </div>
             </div>
 
@@ -535,20 +545,81 @@
         });
 
         // Email input - check if user exists
-        document.getElementById('email').addEventListener('blur', function() {
+        document.getElementById('email').addEventListener('blur', async function() {
             const email = this.value.trim();
-            if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                // For now, we'll show new user fields by default
-                // In a future enhancement, we could add an API call to check if user exists
-                showNewUserFields();
+
+            // Validate email format first
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return;
+            }
+
+            try {
+                // Check if user exists
+                const result = await API.post('checkUserByEmail', { email });
+
+                if (result.success && result.userExists) {
+                    // EXISTING USER - show preferences with pre-filled data
+                    showExistingUserForm(result.user);
+                } else {
+                    // NEW USER - show all fields
+                    showNewUserForm();
+                }
+            } catch (error) {
+                console.error('Error checking user:', error);
+                // Default to new user form if API call fails
+                showNewUserForm();
             }
         });
 
-        function showNewUserFields() {
+        function showNewUserForm() {
+            // Show info message
+            const infoDiv = document.getElementById('user-type-info');
+            infoDiv.textContent = 'New user - please complete all fields below';
+            infoDiv.classList.add('show');
+
+            // Show new user fields
             document.getElementById('new-user-fields').classList.add('show');
             document.getElementById('user-id').required = true;
             document.getElementById('display-name').required = true;
             document.getElementById('full-name').required = true;
+
+            // Show preferences section
+            document.getElementById('preferences-section').classList.add('show');
+        }
+
+        function showExistingUserForm(userData) {
+            // Show info message
+            const infoDiv = document.getElementById('user-type-info');
+            infoDiv.textContent = `Welcome back, ${userData.displayName}! Update your preferences below if needed.`;
+            infoDiv.classList.add('show');
+
+            // Hide new user fields (don't allow changing user_id)
+            document.getElementById('new-user-fields').classList.remove('show');
+            document.getElementById('user-id').required = false;
+            document.getElementById('display-name').required = false;
+            document.getElementById('full-name').required = false;
+
+            // Show preferences section
+            document.getElementById('preferences-section').classList.add('show');
+
+            // Pre-fill preferences
+            if (userData.preferredDuration) {
+                selectedDuration = userData.preferredDuration;
+                document.querySelectorAll('[data-duration]').forEach(btn => {
+                    if (btn.dataset.duration === userData.preferredDuration) {
+                        btn.classList.add('selected');
+                    }
+                });
+            }
+
+            if (userData.equipment && userData.equipment.length > 0) {
+                selectedEquipment = userData.equipment;
+                document.querySelectorAll('[data-equipment]').forEach(btn => {
+                    if (userData.equipment.includes(btn.dataset.equipment)) {
+                        btn.classList.add('selected');
+                    }
+                });
+            }
         }
 
         // Duration selection (single select)

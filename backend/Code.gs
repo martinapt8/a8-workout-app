@@ -153,6 +153,15 @@ function doPost(e) {
         result = createSignupRequest(signupData);
         break;
 
+      case 'checkUserByEmail':
+        const checkEmail = requestData.email;
+        if (!checkEmail) {
+          result = { success: false, error: 'Missing email parameter' };
+        } else {
+          result = checkUserByEmail(checkEmail);
+        }
+        break;
+
       case 'getChallengeInfo':
         const challengeId = requestData.challengeId;
         if (!challengeId) {
@@ -176,7 +185,7 @@ function doPost(e) {
         break;
 
       default:
-        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete, createSignup, getChallengeInfo, createChallengeSignup' };
+        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete, createSignup, checkUserByEmail, getChallengeInfo, createChallengeSignup' };
     }
 
     return createCORSResponse(result);

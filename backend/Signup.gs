@@ -441,6 +441,73 @@ function getUserPreferences(userId) {
 }
 
 /**
+ * Check if user exists by email and return their preferences
+ *
+ * @param {string} email - User email
+ * @returns {Object} User info or indication that user is new
+ */
+function checkUserByEmail(email) {
+  try {
+    console.log('Checking if user exists with email:', email);
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const usersSheet = ss.getSheetByName('Users');
+
+    if (!usersSheet) {
+      throw new Error('Users sheet not found');
+    }
+
+    const usersData = usersSheet.getDataRange().getValues();
+    const usersHeaders = usersData[0];
+
+    // Find column indices
+    const emailCol = usersHeaders.indexOf('email');
+    const userIdCol = usersHeaders.indexOf('user_id');
+    const displayNameCol = usersHeaders.indexOf('display_name');
+    const preferredDurationCol = usersHeaders.indexOf('preferred_duration');
+    const equipmentCol = usersHeaders.indexOf('equipment_available');
+
+    if (emailCol === -1) {
+      throw new Error('email column not found in Users sheet');
+    }
+
+    // Search for user by email (case-insensitive)
+    for (let i = 1; i < usersData.length; i++) {
+      if (usersData[i][emailCol] &&
+          usersData[i][emailCol].toLowerCase() === email.toLowerCase()) {
+
+        // User exists - return their info
+        const equipmentString = equipmentCol !== -1 ? usersData[i][equipmentCol] : '';
+
+        return {
+          success: true,
+          userExists: true,
+          user: {
+            userId: userIdCol !== -1 ? usersData[i][userIdCol] : '',
+            displayName: displayNameCol !== -1 ? usersData[i][displayNameCol] : '',
+            preferredDuration: preferredDurationCol !== -1 ? usersData[i][preferredDurationCol] : '',
+            equipment: equipmentString ? equipmentString.split(',') : []
+          }
+        };
+      }
+    }
+
+    // User does not exist
+    return {
+      success: true,
+      userExists: false
+    };
+
+  } catch (error) {
+    console.error('Error in checkUserByEmail:', error);
+    return {
+      success: false,
+      error: 'An unexpected error occurred while checking user'
+    };
+  }
+}
+
+/**
  * Get challenge information for signup page
  *
  * @param {string} challengeId - The challenge ID

@@ -644,9 +644,9 @@
 
             // Pre-fill preferences
             if (userData.preferredDuration) {
-                selectedDuration = userData.preferredDuration;
+                selectedDuration = String(userData.preferredDuration);
                 document.querySelectorAll('[data-duration]').forEach(btn => {
-                    if (btn.dataset.duration === userData.preferredDuration) {
+                    if (btn.dataset.duration === String(userData.preferredDuration)) {
                         btn.classList.add('selected');
                     }
                 });

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Signups - Daily Dose</title>
+
+    <!-- Apple Touch Icon and PWA settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Daily Dose Signups">
+
+    <!-- Dynamic icon generator - Black background with yellow logo -->
+    <script>
+        (function() {
+            // Load SVG and create icons with black background
+            fetch('assets/daily_dose_logo.svg')
+                .then(r => r.text())
+                .then(svgText => {
+                    // Modify SVG to use yellow instead of black
+                    const yellowSvg = svgText.replace(/fill="#000000"/g, 'fill="#FFC107"');
+
+                    // Create blob for image loading
+                    const blob = new Blob([yellowSvg], {type: 'image/svg+xml'});
+                    const url = URL.createObjectURL(blob);
+
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create 180x180 icon with black background
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 180;
+                        canvas.height = 180;
+                        const ctx = canvas.getContext('2d');
+
+                        // Black background
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(0, 0, 180, 180);
+
+                        // Draw yellow logo centered (80% of canvas)
+                        const logoSize = 144;
+                        const offset = (180 - logoSize) / 2;
+                        ctx.drawImage(img, offset, offset, logoSize, logoSize);
+
+                        const iconUrl = canvas.toDataURL('image/png');
+
+                        // Regular favicon
+                        const icon = document.createElement('link');
+                        icon.rel = 'icon';
+                        icon.type = 'image/png';
+                        icon.href = iconUrl;
+                        document.head.appendChild(icon);
+
+                        // Apple touch icons
+                        const appleTouchIcon = document.createElement('link');
+                        appleTouchIcon.rel = 'apple-touch-icon';
+                        appleTouchIcon.href = iconUrl;
+                        document.head.appendChild(appleTouchIcon);
+
+                        // Multiple sizes for better compatibility
+                        const sizes = [152, 167, 180];
+                        sizes.forEach(size => {
+                            const link = document.createElement('link');
+                            link.rel = 'apple-touch-icon';
+                            link.sizes = `${size}x${size}`;
+                            link.href = iconUrl;
+                            document.head.appendChild(link);
+                        });
+
+                        URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                })
+                .catch(err => {
+                    console.log('Could not load logo for icon generation:', err);
+                });
+        })();
+    </script>
+
+    <!-- Theme color for browser chrome -->
+    <meta name="theme-color" content="#000000">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css?v=20251118-1">
+
+    <!-- API Configuration and Helper -->
+    <script src="config.js?v=20251118-1"></script>
+    <script src="api.js?v=20251118-1"></script>
+
+    <style>
+        /* Signups page specific styles */
+        .signups-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            background: var(--primary-black);
+            color: var(--white);
+            padding: 24px;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-section h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary-yellow);
+        }
+
+        .challenge-meta {
+            font-size: 14px;
+            color: var(--gray-300);
+            margin-top: 8px;
+        }
+
+        .challenge-meta-item {
+            display: inline-block;
+            margin-right: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-yellow);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gray-900);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .team-section {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .team-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .team-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .team-count {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .member-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .member-item {
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-radius: var(--border-radius);
+            border-left: 3px solid var(--primary-yellow);
+        }
+
+        .member-display-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 2px;
+        }
+
+        .member-user-id {
+            font-size: 13px;
+            color: var(--gray-500);
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .unassigned-section {
+            border-left-color: var(--gray-300);
+        }
+
+        .unassigned-section .team-title {
+            color: var(--gray-600);
+        }
+
+        .unassigned-badge {
+            background: var(--primary-yellow);
+            color: var(--gray-900);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-500);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+            color: var(--gray-400);
+        }
+
+        .error-message {
+            background: var(--error-red);
+            color: var(--white);
+            padding: 16px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--gray-300);
+            border-top: 4px solid var(--primary-yellow);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+            .signups-container {
+                padding: 12px;
+            }
+
+            .header-section h1 {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .member-list {
+                grid-template-columns: 1fr;
+            }
+
+            .challenge-meta-item {
+                display: block;
+                margin-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="signups-container" id="mainContent" style="display: none;">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1 id="challengeName">Loading...</h1>
+            <div class="challenge-meta">
+                <span class="challenge-meta-item" id="challengeDates"></span>
+                <span class="challenge-meta-item" id="challengeGoal"></span>
+                <span class="challenge-meta-item" id="signupDeadline"></span>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalSignups">0</div>
+                <div class="stat-label">Total Signups</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="assignedCount">0</div>
+                <div class="stat-label">Assigned to Teams</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="unassignedCount">0</div>
+                <div class="stat-label">Unassigned</div>
+            </div>
+        </div>
+
+        <!-- Teams Display -->
+        <div id="teamsContainer"></div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Parse URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Load signup data
+        async function loadSignupData() {
+            const challengeId = getUrlParameter('challenge');
+
+            if (!challengeId) {
+                showError('Missing challenge parameter. Please use ?challenge=your_challenge_id');
+                hideLoading();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}?action=getChallengeSignups&challengeId=${encodeURIComponent(challengeId)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                    hideLoading();
+                    return;
+                }
+
+                if (!data.challenge) {
+                    showError('Challenge not found');
+                    hideLoading();
+                    return;
+                }
+
+                renderPage(data);
+                hideLoading();
+
+            } catch (error) {
+                console.error('Error loading signup data:', error);
+                showError('Failed to load signup data. Please try again later.');
+                hideLoading();
+            }
+        }
+
+        // Render the page with data
+        function renderPage(data) {
+            const { challenge, signups } = data;
+
+            // Update header
+            document.getElementById('challengeName').textContent = challenge.challenge_name;
+
+            let metaHtml = '';
+            if (challenge.start_date && challenge.end_date) {
+                metaHtml += `📅 ${challenge.start_date} - ${challenge.end_date}`;
+            }
+            document.getElementById('challengeDates').innerHTML = metaHtml;
+
+            if (challenge.total_goal) {
+                document.getElementById('challengeGoal').innerHTML = `🎯 Goal: ${challenge.total_goal} workouts`;
+            }
+
+            if (challenge.signup_deadline) {
+                document.getElementById('signupDeadline').innerHTML = `⏰ Signup Deadline: ${challenge.signup_deadline}`;
+            }
+
+            // Calculate stats
+            const totalSignups = signups.length;
+            const assigned = signups.filter(s => s.team_name).length;
+            const unassigned = totalSignups - assigned;
+
+            document.getElementById('totalSignups').textContent = totalSignups;
+            document.getElementById('assignedCount').textContent = assigned;
+            document.getElementById('unassignedCount').textContent = unassigned;
+
+            // Group signups by team
+            const teams = {};
+            const unassignedList = [];
+
+            signups.forEach(signup => {
+                if (signup.team_name) {
+                    if (!teams[signup.team_name]) {
+                        teams[signup.team_name] = {
+                            name: signup.team_name,
+                            color: signup.team_color,
+                            members: []
+                        };
+                    }
+                    teams[signup.team_name].members.push(signup);
+                } else {
+                    unassignedList.push(signup);
+                }
+            });
+
+            // Render teams
+            const teamsContainer = document.getElementById('teamsContainer');
+            teamsContainer.innerHTML = '';
+
+            // Sort teams alphabetically
+            const teamNames = Object.keys(teams).sort();
+
+            // Render assigned teams
+            teamNames.forEach(teamName => {
+                const team = teams[teamName];
+                teamsContainer.appendChild(createTeamSection(team, false));
+            });
+
+            // Render unassigned section
+            if (unassignedList.length > 0) {
+                teamsContainer.appendChild(createUnassignedSection(unassignedList));
+            }
+
+            // Show empty state if no signups
+            if (totalSignups === 0) {
+                teamsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">No signups yet</div>
+                        <div class="empty-state-subtext">Be the first to sign up for this challenge!</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('mainContent').style.display = 'block';
+        }
+
+        // Create team section
+        function createTeamSection(team, isUnassigned) {
+            const section = document.createElement('div');
+            section.className = 'team-section';
+
+            const headerHtml = `
+                <div class="team-header">
+                    <div class="team-title">
+                        ${team.color ? `<span class="team-color-indicator" style="background-color: ${team.color}"></span>` : ''}
+                        ${team.name}
+                    </div>
+                    <div class="team-count">${team.members.length} member${team.members.length !== 1 ? 's' : ''}</div>
+                </div>
+            `;
+
+            const membersHtml = `
+                <div class="member-list">
+                    ${team.members.map(member => `
+                        <div class="member-item">
+                            <div class="member-display-name">${escapeHtml(member.display_name)}</div>
+                            <div class="member-user-id">${escapeHtml(member.user_id)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            section.innerHTML = headerHtml + membersHtml;
+            return section;
+        }
+
+        // Create unassigned section
+        function createUnassignedSection(members) {
+            const section = document.createElement('div');
+            section.className = 'team-section unassigned-section';
+
+            const headerHtml = `
+                <div class="team-header">
+                    <div class="team-title">
+                        <span class="unassigned-badge">Unassigned</span>
+                    </div>
+                    <div class="team-count">${members.length} member${members.length !== 1 ? 's' : ''}</div>
+                </div>
+            `;
+
+            const membersHtml = `
+                <div class="member-list">
+                    ${members.map(member => `
+                        <div class="member-item">
+                            <div class="member-display-name">${escapeHtml(member.display_name)}</div>
+                            <div class="member-user-id">${escapeHtml(member.user_id)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            section.innerHTML = headerHtml + membersHtml;
+            return section;
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('mainContent').style.display = 'block';
+        }
+
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadSignupData);
+    </script>
+</body>
+</html>

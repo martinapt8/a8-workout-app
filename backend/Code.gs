@@ -115,6 +115,16 @@ function doGet(e) {
         result = { challenges: challenges };
         break;
 
+      case 'getChallengeSignups':
+        const signupChallengeId = e.parameter.challengeId;
+        if (!signupChallengeId) {
+          result = { error: 'Missing challengeId parameter' };
+        } else {
+          const ss8 = SpreadsheetApp.getActiveSpreadsheet();
+          result = getChallengeSignups(ss8, signupChallengeId);
+        }
+        break;
+
       case 'getActiveUsers':
         const ss7 = SpreadsheetApp.getActiveSpreadsheet();
         const activeUsersSheet = ss7.getSheetByName('Users');
@@ -1460,6 +1470,124 @@ function getUserTeamForChallenge(ss, userId, challengeId) {
 
   // User not found in Challenge_Teams - they are not participating in this challenge
   return null;
+}
+
+/**
+ * Get all signups for a specific challenge
+ * Returns user info and team assignments from Challenge_Teams joined with Users
+ * @param {Spreadsheet} ss - Spreadsheet object
+ * @param {string} challengeId - Challenge ID to get signups for
+ * @returns {Object} Object with:
+ *   - challenge: {challenge_id, challenge_name, start_date, end_date, total_goal, signup_deadline}
+ *   - signups: Array of {user_id, display_name, team_name, team_color}
+ */
+function getChallengeSignups(ss, challengeId) {
+  try {
+    console.log('Getting signups for challenge:', challengeId);
+
+    // Get challenge info
+    const challenge = getChallengeById(ss, challengeId);
+    if (!challenge) {
+      return {
+        error: 'Challenge not found',
+        challenge: null,
+        signups: []
+      };
+    }
+
+    // Get Challenge_Teams sheet
+    const teamsSheet = ss.getSheetByName('Challenge_Teams');
+    if (!teamsSheet) {
+      throw new Error('Challenge_Teams sheet not found');
+    }
+
+    const teamsData = teamsSheet.getDataRange().getValues();
+    const teamsHeaders = teamsData[0];
+
+    const teamsHeaderMap = {};
+    teamsHeaders.forEach((header, index) => {
+      teamsHeaderMap[header] = index;
+    });
+
+    // Get Users sheet
+    const usersSheet = ss.getSheetByName('Users');
+    if (!usersSheet) {
+      throw new Error('Users sheet not found');
+    }
+
+    const usersData = usersSheet.getDataRange().getValues();
+    const usersHeaders = usersData[0];
+
+    const usersHeaderMap = {};
+    usersHeaders.forEach((header, index) => {
+      usersHeaderMap[header] = index;
+    });
+
+    // Build user lookup map for faster joins
+    const userMap = {};
+    for (let i = 1; i < usersData.length; i++) {
+      const userId = usersData[i][usersHeaderMap['user_id']];
+      if (userId) {
+        const userIdKey = userId.toString().toLowerCase().trim();
+        userMap[userIdKey] = {
+          user_id: userId,
+          display_name: usersData[i][usersHeaderMap['display_name']] || userId
+        };
+      }
+    }
+
+    // Get all signups for this challenge
+    const signups = [];
+    for (let i = 1; i < teamsData.length; i++) {
+      const rowChallengeId = teamsData[i][teamsHeaderMap['challenge_id']];
+
+      if (rowChallengeId === challengeId) {
+        const userId = teamsData[i][teamsHeaderMap['user_id']];
+        const userIdKey = userId ? userId.toString().toLowerCase().trim() : '';
+        const userInfo = userMap[userIdKey];
+
+        if (userInfo) {
+          signups.push({
+            user_id: userInfo.user_id,
+            display_name: userInfo.display_name,
+            team_name: teamsData[i][teamsHeaderMap['team_name']] || null,
+            team_color: teamsData[i][teamsHeaderMap['team_color']] || null
+          });
+        }
+      }
+    }
+
+    // Sort signups: by team_name (alphabetical), then by display_name
+    // Unassigned (null team_name) comes last
+    signups.sort((a, b) => {
+      if (a.team_name === null && b.team_name !== null) return 1;
+      if (a.team_name !== null && b.team_name === null) return -1;
+      if (a.team_name !== b.team_name) {
+        return (a.team_name || '').localeCompare(b.team_name || '');
+      }
+      return (a.display_name || '').localeCompare(b.display_name || '');
+    });
+
+    return {
+      challenge: {
+        challenge_id: challenge.challenge_id,
+        challenge_name: challenge.challenge_name,
+        start_date: formatDateNumeric(challenge.start_date, ss),
+        end_date: formatDateNumeric(challenge.end_date, ss),
+        total_goal: challenge.total_goal || 0,
+        signup_deadline: challenge.signup_deadline ? formatDateNumeric(challenge.signup_deadline, ss) : null
+      },
+      signups: signups
+    };
+
+  } catch (error) {
+    console.error('Error in getChallengeSignups:', error);
+    return {
+      error: error.message,
+      challenge: null,
+      signups: []
+    };
+  }
 }
 
 /**

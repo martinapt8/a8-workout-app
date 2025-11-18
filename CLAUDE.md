@@ -34,6 +34,10 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
   - `admin/admin-config.js`: API configuration (880B)
   - **Features**: Template CRUD, token helper, live preview, 3 targeting modes, campaign sending
   - **Access**: `https://martinapt8.github.io/a8-workout-app/admin/`
+- **Challenge Signup Dashboard** (NEW - Nov 2025):
+  - `signups.html`: Public signup viewer with team assignments
+  - **Features**: Live stats, grouped team display, dynamic signup link
+  - **Access**: `https://martinapt8.github.io/a8-workout-app/signups.html?challenge=CHALLENGE_ID`
 - **A8 Brand Colors**: Black (#000000), Yellow (#FFC107), White (#FFFFFF)
 
 ### Backend (Google Apps Script)
@@ -41,7 +45,7 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
 - **RESTful API**: Form-encoded POST endpoints for all operations
 - **Core API** (`Code.gs`): Main app endpoints (getDashboard, markWorkoutComplete, etc.)
 - **Email Campaigns API** (`EmailCampaigns.gs`): Template management, token replacement, campaign sending (NEW - Nov 2025)
-- **Admin Dashboard API**: Additional GET endpoints (getActiveUsersCount, getAllChallenges, getActiveUsers, etc.)
+- **Admin Dashboard API**: Additional GET endpoints (getActiveUsersCount, getAllChallenges, getActiveUsers, getChallengeSignups, etc.)
 - **No Authentication**: URL parameters identify users (`?user=martin`)
 - **CORS Solution**: Uses form-encoded POST (URLSearchParams) instead of JSON to bypass CORS preflight restrictions
 

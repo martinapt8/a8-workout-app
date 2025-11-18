@@ -194,6 +194,18 @@ Returns user's challenge history AND upcoming challenges for all users (powers M
     - Sorted by start_date (earliest first)
 - **Use Case**: Displays "My Challenges" section on Me page with both historical and upcoming
 
+### `getChallengeSignups(ss, challengeId)`
+Returns all signups for a specific challenge (powers signups.html page):
+- Joins Challenge_Teams sheet with Users sheet on user_id
+- Returns object with:
+  - **challenge**: Challenge details (challenge_id, challenge_name, start_date, end_date, total_goal, signup_deadline)
+  - **signups**: Array of signup objects with:
+    - user_id, display_name, full_name
+    - team_name, team_color (null if unassigned)
+    - Sorted by team_name (alphabetically), then display_name
+    - Unassigned users (null team_name) appear last
+- **Use Case**: Public signup dashboard showing who's registered for a challenge with team assignments
+
 ### `getUserCompletionHistoryForChallenge(userId, challengeId)`
 Returns completion dates for specific challenge:
 - More specific than `getUserCompletionHistory()`

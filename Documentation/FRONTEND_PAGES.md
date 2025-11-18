@@ -4,15 +4,21 @@ This document provides detailed ASCII mockups of all five pages in the Daily Dos
 
 ## Overview
 
-The app is a five-page SPA (Single Page Application) with mobile-first design:
+The app consists of:
 
+**Main App** - Five-page SPA (Single Page Application) with mobile-first design:
 1. **Today** - Default landing page with current workout
 2. **Team** - Collective progress tracking
 3. **Me** - Personal stats and calendar
 4. **Library** - All workouts (past/current/future)
 5. **A8AI** - AI workout generator
 
-All pages feature bottom navigation with icons for quick switching between views.
+**Standalone Pages** - Dedicated pages outside the main navigation:
+- **Signup** (`signup_challenge.html`) - Challenge signup form
+- **Signups Dashboard** (`signups.html`) - Public signup viewer (NEW - Nov 2025)
+- **Admin Dashboard** (`admin/index.html`, `admin/email-campaigns.html`) - Admin tools
+
+All main app pages feature bottom navigation with icons for quick switching between views.
 
 ---
 
@@ -278,6 +284,71 @@ All pages include a fixed bottom navigation bar:
 - Clear active state indication
 - Smooth page transitions
 - No page reloads between tabs
+
+---
+
+## Standalone Page: Challenge Signups Dashboard
+
+**URL**: `signups.html?challenge=CHALLENGE_ID`
+
+```
+┌─────────────────────────┐
+│  December Challenge     │
+│  📅 12/1/2025 - 12/31   │
+│  🎯 Goal: 200 workouts  │
+│  ⏰ Signup: 11/30/2025  │
+│                         │
+│  [Join This Challenge]  │
+├─────────────────────────┤
+│  ┌──────┐ ┌──────┐      │
+│  │  15  │ │  10  │      │
+│  │Total │ │Assign│      │
+│  └──────┘ └──────┘      │
+│  ┌──────┐               │
+│  │   5  │               │
+│  │Unass │               │
+│  └──────┘               │
+├─────────────────────────┤
+│  Team A           (5)   │
+│  ───────────────────    │
+│  🎯 Alex Smith          │
+│     Alex Smith          │
+│                         │
+│  🎯 Jordan Lee          │
+│     Jordan Lee          │
+├─────────────────────────┤
+│  Team B           (5)   │
+│  ───────────────────    │
+│  🎯 Megan Jones         │
+│     Megan Jones         │
+├─────────────────────────┤
+│  [Unassigned]     (5)   │
+│  ───────────────────    │
+│  🎯 Pat Wilson          │
+│     Pat Wilson          │
+└─────────────────────────┘
+```
+
+**Features**:
+- Challenge info header with dates, goal, signup deadline
+- Dynamic signup button (links to signup_challenge.html with challenge ID)
+- Live stats: Total signups, Assigned count, Unassigned count
+- Grouped by team (alphabetical order)
+- Team color indicators when assigned
+- Member count per team
+- Display name + full name for each member
+- Unassigned section for users without teams
+- Empty state when no signups
+- Error handling for invalid challenge IDs
+- Mobile-responsive grid layout
+
+**URL Pattern**: `?challenge=dd_dec2025`
+
+**Use Cases**:
+- Share with entire agency to see who's participating
+- Users verify their signup status
+- Admins check signup counts before team assignment
+- One-click signup via integrated button
 
 ---
 

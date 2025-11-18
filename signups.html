@@ -377,7 +377,7 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}?action=getChallengeSignups&challengeId=${encodeURIComponent(challengeId)}`);
+                const response = await fetch(`${CONFIG.API_URL}?action=getChallengeSignups&challengeId=${encodeURIComponent(challengeId)}`);
                 const data = await response.json();
 
                 if (data.error) {

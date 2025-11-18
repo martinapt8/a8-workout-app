@@ -2,7 +2,7 @@
 
 This guide covers all administrative functions for managing the Daily Dose app, including the admin dashboard, user management, challenge setup, email campaign system, and Slack integration.
 
-**Last Updated**: November 18, 2025 (WYSIWYG Email Editor Enhancement)
+**Last Updated**: November 18, 2025 (Admin Sidebar Navigation)
 
 ---
 
@@ -36,6 +36,19 @@ https://martinapt8.github.io/a8-workout-app/admin/
 **Quick Access from Google Sheets:**
 - "A8 Custom Menu" → "📧 Open Admin Dashboard"
 
+### UI Design (Updated November 18, 2025)
+
+**Fixed Sidebar Navigation (250px width)**:
+- **Black background** (#000000) matching A8 brand
+- **Daily Dose logo** at top with yellow text
+- **Three menu sections**:
+  - **Admin**: Admin Home, View Main App, User Management (WIP), Reporting (WIP)
+  - **Comms**: Send Emails, Send Slack Updates (WIP)
+  - **Google Admin**: Open Google Sheets, Open Apps Script Editor
+- **Hierarchical structure**: Non-clickable parent labels, indented child links
+- **Yellow accent colors** (#FFC107) on hover and active states
+- **Desktop-focused**: Optimized for admin workflows (mobile not a priority)
+
 ### Dashboard Home Page
 
 **Location**: `admin/index.html`
@@ -46,19 +59,10 @@ https://martinapt8.github.io/a8-workout-app/admin/
   - Active Challenge (name, dates)
   - Total Workouts (for active challenge)
   - Last Updated (dashboard data refresh timestamp)
-- **Navigation**:
-  - Dashboard (home)
-  - Email Campaigns (campaign manager)
-  - View App (opens main app in new tab)
 - **Admin Tools Cards**:
   - Email Campaigns (functional - launches campaign composer)
   - User Management (coming soon)
   - Analytics & Reports (coming soon)
-- **Quick Links**:
-  - Open Google Sheets
-  - Open Apps Script Editor
-  - View Main App
-  - User Signup Page
 
 **Technology:**
 - Fetches real-time data from Google Apps Script API

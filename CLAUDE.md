@@ -32,6 +32,7 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
   - `admin/admin-styles.css`: A8-branded design system (15KB)
   - `admin/admin-api.js`: API wrapper for campaign endpoints (5.8KB)
   - `admin/admin-config.js`: API configuration (880B)
+  - **UI Design**: Fixed sidebar navigation (250px) with black background, hierarchical menu (Admin, Comms, Google Admin sections), yellow accent colors
   - **Features**: WYSIWYG email editor (Quill.js), token insertion chips, auto-generated plain text, template CRUD, live preview, 3 targeting modes, campaign sending
   - **Access**: `https://martinapt8.github.io/a8-workout-app/admin/`
 - **Challenge Signup Dashboard** (NEW - Nov 2025):

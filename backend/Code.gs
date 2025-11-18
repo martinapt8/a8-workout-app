@@ -1531,7 +1531,8 @@ function getChallengeSignups(ss, challengeId) {
         const userIdKey = userId.toString().toLowerCase().trim();
         userMap[userIdKey] = {
           user_id: userId,
-          display_name: usersData[i][usersHeaderMap['display_name']] || userId
+          display_name: usersData[i][usersHeaderMap['display_name']] || userId,
+          full_name: usersData[i][usersHeaderMap['full_name']] || ''
         };
       }
     }
@@ -1550,6 +1551,7 @@ function getChallengeSignups(ss, challengeId) {
           signups.push({
             user_id: userInfo.user_id,
             display_name: userInfo.display_name,
+            full_name: userInfo.full_name,
             team_name: teamsData[i][teamsHeaderMap['team_name']] || null,
             team_color: teamsData[i][teamsHeaderMap['team_color']] || null
           });

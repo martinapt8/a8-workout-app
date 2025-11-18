@@ -122,6 +122,35 @@
             margin-right: 16px;
         }
 
+        .signup-link-container {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-700);
+        }
+
+        .signup-button {
+            display: inline-block;
+            background: var(--primary-yellow);
+            color: var(--primary-black);
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .signup-button:hover {
+            background: #FFD54F;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .signup-button:active {
+            transform: translateY(0);
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -213,10 +242,9 @@
             margin-bottom: 2px;
         }
 
-        .member-user-id {
+        .member-full-name {
             font-size: 13px;
             color: var(--gray-500);
-            font-family: 'Monaco', 'Courier New', monospace;
         }
 
         .unassigned-section {
@@ -334,6 +362,9 @@
                 <span class="challenge-meta-item" id="challengeGoal"></span>
                 <span class="challenge-meta-item" id="signupDeadline"></span>
             </div>
+            <div class="signup-link-container">
+                <a href="#" id="signupLink" class="signup-button" target="_blank">Join This Challenge</a>
+            </div>
         </div>
 
         <!-- Stats Section -->
@@ -423,6 +454,10 @@
                 document.getElementById('signupDeadline').innerHTML = `⏰ Signup Deadline: ${challenge.signup_deadline}`;
             }
 
+            // Set signup link with challenge ID
+            const signupUrl = `https://martinapt8.github.io/a8-workout-app/signup_challenge.html?challenge=${encodeURIComponent(challenge.challenge_id)}`;
+            document.getElementById('signupLink').href = signupUrl;
+
             // Calculate stats
             const totalSignups = signups.length;
             const assigned = signups.filter(s => s.team_name).length;
@@ -503,7 +538,7 @@
                     ${team.members.map(member => `
                         <div class="member-item">
                             <div class="member-display-name">${escapeHtml(member.display_name)}</div>
-                            <div class="member-user-id">${escapeHtml(member.user_id)}</div>
+                            <div class="member-full-name">${escapeHtml(member.full_name || 'Name not provided')}</div>
                         </div>
                     `).join('')}
                 </div>
@@ -532,7 +567,7 @@
                     ${members.map(member => `
                         <div class="member-item">
                             <div class="member-display-name">${escapeHtml(member.display_name)}</div>
-                            <div class="member-user-id">${escapeHtml(member.user_id)}</div>
+                            <div class="member-full-name">${escapeHtml(member.full_name || 'Name not provided')}</div>
                         </div>
                     `).join('')}
                 </div>

@@ -78,51 +78,6 @@ body {
 
 /* ===== LAYOUT ===== */
 
-/* Header */
-.admin-header {
-    background: var(--primary-black);
-    color: var(--white);
-    padding: 1.5rem 2rem;
-    box-shadow: var(--shadow-md);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    margin-left: 250px; /* Account for sidebar */
-}
-
-.header-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.header-branding {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.header-logo {
-    height: 40px;
-    width: auto;
-}
-
-.header-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-yellow);
-}
-
-.header-subtitle {
-    font-size: 0.875rem;
-    color: var(--gray-300);
-    margin-top: 0.25rem;
-}
-
 /* Sidebar Navigation */
 .admin-sidebar {
     position: fixed;
@@ -146,12 +101,12 @@ body {
 }
 
 .sidebar-brand img {
-    height: 32px;
+    height: 48px;
     width: auto;
 }
 
 .sidebar-brand-text {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--primary-yellow);
 }
@@ -244,6 +199,7 @@ body {
     margin: 0 auto;
     padding: 2rem;
     margin-left: 250px; /* Account for sidebar */
+    padding-top: 2rem; /* Remove extra space where header was */
 }
 
 /* ===== CARDS ===== */

@@ -184,8 +184,64 @@ function doPost(e) {
         result = createChallengeSignup(challengeSignupData);
         break;
 
+      // Email Campaign Management Endpoints
+      case 'getEmailTemplates':
+        result = getEmailTemplates();
+        break;
+
+      case 'getTemplateById':
+        const templateId = requestData.templateId;
+        if (!templateId) {
+          result = { success: false, error: 'Missing templateId parameter' };
+        } else {
+          result = getTemplateById(templateId);
+        }
+        break;
+
+      case 'saveEmailTemplate':
+        const templateData = requestData.templateData;
+        if (!templateData) {
+          result = { success: false, error: 'Missing templateData parameter' };
+        } else {
+          result = saveEmailTemplate(templateData);
+        }
+        break;
+
+      case 'previewEmail':
+        const previewTemplateId = requestData.templateId;
+        const previewUserId = requestData.userId;
+        const previewChallengeId = requestData.challengeId || null;
+
+        if (!previewTemplateId || !previewUserId) {
+          result = { success: false, error: 'Missing required parameters: templateId, userId' };
+        } else {
+          result = previewEmailForUser(previewTemplateId, previewUserId, previewChallengeId);
+        }
+        break;
+
+      case 'getTargetedUsers':
+        const targetingOptions = requestData.targetingOptions;
+        if (!targetingOptions) {
+          result = { success: false, error: 'Missing targetingOptions parameter' };
+        } else {
+          result = getTargetedUsers(targetingOptions);
+        }
+        break;
+
+      case 'sendEmailCampaign':
+        const campaignTemplateId = requestData.templateId;
+        const campaignTargeting = requestData.targetingOptions;
+        const trackingFlag = requestData.trackingFlag || null;
+
+        if (!campaignTemplateId || !campaignTargeting) {
+          result = { success: false, error: 'Missing required parameters: templateId, targetingOptions' };
+        } else {
+          result = sendEmailCampaign(campaignTemplateId, campaignTargeting, trackingFlag);
+        }
+        break;
+
       default:
-        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete, createSignup, checkUserByEmail, getChallengeInfo, createChallengeSignup' };
+        result = { success: false, message: 'Invalid action parameter. Valid actions: markWorkoutComplete, createSignup, checkUserByEmail, getChallengeInfo, createChallengeSignup, getEmailTemplates, getTemplateById, saveEmailTemplate, previewEmail, getTargetedUsers, sendEmailCampaign' };
     }
 
     return createCORSResponse(result);

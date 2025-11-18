@@ -29,7 +29,7 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
 - **AI Integration**: Claude API for dynamic workout generation
 
 ### Backend (Google Apps Script)
-- **Google Sheets Database**: 7 sheets for Users, Workouts, Completions, Challenges, Challenge_Teams, Settings, Coaching
+- **Google Sheets Database**: 8 sheets for Users, Workouts, Completions, Challenges, Challenge_Teams, Settings, Coaching, Email_Templates
 - **RESTful API**: Form-encoded POST endpoints for all operations
 - **No Authentication**: URL parameters identify users (`?user=martin`)
 - **CORS Solution**: Uses form-encoded POST (URLSearchParams) instead of JSON to bypass CORS preflight restrictions
@@ -65,9 +65,10 @@ Daily Dose Dev/
 │   ├── daily_dose_logo.svg
 │   └── *.svg                   # today, team, me, library, ai icons
 │
-├── backend/                    # Google Apps Script files (12 files)
+├── backend/                    # Google Apps Script files (13 files)
 │   ├── Code.gs                 # Core REST API (37KB)
 │   ├── AdminChallenges.gs      # Challenge management (14KB)
+│   ├── TeamPlaceholders.gs     # Placeholder team assignments (11KB) [NEW - Nov 2025]
 │   ├── Signup.gs               # User signup (13KB)
 │   ├── ClaudeAPI.gs            # AI workout generation (6KB)
 │   ├── Slack.gs                # Slack integration (16KB)
@@ -76,7 +77,7 @@ Daily Dose Dev/
 │   ├── FormMigration.gs        # Form response migration (12KB)
 │   ├── MigrationScripts.gs     # Multi-challenge migration (18KB)
 │   ├── TestingFunctions.gs     # Testing suite (12KB)
-│   ├── AutoSort.gs             # Auto-sort functionality (3KB)
+│   ├── AutoSort.gs             # Auto-sort completions (3KB)
 │   └── menu.gs                 # Custom spreadsheet menu (9KB)
 │
 ├── Documentation/              # Active documentation (6 files)
@@ -102,6 +103,7 @@ Daily Dose Dev/
 |------|------|---------|---------------|
 | Code.gs | 37KB | Core REST API, main entry point | doGet(), doPost(), getUserDashboardData() |
 | AdminChallenges.gs | 14KB | Challenge management | createNewChallenge(), setActiveChallenge() |
+| TeamPlaceholders.gs | 11KB | Placeholder team assignment (NEW - Nov 2025) | promptSetPlaceholderTeams(), setPlaceholderTeams() |
 | Signup.gs | 13KB | User signup & preferences | createSignupRequest(), updateUserPreferences() |
 | ClaudeAPI.gs | 6KB | AI workout generation | generateAIWorkout(), callClaudeAPI() |
 | Slack.gs | 16KB | Slack notifications | sendDailyProgressSummary(), sendDailyReminder() |
@@ -111,7 +113,7 @@ Daily Dose Dev/
 | MigrationScripts.gs | 18KB | V2→V3 migration utilities | (historical, not actively used) |
 | TestingFunctions.gs | 12KB | Backend testing suite | testUserDashboard(), testWorkoutCompletion() |
 | AutoSort.gs | 3KB | Auto-sort completions | onEdit() trigger |
-| menu.gs | 9KB | Custom admin menu | onOpen(), promptCreateChallenge() |
+| menu.gs | 9KB | Custom admin menu | onOpen(), promptCreateChallenge(), promptSetPlaceholderTeams() |
 
 ## Google Sheets Structure
 
@@ -126,7 +128,6 @@ Daily Dose Dev/
 | - | full_name | Megan Smith | Full legal name |
 | - | join_date | 10/1/2025 | Date user first joined app |
 | - | active_user | TRUE | User activation status (set by admin) |
-| - | active_challenge_id | nov_2025 | Current challenge user is participating in (NULL = none) |
 | - | preferred_duration | 20 | Workout duration preference (10/20/30 min) |
 | - | equipment_available | Bodyweight,Kettlebell | Comma-separated equipment list |
 | - | welcome_email_sent | TRUE | Tracking flag for welcome email |
@@ -222,6 +223,29 @@ Daily Dose Dev/
 - Includes coaching tip in "Today's Coaching Tip" section
 - If no matching date found, section is omitted
 - Enables personalized motivational messages throughout challenge
+
+### Sheet 8: Email_Templates
+| Column | Field | Example | Description |
+|--------|-------|---------|-------------|
+| A | template_id | welcome_v1 | Unique template identifier (no spaces) |
+| B | template_name | Welcome Email | Display name for admin dashboard |
+| C | subject | Welcome to the A8 Fitness Challenge! | Email subject line (supports tokens) |
+| D | html_body | `<div>Hi [display_name]...</div>` | HTML email content (supports tokens) |
+| E | plain_body | Hi [display_name]... | Plain text fallback (supports tokens) |
+| F | created_date | 11/18/2025 | Timestamp when template was created |
+| G | last_modified | 11/18/2025 | Timestamp of last edit |
+| H | active | TRUE | Whether template is visible in dashboard |
+
+**Purpose**: Stores email campaign templates for flexible admin-managed communications.
+
+**Token Support** - Use these placeholders in subject, html_body, and plain_body:
+- **User tokens**: `[display_name]`, `[deployment_URL]`, `[lifetime_workouts]`
+- **Challenge tokens**: `[challenge_name]`, `[challenge_start_date]`, `[challenge_end_date]`, `[days_remaining]`, `[total_workouts]`
+- **Team tokens**: `[team_name]`, `[team_total_workouts]`
+
+**Integration**: Used by `EmailCampaigns.gs` for template-based email campaigns. Replaces hardcoded email system from `welcome_email.gs` and `update_email.gs`.
+
+**Admin Access**: Managed via admin dashboard (`/admin/`) or directly in Google Sheets.
 
 ## Frontend Pages Overview
 
@@ -365,6 +389,15 @@ For complete function signatures, parameters, return values, and implementation 
   - Signup deadline enforcement with friendly error messages
   - Duplicate signup prevention
   - Adds signups to Challenge_Teams table for admin team assignment
+- **Placeholder Team Assignment** (TeamPlaceholders.gs - added Nov 2025)
+  - Menu-driven random team distribution for challenge signups
+  - Scans Challenge_Teams for users with empty team_name
+  - Shows team configuration suggestions (2-10 teams range)
+  - Fisher-Yates shuffle algorithm for fair randomization
+  - Alphabetical placeholder naming (Team A, Team B, Team C...)
+  - Handles uneven team sizes by creating smaller remainder team
+  - Leaves team_color empty for admin to fill manually
+  - Accessible via "A8 Custom Menu" → "Set Placeholder Teams"
 - Goal progress tracking with color-coded progress bar
 - **Agency-Wide Activity Feed** (on Today page)
   - Shows recent completions from ALL users across ALL challenges
@@ -415,6 +448,7 @@ The app includes several administrative systems for managing users, challenges, 
 | **Update Emails** | update_email.gs | sendUpdateEmail() | Send mid-challenge updates |
 | **Slack Integration** | Slack.gs | sendDailyProgressSummary() | Manual progress updates and reminders |
 | **Challenge Management** | AdminChallenges.gs | createNewChallenge(), setActiveChallenge() | Create and switch challenges |
+| **Placeholder Teams** | TeamPlaceholders.gs | promptSetPlaceholderTeams(), setPlaceholderTeams() | Randomly assign signups to balanced teams |
 | **Custom Menu** | menu.gs | Various prompts | UI for all admin functions |
 
 ### Quick Admin Workflows
@@ -426,8 +460,10 @@ The app includes several administrative systems for managing users, challenges, 
 
 **Create New Challenge:**
 1. "A8 Custom Menu" → "Create New Challenge"
-2. Setup teams (via Script Editor or manually in Challenge_Teams sheet)
-3. Add workouts to Workouts sheet with matching `challenge_id`
+2. Users sign up via `/signup_challenge.html?challenge=dd_dec2025`
+3. "A8 Custom Menu" → "Set Placeholder Teams" (random balanced assignment)
+4. Admin manually adds team_color values in Challenge_Teams sheet
+5. Add workouts to Workouts sheet with matching `challenge_id`
 
 **Send Progress Update:**
 1. Add coaching tip to Coaching sheet (optional)
@@ -446,7 +482,9 @@ See `Documentation/ADMIN_GUIDE.md` for detailed procedures, validation rules, an
 
 ### Challenge Management
 - **Create**: "A8 Custom Menu" → "Create New Challenge"
-- **Teams**: Setup via `bulkAssignTeams()` or manually in Challenge_Teams sheet
+- **Signups**: Share `/signup_challenge.html?challenge=challenge_id` URL with users
+- **Teams**: "A8 Custom Menu" → "Set Placeholder Teams" for random balanced assignment
+- **Team Colors**: Manually add hex colors to Challenge_Teams sheet after placeholder assignment
 - **Workouts**: Add to Workouts sheet with matching `challenge_id`
 - **Switch**: Use menu to set active challenge
 - **End**: Use menu to gracefully end challenge

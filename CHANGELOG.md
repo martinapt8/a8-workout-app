@@ -1,6 +1,166 @@
 # A8 Workout Challenge App
 
-## Current Status (Latest Update - November 14, 2025)
+## Current Status (Latest Update - November 18, 2025)
+
+### 📧 Email Campaign System - Backend Foundation (November 18, 2025)
+
+**Session 1 Complete: Backend Infrastructure for Flexible Email Campaigns**:
+- **Purpose**: Replace hardcoded email system with template-based campaign management
+- **Backend** (`backend/EmailCampaigns.gs` - NEW FILE, ~920 lines):
+  - Template management: `getEmailTemplates()`, `getTemplateById()`, `saveEmailTemplate()`
+  - Token replacement engine: `replaceTokens()` with 10+ dynamic tokens
+    - User tokens: `[display_name]`, `[deployment_URL]`, `[lifetime_workouts]`
+    - Challenge tokens: `[challenge_name]`, `[challenge_start_date]`, `[challenge_end_date]`, `[days_remaining]`, `[total_workouts]`
+    - Team tokens: `[team_name]`, `[team_total_workouts]`
+  - User targeting: `getTargetedUsers()` with 3 modes (all active, challenge-based, custom list)
+  - Email preview: `previewEmailForUser()` with real user data
+  - Campaign sending: `sendEmailCampaign()` with tracking flag support
+  - Testing suite: `testTokenReplacement()`, `testEmailPreview()`, `testTargeting()`
+- **API Endpoints** (`backend/Code.gs` - 6 new endpoints):
+  - `getEmailTemplates`, `getTemplateById`, `saveEmailTemplate`
+  - `previewEmail`, `getTargetedUsers`, `sendEmailCampaign`
+- **Menu Integration** (`backend/menu.gs`):
+  - Added "📧 Open Admin Dashboard" menu item (launches web interface)
+  - Helper function `openAdminDashboard()` with URL launcher
+- **Google Sheets**:
+  - New `Email_Templates` sheet with 8 columns
+  - Stores template_id, template_name, subject, html_body, plain_body, timestamps, active flag
+- **Key Features**:
+  - ✅ Dynamic token replacement for personalized emails
+  - ✅ Flexible user targeting (all users, challenge participants, custom lists)
+  - ✅ Tracking flags prevent duplicate sends
+  - ✅ Preview functionality for testing before sending
+  - ✅ All tests passing (token replacement, preview, targeting)
+
+**Testing Results**:
+- ✅ Token replacement: All 10+ tokens working correctly
+- ✅ Email preview: Generated personalized content for test user
+- ✅ User targeting: All 3 modes tested (41 active users, 32 in challenge, 2 custom)
+
+**Next Steps**:
+- Session 2: Build admin dashboard frontend (HTML/CSS/JS)
+- Session 3: End-to-end testing, template migration, comprehensive documentation
+
+**Files Changed**:
+- `backend/EmailCampaigns.gs`: New file (~920 lines) with complete email campaign engine
+- `backend/Code.gs`: Added 6 API endpoints (~70 lines)
+- `backend/menu.gs`: Added admin dashboard launcher (~60 lines)
+- Google Sheets: New `Email_Templates` sheet
+
+---
+
+### 🎲 Placeholder Team Assignment System (November 18, 2025)
+
+**New Admin Feature: Random Team Distribution for Challenge Signups**:
+- **Purpose**: Efficiently assign users who signed up for a challenge to placeholder teams with random, balanced distribution
+- **Backend** (`backend/TeamPlaceholders.gs` - NEW FILE):
+  - Added `promptSetPlaceholderTeams()` - Multi-step dialog menu function
+    - Step 1: Select challenge_id from list of all challenges
+    - Step 2: Count users with empty team_name for that challenge
+    - Step 3: Display team distribution options (2-10 teams range)
+    - Step 4: Get admin input for number of teams and users per team
+    - Step 5: Show confirmation dialog with assignment summary
+    - Step 6: Execute randomized team assignment
+  - Added `setPlaceholderTeams(challengeId, numTeams, usersPerTeam)` - Core assignment logic
+    - Fisher-Yates shuffle algorithm for fair randomization
+    - Alphabetical placeholder naming (Team A, Team B, Team C...)
+    - Creates smaller remainder team if users don't divide evenly
+    - Uses existing `bulkAssignTeams()` from AdminChallenges.gs for efficiency
+    - Leaves team_color empty for admin to fill manually
+  - Added `getUnassignedUserCount(challengeId)` - Helper function for manual checks
+- **Menu Integration** (`backend/menu.gs`):
+  - Added "Set Placeholder Teams" menu item in Challenge Management section
+  - Appears between "Set Active Challenge" and "View Challenge Stats"
+- **Key Features**:
+  - ✅ Only operates on users with empty team_name (skips existing team assignments)
+  - ✅ Filters by exact challenge_id match (ignores all other challenge data)
+  - ✅ Shows all reasonable team configurations with uneven options
+  - ✅ Handles remainders by creating smaller final team (e.g., 35 users → 8 teams of 4 + 1 team of 3)
+  - ✅ Random distribution ensures fairness
+  - ✅ Placeholder names make it easy to communicate team assignments to users
+  - ✅ Graceful error handling with user-friendly messages
+
+**Admin Workflow**:
+1. Users sign up via `/signup_challenge.html` (creates Challenge_Teams rows with empty team_name)
+2. Admin clicks "A8 Custom Menu" → "Set Placeholder Teams"
+3. Selects challenge_id (e.g., `dd_dec2025`)
+4. System shows: "Found 32 users needing team assignment"
+5. Displays options: "4 teams of 8", "8 teams of 4", "16 teams of 2", etc.
+6. Admin enters: 8 teams, 4 users per team
+7. Confirms assignment → Teams A-H created with randomized members
+8. Admin manually adds team_color values in Challenge_Teams sheet
+9. Communicates team assignments to users (e.g., "You're on Team C!")
+
+**Files Changed**:
+- `backend/TeamPlaceholders.gs`: New file (~330 lines) with all placeholder assignment logic
+- `backend/menu.gs`: Added menu item (1 line)
+
+**Technical Details**:
+- Integrates seamlessly with existing Challenge_Teams table structure
+- Reuses `bulkAssignTeams()` function for batch updates
+- Challenge_Teams table grows over time - script always filters on challenge_id
+- ~150-200 lines of core logic + ~130 lines of UI/validation
+
+**Benefits**:
+- Eliminates manual team assignment for large signups
+- Fair randomization prevents perceived favoritism
+- Balanced team sizes for competitive fairness
+- Admin maintains full control over final team colors
+- Works with any number of signups (2-100+)
+
+---
+
+### 🐛 Backfill Duplicate Workout Bug Fix (November 18, 2025)
+
+**Fixed Critical Bug: Users Could Log Today's Workout Twice After Backfilling**:
+- **Root Cause**: `onMePastWorkoutComplete()` was calling `refreshData()` after backfilling a past workout
+  - Full dashboard refresh recalculated `completedToday` flag based on TODAY's date
+  - Since backfilled date ≠ today, `completedToday` reset to `false`
+  - UI showed "Not Yet Completed" and re-enabled the "Complete Workout" button
+  - Users thought today's workout was erased and could log it again
+  - Backend duplicate prevention worked per-date, but frontend state was out of sync
+
+- **The Fix** (`index.html` lines 1574-1590):
+  - Removed `refreshData()` call from `onMePastWorkoutComplete()`
+  - Now performs **targeted updates only**:
+    - Clears calendar cache (`CalendarState` reset)
+    - Reloads calendar data via `loadCompletionDateRange()`
+    - Rebuilds calendar display with `buildCalendar()`
+    - Updates activity feed via `updateActivityFeed()`
+    - Refreshes challenge history via `loadPastChallengeHistory()`
+  - **Preserves `userData.completedToday` state** - no dashboard refresh!
+
+- **User Experience Impact**:
+  - ✅ Today's completion status remains visible after backfilling
+  - ✅ "Complete Workout" button stays disabled
+  - ✅ Calendar shows both today's and backfilled workouts
+  - ✅ Activity feed updates correctly
+  - ✅ No duplicate entries possible via this workflow
+
+- **Backend Validation** (Already Working):
+  - `markWorkoutComplete()` has per-date duplicate prevention via `hasCompletedOnDate()`
+  - Returns error: "You already logged a workout for [date]!"
+  - This fix prevents the frontend from allowing a second attempt
+
+**Files Changed**:
+- `index.html`: Modified `onMePastWorkoutComplete()` function (18 insertions, 13 deletions)
+
+**Testing Checklist**:
+- [ ] Log today's workout → verify completed status
+- [ ] Backfill a past workout → verify success
+- [ ] Check Today page → status should still show "✅ Completed Today"
+- [ ] Verify "Complete Workout" button remains disabled
+- [ ] Confirm calendar shows both workouts
+- [ ] Attempt to backfill today's date → should get duplicate error
+
+**Deployment**:
+- Commit: `b219237` - "fix: Prevent duplicate workouts when backfilling past dates"
+- Pushed to GitHub Pages (auto-deploys)
+- Backend unchanged (duplicate prevention already working)
+
+---
+
+## Previous Updates (November 14, 2025 and earlier)
 
 ### 🎯 Challenge-Specific Signup System (November 14, 2025 - Latest)
 

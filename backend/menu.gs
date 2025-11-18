@@ -22,6 +22,9 @@ function onOpen() {
 
   // Create the custom menu
   ui.createMenu('A8 Custom Menu')
+    // Admin Dashboard (NEW - Email Campaigns)
+    .addItem('📧 Open Admin Dashboard', 'openAdminDashboard')
+    .addSeparator()
     // User Management
     .addItem('Migrate Form Responses', 'migrateFormResponses')
     .addItem('Send Welcome Email', 'sendWelcomeEmail')
@@ -30,6 +33,7 @@ function onOpen() {
     // Challenge Management (NEW)
     .addItem('Create New Challenge', 'promptCreateChallenge')
     .addItem('Set Active Challenge', 'promptSetActiveChallenge')
+    .addItem('Set Placeholder Teams', 'promptSetPlaceholderTeams')
     .addItem('View Challenge Stats', 'promptViewChallengeStats')
     .addItem('End Challenge', 'promptEndChallenge')
     .addSeparator()
@@ -304,5 +308,68 @@ function promptEndChallenge() {
   } catch (error) {
     ui.alert('Error', error.message, ui.ButtonSet.OK);
   }
+}
+
+/**
+ * ============================================
+ * ADMIN DASHBOARD LAUNCHER
+ * Added: November 18, 2025
+ * Opens the email campaign admin dashboard
+ * ============================================
+ */
+
+/**
+ * Open the admin dashboard in a new browser tab
+ */
+function openAdminDashboard() {
+  const ui = SpreadsheetApp.getUi();
+
+  try {
+    // Get deployed URL from Settings sheet
+    const deployedUrl = getDeployedUrlForMenu();
+
+    if (!deployedUrl) {
+      ui.alert('Error', 'deployed_URL not found in Settings sheet. Please configure it first.', ui.ButtonSet.OK);
+      return;
+    }
+
+    const adminUrl = deployedUrl + '/admin/';
+
+    // Create HTML dialog with auto-redirect
+    const html = HtmlService.createHtmlOutput(
+      '<p>Opening Admin Dashboard...</p>' +
+      '<p><a href="' + adminUrl + '" target="_blank">Click here if not redirected</a></p>' +
+      '<script>window.open("' + adminUrl + '", "_blank"); google.script.host.close();</script>'
+    ).setWidth(400).setHeight(150);
+
+    ui.showModalDialog(html, 'Admin Dashboard');
+
+  } catch (error) {
+    ui.alert('Error', 'Failed to open dashboard: ' + error.message, ui.ButtonSet.OK);
+  }
+}
+
+/**
+ * Helper function to get deployed URL from Settings sheet
+ * @returns {string} Base URL
+ */
+function getDeployedUrlForMenu() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const settingsSheet = ss.getSheetByName('Settings');
+
+  if (!settingsSheet) {
+    throw new Error('Settings sheet not found');
+  }
+
+  const data = settingsSheet.getDataRange().getValues();
+
+  // Find deployed_URL
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === 'deployed_URL') {
+      return data[i][1];
+    }
+  }
+
+  return null;
 }
 

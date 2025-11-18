@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Dose Admin Dashboard</title>
+    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="icon" type="image/png" href="../assets/daily_dose_logo_48x48.png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-content">
+            <div class="header-branding">
+                <img src="../assets/A8_Logo.png" alt="A8 Logo" class="header-logo">
+                <div>
+                    <h1 class="header-title">Daily Dose Admin Dashboard</h1>
+                    <p class="header-subtitle">Manage challenges, users, and email campaigns</p>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link active">Dashboard</a>
+                <a href="email-campaigns.html" class="nav-link">Email Campaigns</a>
+                <a href="../index.html" class="nav-link" target="_blank">View App →</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-container">
+        <!-- Quick Stats -->
+        <section class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-label">Total Active Users</div>
+                <div class="stat-value" id="statActiveUsers">—</div>
+                <div class="stat-meta">Users with active_user = TRUE</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Challenge</div>
+                <div class="stat-value" id="statChallengeName">—</div>
+                <div class="stat-meta" id="statChallengeDates">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Workouts</div>
+                <div class="stat-value" id="statTotalWorkouts">—</div>
+                <div class="stat-meta">For active challenge</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Last Updated</div>
+                <div class="stat-value" id="statLastUpdated">—</div>
+                <div class="stat-meta">Dashboard data refresh</div>
+            </div>
+        </section>
+
+        <!-- Main Menu -->
+        <section>
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Admin Tools</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <!-- Email Campaigns Card -->
+                <a href="email-campaigns.html" class="card" style="text-decoration: none; color: inherit; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📧</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Email Campaigns</h3>
+                    <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                        Create, preview, and send personalized email campaigns to users with flexible targeting and token-based personalization.
+                    </p>
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--primary-black); font-weight: 600;">
+                        Launch Campaign Manager
+                        <span style="font-size: 1.25rem;">→</span>
+                    </div>
+                </a>
+
+                <!-- User Management Card (Coming Soon) -->
+                <div class="card" style="opacity: 0.6; cursor: not-allowed;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">User Management</h3>
+                    <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                        View, edit, and manage user accounts, preferences, and team assignments.
+                    </p>
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--gray-500); font-weight: 600;">
+                        Coming Soon
+                    </div>
+                </div>
+
+                <!-- Analytics Card (Coming Soon) -->
+                <div class="card" style="opacity: 0.6; cursor: not-allowed;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Analytics & Reports</h3>
+                    <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                        View detailed analytics on user engagement, workout trends, and challenge performance.
+                    </p>
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--gray-500); font-weight: 600;">
+                        Coming Soon
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Links -->
+        <section style="margin-top: 3rem;">
+            <div class="card">
+                <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Quick Links</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                    <a href="https://docs.google.com/spreadsheets/" target="_blank" class="btn btn-secondary btn-sm">
+                        Open Google Sheets
+                    </a>
+                    <a href="https://script.google.com/" target="_blank" class="btn btn-secondary btn-sm">
+                        Open Apps Script Editor
+                    </a>
+                    <a href="../index.html" target="_blank" class="btn btn-secondary btn-sm">
+                        View Main App
+                    </a>
+                    <a href="../signup.html" target="_blank" class="btn btn-secondary btn-sm">
+                        User Signup Page
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--gray-200); text-align: center; color: var(--gray-500); font-size: 0.875rem;">
+            <p>Daily Dose Admin Dashboard v3.1 | Email Campaign System</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="https://github.com/martinapt8/a8-workout-app" target="_blank" style="color: var(--gray-500); text-decoration: underline;">Documentation</a>
+            </p>
+        </footer>
+    </main>
+
+    <!-- Scripts -->
+    <script src="admin-config.js"></script>
+    <script src="admin-api.js"></script>
+    <script>
+        // Load dashboard stats on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDashboardStats();
+        });
+
+        async function loadDashboardStats() {
+            try {
+                // Fetch all stats in parallel
+                const [activeUsersResult, challengeResult, workoutsResult] = await Promise.all([
+                    ADMIN_API.getActiveUsersCount().catch(() => 0),
+                    ADMIN_API.getActiveChallenge().catch(() => null),
+                    ADMIN_API.getTotalWorkouts().catch(() => 0)
+                ]);
+
+                // Update active users
+                document.getElementById('statActiveUsers').textContent = activeUsersResult || 0;
+
+                // Update active challenge
+                if (challengeResult && challengeResult.challenge_name) {
+                    document.getElementById('statChallengeName').textContent = challengeResult.challenge_name;
+
+                    // Format dates
+                    const startDate = new Date(challengeResult.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const endDate = new Date(challengeResult.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    document.getElementById('statChallengeDates').textContent = `${startDate} - ${endDate}`;
+                } else {
+                    document.getElementById('statChallengeName').textContent = 'No Active Challenge';
+                    document.getElementById('statChallengeDates').textContent = 'Create a challenge to get started';
+                }
+
+                // Update total workouts
+                document.getElementById('statTotalWorkouts').textContent = workoutsResult || 0;
+
+                // Update last updated time
+                const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                document.getElementById('statLastUpdated').textContent = now;
+
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                showError('Failed to load dashboard statistics. Please refresh the page.');
+            }
+        }
+
+        function showError(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-error';
+            alert.innerHTML = `
+                <span style="font-size: 1.5rem;">⚠️</span>
+                <div>
+                    <strong>Error</strong>
+                    <p style="margin-top: 0.25rem;">${message}</p>
+                </div>
+            `;
+
+            const container = document.querySelector('.admin-container');
+            container.insertBefore(alert, container.firstChild);
+        }
+
+        // Hover effect for clickable cards
+        document.querySelectorAll('a.card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.boxShadow = 'var(--shadow-md)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = 'var(--shadow)';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Campaigns - Daily Dose Admin</title>
+    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="icon" type="image/png" href="../assets/daily_dose_logo_48x48.png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-content">
+            <div class="header-branding">
+                <img src="../assets/A8_Logo.png" alt="A8 Logo" class="header-logo">
+                <div>
+                    <h1 class="header-title">Email Campaign Manager</h1>
+                    <p class="header-subtitle">Create, preview, and send personalized email campaigns</p>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link">Dashboard</a>
+                <a href="email-campaigns.html" class="nav-link active">Email Campaigns</a>
+                <a href="../index.html" class="nav-link" target="_blank">View App →</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-container">
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Section 1: Template Management -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">📋 Template Management</h2>
+                    <p class="card-subtitle">Select or create an email template</p>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="createNewTemplate()">+ New Template</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label" for="templateSelect">Select Template</label>
+                    <select class="form-select" id="templateSelect" onchange="loadSelectedTemplate()">
+                        <option value="">-- Select a template --</option>
+                    </select>
+                </div>
+
+                <div id="templateMetadata" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label form-label-required" for="templateName">Template Name</label>
+                        <input type="text" class="form-input" id="templateName" placeholder="e.g., Welcome Email">
+                        <p class="form-help">Display name shown in template list</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label form-label-required" for="templateId">Template ID</label>
+                        <input type="text" class="form-input" id="templateId" placeholder="e.g., welcome_v1">
+                        <p class="form-help">Unique identifier (lowercase, no spaces). Cannot be changed after creation.</p>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-success" onclick="saveTemplate()">💾 Save Template</button>
+                        <button class="btn btn-danger" onclick="deleteTemplate()" id="deleteTemplateBtn" class="hidden">🗑️ Delete Template</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Email Editor -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">✏️ Email Editor</h2>
+                    <p class="card-subtitle">Compose your email content with token support</p>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="showPreviewModal()">👁️ Preview</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="email-editor-grid">
+                    <!-- Left: Editor -->
+                    <div class="editor-panel">
+                        <div class="form-group">
+                            <label class="form-label form-label-required" for="emailSubject">Subject Line</label>
+                            <input type="text" class="form-input" id="emailSubject" placeholder="e.g., Welcome to [challenge_name]!">
+                            <p class="form-help">Use tokens for personalization (e.g., [display_name], [challenge_name])</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label form-label-required" for="emailHtmlBody">HTML Body</label>
+                            <textarea class="form-textarea extra-tall" id="emailHtmlBody" placeholder="<div>Hi [display_name],...</div>"></textarea>
+                            <p class="form-help">Full HTML email content. Use tokens for personalization.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label form-label-required" for="emailPlainBody">Plain Text Body</label>
+                            <textarea class="form-textarea tall" id="emailPlainBody" placeholder="Hi [display_name],..."></textarea>
+                            <p class="form-help">Plain text fallback for email clients that don't support HTML.</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Token Helper -->
+                    <div class="token-panel">
+                        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">📝 Token Helper</h3>
+                        <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 1.5rem;">
+                            Click any token to copy it to your clipboard
+                        </p>
+
+                        <!-- User Tokens -->
+                        <div class="token-group">
+                            <div class="token-group-title">User Tokens</div>
+                            <button class="token-button" onclick="copyToken('[display_name]')" title="User's display name (emoji-safe)">[display_name]</button>
+                            <button class="token-button" onclick="copyToken('[deployment_URL]')" title="User's personalized app link">[deployment_URL]</button>
+                            <button class="token-button" onclick="copyToken('[lifetime_workouts]')" title="User's all-time workout count">[lifetime_workouts]</button>
+                        </div>
+
+                        <!-- Challenge Tokens -->
+                        <div class="token-group">
+                            <div class="token-group-title">Challenge Tokens</div>
+                            <button class="token-button" onclick="copyToken('[challenge_name]')" title="Active/specified challenge name">[challenge_name]</button>
+                            <button class="token-button" onclick="copyToken('[challenge_start_date]')" title="Challenge start date">[challenge_start_date]</button>
+                            <button class="token-button" onclick="copyToken('[challenge_end_date]')" title="Challenge end date">[challenge_end_date]</button>
+                            <button class="token-button" onclick="copyToken('[days_remaining]')" title="Days left in challenge">[days_remaining]</button>
+                            <button class="token-button" onclick="copyToken('[total_workouts]')" title="User's workouts in challenge">[total_workouts]</button>
+                        </div>
+
+                        <!-- Team Tokens -->
+                        <div class="token-group">
+                            <div class="token-group-title">Team Tokens</div>
+                            <button class="token-button" onclick="copyToken('[team_name]')" title="User's team name">[team_name]</button>
+                            <button class="token-button" onclick="copyToken('[team_total_workouts]')" title="Team's total workouts">[team_total_workouts]</button>
+                        </div>
+
+                        <div style="margin-top: 1.5rem; padding: 1rem; background: var(--white); border-radius: var(--border-radius); border: 1px solid var(--gray-300);">
+                            <p style="font-size: 0.75rem; color: var(--gray-600);">
+                                💡 <strong>Tip:</strong> Tokens are replaced with real data when emails are sent. Use Preview to see how they'll look.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Targeting & Send -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">🎯 Targeting & Send</h2>
+                    <p class="card-subtitle">Choose who receives this email</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Targeting Mode -->
+                <div class="form-group">
+                    <label class="form-label form-label-required">Targeting Mode</label>
+                    <div class="form-radio">
+                        <input type="radio" name="targetingMode" id="modeAllActive" value="all_active" checked onchange="updateTargetingFields()">
+                        <label for="modeAllActive">All Active Users</label>
+                    </div>
+                    <div class="form-radio">
+                        <input type="radio" name="targetingMode" id="modeChallenge" value="challenge" onchange="updateTargetingFields()">
+                        <label for="modeChallenge">Challenge-Based</label>
+                    </div>
+                    <div class="form-radio">
+                        <input type="radio" name="targetingMode" id="modeCustom" value="custom" onchange="updateTargetingFields()">
+                        <label for="modeCustom">Custom User List</label>
+                    </div>
+                </div>
+
+                <!-- Challenge Selection (hidden by default) -->
+                <div class="form-group hidden" id="challengeSelectGroup">
+                    <label class="form-label" for="targetChallenge">Select Challenge</label>
+                    <select class="form-select" id="targetChallenge">
+                        <option value="">-- Select challenge --</option>
+                    </select>
+                    <div class="form-checkbox" style="margin-top: 0.5rem;">
+                        <input type="checkbox" id="includeNoChallenge">
+                        <label for="includeNoChallenge">Include users not in any challenge</label>
+                    </div>
+                </div>
+
+                <!-- Custom User List (hidden by default) -->
+                <div class="form-group hidden" id="customUsersGroup">
+                    <label class="form-label" for="customUserIds">User IDs (comma-separated)</label>
+                    <textarea class="form-textarea" id="customUserIds" placeholder="megan, alex, jordan"></textarea>
+                    <p class="form-help">Enter user_ids separated by commas</p>
+                </div>
+
+                <!-- Preview Recipients -->
+                <div class="form-group">
+                    <button class="btn btn-secondary" onclick="previewRecipients()">👥 Preview Recipients</button>
+                    <div id="recipientPreview" class="hidden" style="margin-top: 1rem; padding: 1rem; background: var(--gray-50); border-radius: var(--border-radius);">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">Recipients: <span id="recipientCount">0</span></p>
+                        <div id="recipientList"></div>
+                    </div>
+                </div>
+
+                <!-- Tracking Flag -->
+                <div class="form-group">
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="enableTracking" onchange="toggleTrackingFlag()">
+                        <label for="enableTracking">Update tracking flag after send (prevents duplicates)</label>
+                    </div>
+                    <div class="hidden" id="trackingFlagGroup" style="margin-top: 0.5rem;">
+                        <input type="text" class="form-input" id="trackingFlag" placeholder="e.g., welcome_email_sent">
+                        <p class="form-help">Column name in Users sheet to set to TRUE after sending</p>
+                    </div>
+                </div>
+
+                <!-- Send Campaign Button -->
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--gray-200);">
+                    <button class="btn btn-primary btn-lg btn-block" onclick="confirmSendCampaign()">
+                        📧 Send Email Campaign
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal-overlay hidden" onclick="closePreviewModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Email Preview</h3>
+                <button class="modal-close" onclick="closePreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="previewUser">Preview as User</label>
+                    <select class="form-select" id="previewUser">
+                        <option value="">-- Select user --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="previewChallenge">Challenge (optional, for challenge tokens)</label>
+                    <select class="form-select" id="previewChallenge">
+                        <option value="">-- Current/Active Challenge --</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="loadPreview()">Generate Preview</button>
+
+                <div id="previewContent" class="hidden" style="margin-top: 1.5rem;">
+                    <h4 style="font-weight: 700; margin-bottom: 0.5rem;">Subject:</h4>
+                    <p id="previewSubject" style="padding: 0.75rem; background: var(--gray-50); border-radius: var(--border-radius); margin-bottom: 1rem;"></p>
+
+                    <h4 style="font-weight: 700; margin-bottom: 0.5rem;">HTML Body:</h4>
+                    <div id="previewHtml" style="padding: 1rem; background: var(--white); border: 2px solid var(--gray-200); border-radius: var(--border-radius); margin-bottom: 1rem; max-height: 400px; overflow-y: auto;"></div>
+
+                    <h4 style="font-weight: 700; margin-bottom: 0.5rem;">Plain Text Body:</h4>
+                    <pre id="previewPlain" style="padding: 1rem; background: var(--gray-50); border-radius: var(--border-radius); white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 0.875rem; max-height: 300px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePreviewModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner loading-spinner-lg"></div>
+            <p id="loadingMessage" style="margin-top: 1rem; font-weight: 600;">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="admin-config.js"></script>
+    <script src="admin-api.js"></script>
+    <script>
+        // ===== Global State =====
+        let currentTemplate = null;
+        let isEditingExisting = false;
+        let allTemplates = [];
+        let allChallenges = [];
+        let allUsers = [];
+
+        // ===== Initialization =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadInitialData();
+        });
+
+        async function loadInitialData() {
+            showLoading('Loading templates and data...');
+            try {
+                // Load templates, challenges, and users in parallel
+                const [templatesResult, challengesResult, usersResult] = await Promise.all([
+                    ADMIN_API.getEmailTemplates().catch(() => ({ templates: [] })),
+                    ADMIN_API.getAllChallenges().catch(() => ({ challenges: [] })),
+                    ADMIN_API.getActiveUsers().catch(() => ({ users: [] }))
+                ]);
+
+                allTemplates = templatesResult.templates || [];
+                allChallenges = challengesResult.challenges || [];
+                allUsers = usersResult.users || [];
+
+                populateTemplateDropdown();
+                populateChallengeDropdowns();
+                populateUserDropdown();
+
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                hideLoading();
+                showAlert('error', 'Failed to load data. Please refresh the page.');
+            }
+        }
+
+        function populateTemplateDropdown() {
+            const select = document.getElementById('templateSelect');
+            select.innerHTML = '<option value="">-- Select a template --</option>';
+
+            allTemplates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template.template_id;
+                option.textContent = template.template_name;
+                select.appendChild(option);
+            });
+        }
+
+        function populateChallengeDropdowns() {
+            // Populate targeting dropdown
+            const targetSelect = document.getElementById('targetChallenge');
+            targetSelect.innerHTML = '<option value="">-- Select challenge --</option>';
+
+            // Populate preview dropdown
+            const previewSelect = document.getElementById('previewChallenge');
+            previewSelect.innerHTML = '<option value="">-- Current/Active Challenge --</option>';
+
+            allChallenges.forEach(challenge => {
+                const option1 = document.createElement('option');
+                option1.value = challenge.challenge_id;
+                option1.textContent = `${challenge.challenge_name} (${challenge.status})`;
+                targetSelect.appendChild(option1);
+
+                const option2 = option1.cloneNode(true);
+                previewSelect.appendChild(option2);
+            });
+        }
+
+        function populateUserDropdown() {
+            const select = document.getElementById('previewUser');
+            select.innerHTML = '<option value="">-- Select user --</option>';
+
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.user_id;
+                option.textContent = `${user.display_name} (${user.user_id})`;
+                select.appendChild(option);
+            });
+        }
+
+        // ===== Template Management =====
+        function createNewTemplate() {
+            currentTemplate = null;
+            isEditingExisting = false;
+
+            // Clear all fields
+            document.getElementById('templateSelect').value = '';
+            document.getElementById('templateName').value = '';
+            document.getElementById('templateId').value = '';
+            document.getElementById('emailSubject').value = '';
+            document.getElementById('emailHtmlBody').value = '';
+            document.getElementById('emailPlainBody').value = '';
+
+            // Enable template ID field for new templates
+            document.getElementById('templateId').disabled = false;
+
+            // Show metadata section
+            document.getElementById('templateMetadata').classList.remove('hidden');
+
+            // Hide delete button for new templates
+            document.getElementById('deleteTemplateBtn').classList.add('hidden');
+
+            showAlert('info', 'Creating new template. Fill in all fields and click Save Template.');
+        }
+
+        async function loadSelectedTemplate() {
+            const templateId = document.getElementById('templateSelect').value;
+            if (!templateId) {
+                document.getElementById('templateMetadata').classList.add('hidden');
+                return;
+            }
+
+            showLoading('Loading template...');
+            try {
+                const result = await ADMIN_API.getTemplateById(templateId);
+
+                if (result && result.template) {
+                    currentTemplate = result.template;
+                    isEditingExisting = true;
+
+                    // Populate fields
+                    document.getElementById('templateName').value = currentTemplate.template_name || '';
+                    document.getElementById('templateId').value = currentTemplate.template_id || '';
+                    document.getElementById('emailSubject').value = currentTemplate.subject || '';
+                    document.getElementById('emailHtmlBody').value = currentTemplate.html_body || '';
+                    document.getElementById('emailPlainBody').value = currentTemplate.plain_body || '';
+
+                    // Disable template ID field (cannot change after creation)
+                    document.getElementById('templateId').disabled = true;
+
+                    // Show metadata section and delete button
+                    document.getElementById('templateMetadata').classList.remove('hidden');
+                    document.getElementById('deleteTemplateBtn').classList.remove('hidden');
+
+                    showAlert('success', `Loaded template: ${currentTemplate.template_name}`);
+                }
+
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading template:', error);
+                hideLoading();
+                showAlert('error', 'Failed to load template.');
+            }
+        }
+
+        async function saveTemplate() {
+            const templateName = document.getElementById('templateName').value.trim();
+            const templateId = document.getElementById('templateId').value.trim();
+            const subject = document.getElementById('emailSubject').value.trim();
+            const htmlBody = document.getElementById('emailHtmlBody').value.trim();
+            const plainBody = document.getElementById('emailPlainBody').value.trim();
+
+            // Validation
+            if (!templateName || !templateId || !subject || !htmlBody || !plainBody) {
+                showAlert('error', 'All fields are required.');
+                return;
+            }
+
+            // Validate template ID format (lowercase, no spaces)
+            if (!/^[a-z0-9_]+$/.test(templateId)) {
+                showAlert('error', 'Template ID must be lowercase letters, numbers, and underscores only (no spaces).');
+                return;
+            }
+
+            showLoading('Saving template...');
+            try {
+                const templateData = {
+                    template_id: templateId,
+                    template_name: templateName,
+                    subject: subject,
+                    html_body: htmlBody,
+                    plain_body: plainBody,
+                    active: true
+                };
+
+                const result = await ADMIN_API.saveEmailTemplate(templateData);
+
+                if (result.success) {
+                    showAlert('success', result.message || 'Template saved successfully!');
+
+                    // Reload templates
+                    await loadInitialData();
+
+                    // Select the saved template
+                    document.getElementById('templateSelect').value = templateId;
+                    isEditingExisting = true;
+                    document.getElementById('templateId').disabled = true;
+                    document.getElementById('deleteTemplateBtn').classList.remove('hidden');
+                } else {
+                    showAlert('error', result.message || 'Failed to save template.');
+                }
+
+                hideLoading();
+            } catch (error) {
+                console.error('Error saving template:', error);
+                hideLoading();
+                showAlert('error', 'Failed to save template. Check console for details.');
+            }
+        }
+
+        async function deleteTemplate() {
+            if (!currentTemplate || !currentTemplate.template_id) {
+                showAlert('error', 'No template selected to delete.');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete "${currentTemplate.template_name}"? This cannot be undone.`)) {
+                return;
+            }
+
+            showLoading('Deleting template...');
+            try {
+                const result = await ADMIN_API.deleteEmailTemplate(currentTemplate.template_id);
+
+                if (result.success) {
+                    showAlert('success', 'Template deleted successfully.');
+
+                    // Clear form and reload templates
+                    createNewTemplate();
+                    await loadInitialData();
+                } else {
+                    showAlert('error', result.message || 'Failed to delete template.');
+                }
+
+                hideLoading();
+            } catch (error) {
+                console.error('Error deleting template:', error);
+                hideLoading();
+                showAlert('error', 'Failed to delete template.');
+            }
+        }
+
+        // ===== Token Helper =====
+        function copyToken(token) {
+            navigator.clipboard.writeText(token).then(() => {
+                showToast(`Copied: ${token}`);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showAlert('error', 'Failed to copy token to clipboard.');
+            });
+        }
+
+        // ===== Preview =====
+        function showPreviewModal() {
+            document.getElementById('previewModal').classList.remove('hidden');
+            document.getElementById('previewContent').classList.add('hidden');
+        }
+
+        function closePreviewModal(event) {
+            if (event && event.target.classList.contains('modal')) {
+                document.getElementById('previewModal').classList.add('hidden');
+            } else if (!event) {
+                document.getElementById('previewModal').classList.add('hidden');
+            }
+        }
+
+        async function loadPreview() {
+            const userId = document.getElementById('previewUser').value;
+            const challengeId = document.getElementById('previewChallenge').value || null;
+
+            if (!userId) {
+                showAlert('error', 'Please select a user to preview.');
+                return;
+            }
+
+            // Get current template data from form
+            const subject = document.getElementById('emailSubject').value;
+            const htmlBody = document.getElementById('emailHtmlBody').value;
+            const plainBody = document.getElementById('emailPlainBody').value;
+
+            if (!subject || !htmlBody || !plainBody) {
+                showAlert('error', 'Please fill in all email fields before previewing.');
+                return;
+            }
+
+            showLoading('Generating preview...');
+            try {
+                // For preview, we need to save as temp template or send raw content
+                // Since backend expects template_id, we'll use current template if editing,
+                // otherwise create temp template
+                let templateId = currentTemplate ? currentTemplate.template_id : 'preview_temp';
+
+                if (!currentTemplate) {
+                    // Save as temporary template
+                    const tempTemplateData = {
+                        template_id: 'preview_temp',
+                        template_name: 'Preview Template (Temporary)',
+                        subject: subject,
+                        html_body: htmlBody,
+                        plain_body: plainBody,
+                        active: false
+                    };
+                    await ADMIN_API.saveEmailTemplate(tempTemplateData);
+                    templateId = 'preview_temp';
+                }
+
+                const result = await ADMIN_API.previewEmail(templateId, userId, challengeId);
+
+                if (result && result.subject) {
+                    document.getElementById('previewSubject').textContent = result.subject;
+                    document.getElementById('previewHtml').innerHTML = result.html_body;
+                    document.getElementById('previewPlain').textContent = result.plain_body;
+                    document.getElementById('previewContent').classList.remove('hidden');
+                }
+
+                hideLoading();
+            } catch (error) {
+                console.error('Error generating preview:', error);
+                hideLoading();
+                showAlert('error', 'Failed to generate preview. Make sure backend supports previewEmail action.');
+            }
+        }
+
+        // ===== Targeting =====
+        function updateTargetingFields() {
+            const mode = document.querySelector('input[name="targetingMode"]:checked').value;
+
+            document.getElementById('challengeSelectGroup').classList.add('hidden');
+            document.getElementById('customUsersGroup').classList.add('hidden');
+
+            if (mode === 'challenge') {
+                document.getElementById('challengeSelectGroup').classList.remove('hidden');
+            } else if (mode === 'custom') {
+                document.getElementById('customUsersGroup').classList.remove('hidden');
+            }
+        }
+
+        function toggleTrackingFlag() {
+            const enabled = document.getElementById('enableTracking').checked;
+            if (enabled) {
+                document.getElementById('trackingFlagGroup').classList.remove('hidden');
+            } else {
+                document.getElementById('trackingFlagGroup').classList.add('hidden');
+            }
+        }
+
+        async function previewRecipients() {
+            const targetingOptions = getTargetingOptions();
+
+            showLoading('Loading recipients...');
+            try {
+                const result = await ADMIN_API.getTargetedUsers(targetingOptions);
+
+                if (result && result.users) {
+                    const users = result.users;
+                    document.getElementById('recipientCount').textContent = users.length;
+
+                    // Show list
+                    const listHtml = users.map(user =>
+                        `<div style="padding: 0.5rem; border-bottom: 1px solid var(--gray-200);">
+                            <strong>${user.display_name}</strong> (${user.user_id}) - ${user.email}
+                        </div>`
+                    ).join('');
+
+                    document.getElementById('recipientList').innerHTML = listHtml || '<p>No users match targeting criteria.</p>';
+                    document.getElementById('recipientPreview').classList.remove('hidden');
+                }
+
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading recipients:', error);
+                hideLoading();
+                showAlert('error', 'Failed to load recipients.');
+            }
+        }
+
+        function getTargetingOptions() {
+            const mode = document.querySelector('input[name="targetingMode"]:checked').value;
+            const options = { mode };
+
+            if (mode === 'challenge') {
+                options.challengeId = document.getElementById('targetChallenge').value;
+                options.includeNoChallenge = document.getElementById('includeNoChallenge').checked;
+            } else if (mode === 'custom') {
+                const userIdsText = document.getElementById('customUserIds').value;
+                options.userIds = userIdsText.split(',').map(id => id.trim()).filter(id => id);
+            }
+
+            return options;
+        }
+
+        // ===== Send Campaign =====
+        async function confirmSendCampaign() {
+            // Validation
+            if (!currentTemplate && !document.getElementById('templateId').value) {
+                showAlert('error', 'Please save the template before sending.');
+                return;
+            }
+
+            const targetingOptions = getTargetingOptions();
+
+            // Get recipient count
+            try {
+                const result = await ADMIN_API.getTargetedUsers(targetingOptions);
+                const recipientCount = result.users ? result.users.length : 0;
+
+                if (recipientCount === 0) {
+                    showAlert('error', 'No users match targeting criteria. Cannot send campaign.');
+                    return;
+                }
+
+                const templateName = document.getElementById('templateName').value || 'this template';
+                const subject = document.getElementById('emailSubject').value;
+
+                const confirmed = confirm(
+                    `You are about to send "${templateName}" to ${recipientCount} users.\n\n` +
+                    `Subject: ${subject}\n\n` +
+                    `This action cannot be undone. Continue?`
+                );
+
+                if (!confirmed) return;
+
+                await sendCampaign(targetingOptions, recipientCount);
+
+            } catch (error) {
+                console.error('Error confirming send:', error);
+                showAlert('error', 'Failed to verify recipients.');
+            }
+        }
+
+        async function sendCampaign(targetingOptions, expectedCount) {
+            const templateId = currentTemplate ? currentTemplate.template_id : document.getElementById('templateId').value;
+            const trackingFlag = document.getElementById('enableTracking').checked
+                ? document.getElementById('trackingFlag').value.trim()
+                : null;
+
+            showLoading(`Sending campaign to ${expectedCount} users...`);
+            try {
+                const result = await ADMIN_API.sendEmailCampaign(templateId, targetingOptions, trackingFlag);
+
+                hideLoading();
+
+                if (result.success) {
+                    const message = `
+                        ✅ Campaign sent successfully!<br>
+                        Sent: ${result.sent || 0}<br>
+                        Skipped: ${result.skipped || 0}<br>
+                        Errors: ${result.errors || 0}
+                    `;
+                    showAlert('success', message);
+                } else {
+                    showAlert('error', result.message || 'Campaign send failed.');
+                }
+
+            } catch (error) {
+                console.error('Error sending campaign:', error);
+                hideLoading();
+                showAlert('error', 'Failed to send campaign. Check console for details.');
+            }
+        }
+
+        // ===== UI Helpers =====
+        function showLoading(message = 'Loading...') {
+            document.getElementById('loadingMessage').textContent = message;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <span style="font-size: 1.5rem;">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <div>${message}</div>
+            `;
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

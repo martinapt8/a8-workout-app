@@ -134,7 +134,7 @@ function doGet(e) {
         break;
 
       case 'getEmailTemplates':
-        result = getEmailTemplates();
+        result = { templates: getEmailTemplates() };
         break;
 
       case 'getTemplateById':
@@ -142,7 +142,7 @@ function doGet(e) {
         if (!templateId) {
           result = { error: 'Missing templateId parameter' };
         } else {
-          result = getTemplateById(templateId);
+          result = { template: getTemplateById(templateId) };
         }
         break;
 
@@ -248,7 +248,7 @@ function doPost(e) {
 
       // Email Campaign Management Endpoints
       case 'getEmailTemplates':
-        result = getEmailTemplates();
+        result = { templates: getEmailTemplates() };
         break;
 
       case 'getTemplateById':

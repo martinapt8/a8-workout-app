@@ -84,8 +84,70 @@ function doGet(e) {
         result = getRecentCompletionsAll(ss3, limit);
         break;
 
+      // Admin Dashboard Endpoints
+      case 'getActiveUsersCount':
+        const ss4 = SpreadsheetApp.getActiveSpreadsheet();
+        const usersSheet = ss4.getSheetByName('Users');
+        const usersData = usersSheet.getDataRange().getValues();
+        const headers = usersData[0];
+        const activeUserCol = headers.indexOf('active_user');
+        const activeCount = usersData.slice(1).filter(row => row[activeUserCol] === true || row[activeUserCol] === 'TRUE').length;
+        result = { count: activeCount };
+        break;
+
+      case 'getActiveChallenge':
+        const ss5 = SpreadsheetApp.getActiveSpreadsheet();
+        result = getActiveChallenge(ss5);
+        break;
+
+      case 'getAllChallenges':
+        const ss6 = SpreadsheetApp.getActiveSpreadsheet();
+        const challengesSheet = ss6.getSheetByName('Challenges');
+        const challengesData = challengesSheet.getDataRange().getValues();
+        const challengeHeaders = challengesData[0];
+        const challenges = challengesData.slice(1).map(row => {
+          let obj = {};
+          challengeHeaders.forEach((header, index) => {
+            obj[header] = row[index];
+          });
+          return obj;
+        });
+        result = { challenges: challenges };
+        break;
+
+      case 'getActiveUsers':
+        const ss7 = SpreadsheetApp.getActiveSpreadsheet();
+        const activeUsersSheet = ss7.getSheetByName('Users');
+        const activeUsersData = activeUsersSheet.getDataRange().getValues();
+        const userHeaders = activeUsersData[0];
+        const activeUserColIdx = userHeaders.indexOf('active_user');
+        const users = activeUsersData.slice(1)
+          .filter(row => row[activeUserColIdx] === true || row[activeUserColIdx] === 'TRUE')
+          .map(row => {
+            let obj = {};
+            userHeaders.forEach((header, index) => {
+              obj[header] = row[index];
+            });
+            return obj;
+          });
+        result = { users: users };
+        break;
+
+      case 'getEmailTemplates':
+        result = getEmailTemplates();
+        break;
+
+      case 'getTemplateById':
+        const templateId = e.parameter.templateId;
+        if (!templateId) {
+          result = { error: 'Missing templateId parameter' };
+        } else {
+          result = getTemplateById(templateId);
+        }
+        break;
+
       default:
-        result = { error: 'Invalid action parameter. Valid actions: getDashboard, getGoalProgress, getAllWorkouts, getUserCompletionHistory, getUserAllChallengeStats, generateAIWorkout, getRecentCompletionsAll' };
+        result = { error: 'Invalid action parameter. Valid actions: getDashboard, getGoalProgress, getAllWorkouts, getUserCompletionHistory, getUserAllChallengeStats, generateAIWorkout, getRecentCompletionsAll, getActiveUsersCount, getActiveChallenge, getAllChallenges, getActiveUsers, getEmailTemplates, getTemplateById' };
     }
 
     const jsonResponse = JSON.stringify(result);

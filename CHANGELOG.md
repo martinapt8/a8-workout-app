@@ -2,6 +2,121 @@
 
 ## Current Status (Latest Update - November 18, 2025)
 
+### 🎨 Email Campaign System - Admin Dashboard Frontend (November 18, 2025)
+
+**Session 2 Complete: Full-Featured Admin Dashboard for Email Campaign Management**:
+- **Purpose**: Web-based interface for creating, previewing, and sending email campaigns
+- **Frontend** (`admin/` directory - 5 NEW FILES):
+  - `admin/index.html` (9.9KB): Dashboard home with live stats, navigation, quick links
+  - `admin/email-campaigns.html` (36KB): Complete email campaign composer interface
+  - `admin/admin-styles.css` (14KB): A8-branded design system (responsive, mobile-first)
+  - `admin/admin-api.js` (5.8KB): API wrapper for all campaign endpoints
+  - `admin/admin-config.js` (880B): API URL configuration
+- **Dashboard Home Features**:
+  - Live stats: Total active users, active challenge info, total workouts, last updated
+  - Navigation: Dashboard, Email Campaigns, View App
+  - Quick links to Google Sheets, Apps Script, main app, signup page
+  - Placeholder cards for future features (User Management, Analytics)
+- **Email Campaign Manager Features**:
+  - **Template Management**:
+    - Create, load, edit, save, delete email templates
+    - Template dropdown populated from Email_Templates sheet
+    - Template ID auto-validation (lowercase, no spaces)
+    - Dual save/delete buttons with confirmation
+  - **Email Editor**:
+    - Three-field editor: Subject Line, HTML Body, Plain Text Body
+    - Monospace font for code-friendly editing
+    - Token helper panel with 10+ clickable tokens
+    - Copy-to-clipboard functionality for all tokens
+    - Organized by category: User, Challenge, Team tokens
+  - **Live Preview System**:
+    - Modal preview with user selection dropdown
+    - Challenge selection for challenge-specific tokens
+    - Shows rendered subject, HTML body, and plain text
+    - Real data replacement for accurate preview
+  - **Targeting & Send**:
+    - Three targeting modes with radio buttons:
+      1. All Active Users
+      2. Challenge-Based (with dropdown + checkbox for non-participants)
+      3. Custom User List (comma-separated IDs)
+    - Preview Recipients button shows exact user list before sending
+    - Recipient count and details table
+    - Optional tracking flag (prevents duplicate sends)
+    - Large "Send Email Campaign" button with confirmation modal
+    - Send results display: Sent count, Skipped count, Error count
+  - **Token Helper**:
+    - User Tokens: [display_name], [deployment_URL], [lifetime_workouts]
+    - Challenge Tokens: [challenge_name], [challenge_start_date], [challenge_end_date], [days_remaining], [total_workouts]
+    - Team Tokens: [team_name], [team_total_workouts]
+    - Tooltips with example values
+    - One-click copy to clipboard
+    - Sticky panel on desktop, stacks on mobile
+- **Design System**:
+  - A8 brand colors: Black (#000000), Yellow (#FFC107), White (#FFFFFF)
+  - Roobert font family (Regular, SemiBold, Bold)
+  - Mobile-responsive breakpoints
+  - Cards, buttons, forms, modals, tables, alerts, toasts
+  - Loading overlays and spinners
+  - Smooth animations and transitions
+- **Backend Enhancements** (`backend/Code.gs`):
+  - Added missing GET endpoints for dashboard:
+    - `getActiveUsersCount`: Returns count of active users
+    - `getActiveChallenge`: Returns active challenge object
+    - `getAllChallenges`: Returns all challenges for dropdowns
+    - `getActiveUsers`: Returns all active users for preview
+  - Fixed API response wrapping:
+    - `getEmailTemplates`: Returns `{ templates: [...] }`
+    - `getTemplateById`: Returns `{ template: {...} }`
+    - `getTargetedUsers`: Returns `{ users: [...] }`
+    - `sendEmailCampaign`: Returns `{ success: true, sent, skipped, errors, details }`
+  - Resolved function name collision:
+    - Renamed `getChallengeById` in EmailCampaigns.gs to `getEmailCampaignChallengeById`
+    - Fixed main app loading issue caused by parameter mismatch
+
+**Bug Fixes During Session 2**:
+- ✅ **Empty template dropdown**: Wrapped `getEmailTemplates()` response in `{ templates: [] }`
+- ✅ **Failed to load recipients**: Wrapped `getTargetedUsers()` response in `{ users: [] }`
+- ✅ **Main app loading crash**: Resolved `getChallengeById` function name collision between Code.gs and EmailCampaigns.gs
+- ✅ **Campaign send failed message**: Added `success: true` flag to `sendEmailCampaign` response
+- ✅ **Rate limiting (429 errors)**: Documented Google Apps Script quota limits and best practices
+
+**Testing Results**:
+- ✅ Dashboard home page loads with live stats (41 active users, Year-End Challenge, 0 workouts)
+- ✅ Template dropdown populates from Email_Templates sheet
+- ✅ Token copy-to-clipboard working
+- ✅ Preview functionality generates personalized emails
+- ✅ All 3 targeting modes functional (tested with custom user list)
+- ✅ Email send successful (test email received in inbox)
+- ✅ Success message displays correctly: "✅ Campaign sent successfully! Sent: 1, Skipped: 0, Errors: 0"
+- ✅ Main app still loads and functions correctly (no regressions)
+
+**Deployment**:
+- GitHub Pages: `https://martinapt8.github.io/a8-workout-app/admin/`
+- Admin Dashboard Home: `https://martinapt8.github.io/a8-workout-app/admin/index.html`
+- Email Campaign Manager: `https://martinapt8.github.io/a8-workout-app/admin/email-campaigns.html`
+- New deployment URL: `https://script.google.com/macros/s/AKfycbxLTcWJSJ-OvlaxgbqTHHst3vID7x_rZ8OIEyBGyvoR4-s76Yl9S5Rpdg1n5dZ9jGpb/exec`
+
+**Next Steps**:
+- Session 3: Template migration (welcome/update emails to Email_Templates sheet)
+- Session 3: End-to-end testing scenarios
+- Session 3: Comprehensive documentation updates (CLAUDE.md, ADMIN_GUIDE.md, BACKEND.md)
+
+**Files Created (Session 2)**:
+- `admin/index.html`: Dashboard home page (9.9KB)
+- `admin/email-campaigns.html`: Email campaign composer (36KB)
+- `admin/admin-styles.css`: A8 design system (14KB)
+- `admin/admin-api.js`: API wrapper functions (5.8KB)
+- `admin/admin-config.js`: API configuration (880B)
+- **Total**: 5 new files, 67KB
+
+**Files Modified (Session 2)**:
+- `backend/Code.gs`: Added 6 GET endpoints, fixed response wrapping (~100 lines added)
+- `backend/EmailCampaigns.gs`: Renamed function to resolve collision (~3 lines changed)
+- `config.js`: Updated API URL to new deployment
+- `admin/admin-config.js`: Updated API URL to new deployment
+
+---
+
 ### 📧 Email Campaign System - Backend Foundation (November 18, 2025)
 
 **Session 1 Complete: Backend Infrastructure for Flexible Email Campaigns**:

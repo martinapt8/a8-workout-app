@@ -8,6 +8,46 @@
     <link rel="icon" type="image/png" href="../assets/daily_dose_logo_48x48.png">
 </head>
 <body>
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <img src="../assets/A8_Logo.png" alt="A8 Logo">
+            <span class="sidebar-brand-text">Admin</span>
+        </div>
+
+        <nav>
+            <ul class="sidebar-nav">
+                <!-- Dashboard Section -->
+                <li class="sidebar-nav-section">
+                    <a href="index.html" class="sidebar-nav-parent active">Dashboard</a>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="https://martinapt8.github.io/a8-workout-app/?user=mritty85" class="sidebar-nav-child" target="_blank">View Main App</a></li>
+                        <li><a class="sidebar-nav-child disabled">User Management</a></li>
+                        <li><a class="sidebar-nav-child disabled">Reporting</a></li>
+                    </ul>
+                </li>
+
+                <!-- Comms Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Comms</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="email-campaigns.html" class="sidebar-nav-child">Send Emails</a></li>
+                        <li><a class="sidebar-nav-child disabled">Send Slack Updates</a></li>
+                    </ul>
+                </li>
+
+                <!-- Google Admin Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Google Admin</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="https://docs.google.com/spreadsheets/d/1IVFs2QmrevDV6pNuuuOLXtsZls8HcChnJn_qK8IHV7M/edit?gid=272721508#gid=272721508" class="sidebar-nav-child" target="_blank">Open Google Sheets</a></li>
+                        <li><a href="https://script.google.com/u/0/home/projects/19-ZM76X7s6QJkvx-tkexXcdoevOk7UNziac98w70wKA_kGEf6RssoS32/edit" class="sidebar-nav-child" target="_blank">Open Apps Script Editor</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
     <!-- Header -->
     <header class="admin-header">
         <div class="header-content">
@@ -18,11 +58,6 @@
                     <p class="header-subtitle">Manage challenges, users, and email campaigns</p>
                 </div>
             </div>
-            <nav class="header-nav">
-                <a href="index.html" class="nav-link active">Dashboard</a>
-                <a href="email-campaigns.html" class="nav-link">Email Campaigns</a>
-                <a href="../index.html" class="nav-link" target="_blank">View App →</a>
-            </nav>
         </div>
     </header>
 
@@ -92,27 +127,6 @@
                     <div style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--gray-500); font-weight: 600;">
                         Coming Soon
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quick Links -->
-        <section style="margin-top: 3rem;">
-            <div class="card">
-                <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Quick Links</h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
-                    <a href="https://docs.google.com/spreadsheets/" target="_blank" class="btn btn-secondary btn-sm">
-                        Open Google Sheets
-                    </a>
-                    <a href="https://script.google.com/" target="_blank" class="btn btn-secondary btn-sm">
-                        Open Apps Script Editor
-                    </a>
-                    <a href="../index.html" target="_blank" class="btn btn-secondary btn-sm">
-                        View Main App
-                    </a>
-                    <a href="../signup.html" target="_blank" class="btn btn-secondary btn-sm">
-                        User Signup Page
-                    </a>
                 </div>
             </div>
         </section>

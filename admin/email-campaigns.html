@@ -10,6 +10,46 @@
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <img src="../assets/A8_Logo.png" alt="A8 Logo">
+            <span class="sidebar-brand-text">Admin</span>
+        </div>
+
+        <nav>
+            <ul class="sidebar-nav">
+                <!-- Dashboard Section -->
+                <li class="sidebar-nav-section">
+                    <a href="index.html" class="sidebar-nav-parent">Dashboard</a>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="https://martinapt8.github.io/a8-workout-app/?user=mritty85" class="sidebar-nav-child" target="_blank">View Main App</a></li>
+                        <li><a class="sidebar-nav-child disabled">User Management</a></li>
+                        <li><a class="sidebar-nav-child disabled">Reporting</a></li>
+                    </ul>
+                </li>
+
+                <!-- Comms Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Comms</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="email-campaigns.html" class="sidebar-nav-child active">Send Emails</a></li>
+                        <li><a class="sidebar-nav-child disabled">Send Slack Updates</a></li>
+                    </ul>
+                </li>
+
+                <!-- Google Admin Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Google Admin</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="https://docs.google.com/spreadsheets/d/1IVFs2QmrevDV6pNuuuOLXtsZls8HcChnJn_qK8IHV7M/edit?gid=272721508#gid=272721508" class="sidebar-nav-child" target="_blank">Open Google Sheets</a></li>
+                        <li><a href="https://script.google.com/u/0/home/projects/19-ZM76X7s6QJkvx-tkexXcdoevOk7UNziac98w70wKA_kGEf6RssoS32/edit" class="sidebar-nav-child" target="_blank">Open Apps Script Editor</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
     <!-- Header -->
     <header class="admin-header">
         <div class="header-content">
@@ -20,11 +60,6 @@
                     <p class="header-subtitle">Create, preview, and send personalized email campaigns</p>
                 </div>
             </div>
-            <nav class="header-nav">
-                <a href="index.html" class="nav-link">Dashboard</a>
-                <a href="email-campaigns.html" class="nav-link active">Email Campaigns</a>
-                <a href="../index.html" class="nav-link" target="_blank">View App →</a>
-            </nav>
         </div>
     </header>
 

@@ -2,6 +2,74 @@
 
 ## Current Status (Latest Update - November 18, 2025)
 
+### 📊 Challenge Signup Dashboard (November 18, 2025)
+
+**Session 3 Complete: Public Challenge Signup Viewer**:
+- **Purpose**: Shareable page showing who's signed up for a challenge, with team assignments and signup link
+- **Frontend** (`signups.html` - 1 NEW FILE):
+  - Public page accessible via `?challenge=dd_dec2025` URL parameter
+  - Mobile-responsive design matching main app styling (A8 black/yellow brand)
+  - No authentication required - shareable with entire agency
+- **Features**:
+  - **Challenge Header**:
+    - Challenge name, date range, total goal, signup deadline
+    - Prominent "Join This Challenge" button with dynamic signup URL
+    - Button automatically appends correct challenge ID
+  - **Live Stats Cards**:
+    - Total Signups count
+    - Assigned to Teams count
+    - Unassigned count
+  - **Grouped Team Display**:
+    - Teams shown alphabetically with color indicators
+    - Member count badge per team
+    - Team members displayed with display_name and full_name
+    - "Unassigned" section for signups without team assignments
+    - Yellow badge for unassigned users
+  - **Future-Proof Design**:
+    - Automatically handles unassigned → assigned transition
+    - No code changes needed when teams are assigned via TeamPlaceholders.gs
+    - Team colors appear automatically when populated
+  - **Error Handling**:
+    - Missing challenge parameter validation
+    - Challenge not found handling
+    - Empty state when no signups exist
+    - Loading spinner during data fetch
+- **Backend** (`backend/Code.gs`):
+  - **New API Function**: `getChallengeSignups(ss, challengeId)`
+    - Joins Challenge_Teams sheet with Users sheet
+    - Returns challenge details + array of signups
+    - Includes: user_id, display_name, full_name, team_name, team_color
+    - Sorts by team (alphabetically), then display name
+    - Unassigned users (null team_name) appear last
+  - **New API Endpoint**: `getChallengeSignups` (GET)
+    - URL: `?action=getChallengeSignups&challengeId=dd_dec2025`
+    - Returns: `{ challenge: {...}, signups: [...] }`
+- **Privacy Enhancement**:
+  - Display full_name instead of user_id for better recognition
+  - Fallback to "Name not provided" if full_name missing
+  - User IDs kept private (not displayed on public page)
+
+**Bug Fixes During Session 3**:
+- ✅ **API_URL not defined**: Fixed reference from `API_URL` to `CONFIG.API_URL` in signups.html
+
+**Use Cases**:
+- Share signup dashboard with entire agency to see who's participating
+- Users can verify their own signup status
+- Admins can see signup counts before assigning teams
+- One-click signup via "Join This Challenge" button
+- Works for any challenge (past, present, future) via URL parameter
+
+**Deployment**:
+- GitHub Pages: `https://martinapt8.github.io/a8-workout-app/signups.html?challenge=dd_dec2025`
+- Example URL: Replace `dd_dec2025` with any challenge_id from Challenges sheet
+
+**Related Features**:
+- Works with `signup_challenge.html` (users sign up)
+- Works with `TeamPlaceholders.gs` (admin assigns teams)
+- Works with `Challenge_Teams` sheet (tracks assignments)
+
+---
+
 ### 🎨 Email Campaign System - Admin Dashboard Frontend (November 18, 2025)
 
 **Session 2 Complete: Full-Featured Admin Dashboard for Email Campaign Management**:

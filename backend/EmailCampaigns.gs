@@ -251,7 +251,7 @@ function getTokenDataForUser(userId, challengeId = null) {
   }
 
   // Get challenge info (use active challenge if not specified)
-  const challenge = challengeId ? getChallengeById(challengeId) : getActiveChallenge(ss);
+  const challenge = challengeId ? getEmailCampaignChallengeById(challengeId) : getActiveChallenge(ss);
 
   if (challenge) {
     tokenData.challenge_name = challenge.challenge_name;
@@ -279,11 +279,11 @@ function getTokenDataForUser(userId, challengeId = null) {
 }
 
 /**
- * Get challenge by ID
+ * Get challenge by ID (Email Campaigns version)
  * @param {string} challengeId - Challenge ID
  * @returns {Object|null} Challenge object or null
  */
-function getChallengeById(challengeId) {
+function getEmailCampaignChallengeById(challengeId) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName('Challenges');
 

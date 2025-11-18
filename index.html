@@ -586,8 +586,8 @@
                 if (cardBody) {
                     cardBody.innerHTML = `
                         <div style="padding: 20px; background: #FFF3CD; border-radius: 8px; margin-bottom: 20px;">
-                            <h3 style="margin: 0 0 10px 0; color: #856404; font-weight: 600;">🌴 Off-Season Mode</h3>
-                            <p style="margin: 0; color: #856404; font-size: 14px;">The app is currently in off-season. You can still log "Other Workouts" to track your year-round fitness!</p>
+                            <h3 style="margin: 0 0 10px 0; color: #856404; font-weight: 600; text-align: center;">🌴 Off-Season Mode</h3>
+                            <p style="margin: 0; color: #856404; font-size: 14px; text-align: center;">The app is currently in off-season. You can still log "Other Workouts" to track your year-round fitness!</p>
                         </div>
                     `;
                 }
@@ -1571,17 +1571,22 @@
                 workoutInput.disabled = false;
                 dateInput.disabled = false;
 
-                // Refresh data to update progress and calendar
-                setTimeout(function() {
-                    refreshData();
-                    // Re-fetch calendar data
-                    if (userData && userData.user) {
-                        API.getUserCompletionHistory(userData.user.user_id)
-                            .then(buildCalendar)
-                            .catch(function(error) {
-                                console.error('Failed to update calendar:', error);
-                            });
-                    }
+                // Update calendar and activity feed without resetting completedToday status
+                setTimeout(async function() {
+                    // Clear calendar cache to force reload with new backfilled workout
+                    CalendarState.loadedRangeStart = null;
+                    CalendarState.loadedRangeEnd = null;
+                    CalendarState.allCompletionDates = [];
+
+                    // Reload calendar for current month
+                    await loadCompletionDateRange(userData.user.user_id, CalendarState.currentMonth, CalendarState.currentYear);
+                    buildCalendar(CalendarState.allCompletionDates, CalendarState.currentMonth, CalendarState.currentYear);
+
+                    // Refresh activity feed to show the new backfilled workout
+                    updateActivityFeed();
+
+                    // Refresh past challenges list to update workout counts
+                    loadPastChallengeHistory();
                 }, 1500);
             } else {
                 // Show error message from backend

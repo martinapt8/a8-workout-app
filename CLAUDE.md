@@ -17,20 +17,31 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
 ## Technical Architecture
 
 ### Frontend (GitHub Pages)
-- **Static Files**:
-  - `index.html`: Core HTML structure and JavaScript logic
+- **Main App**:
+  - `index.html`: Core HTML structure and JavaScript logic (89KB)
   - `styles.css`: All styling (28KB - optimized with external fonts)
-  - `config.js`: API endpoint configuration
-  - `api.js`: API helper functions
+  - `config.js`: API endpoint configuration (930B)
+  - `api.js`: API helper functions (3.3KB)
   - `fonts/`: External WOFF2 font files (3 weights: Regular, SemiBold, Bold)
-- **Five-Page SPA**: Today, Team Progress, Me, Workout Library, and A8AI Generator
-- **Mobile-First Design**: Optimized for quick phone access, PWA-capable
+  - **Five-Page SPA**: Today, Team Progress, Me, Workout Library, and A8AI Generator
+  - **Mobile-First Design**: Optimized for quick phone access, PWA-capable
+  - **AI Integration**: Claude API for dynamic workout generation
+- **Admin Dashboard** (NEW - Nov 2025):
+  - `admin/index.html`: Dashboard home with live stats (9.9KB)
+  - `admin/email-campaigns.html`: Email campaign composer (36KB)
+  - `admin/admin-styles.css`: A8-branded design system (14KB)
+  - `admin/admin-api.js`: API wrapper for campaign endpoints (5.8KB)
+  - `admin/admin-config.js`: API configuration (880B)
+  - **Features**: Template CRUD, token helper, live preview, 3 targeting modes, campaign sending
+  - **Access**: `https://martinapt8.github.io/a8-workout-app/admin/`
 - **A8 Brand Colors**: Black (#000000), Yellow (#FFC107), White (#FFFFFF)
-- **AI Integration**: Claude API for dynamic workout generation
 
 ### Backend (Google Apps Script)
 - **Google Sheets Database**: 8 sheets for Users, Workouts, Completions, Challenges, Challenge_Teams, Settings, Coaching, Email_Templates
 - **RESTful API**: Form-encoded POST endpoints for all operations
+- **Core API** (`Code.gs`): Main app endpoints (getDashboard, markWorkoutComplete, etc.)
+- **Email Campaigns API** (`EmailCampaigns.gs`): Template management, token replacement, campaign sending (NEW - Nov 2025)
+- **Admin Dashboard API**: Additional GET endpoints (getActiveUsersCount, getAllChallenges, getActiveUsers, etc.)
 - **No Authentication**: URL parameters identify users (`?user=martin`)
 - **CORS Solution**: Uses form-encoded POST (URLSearchParams) instead of JSON to bypass CORS preflight restrictions
 
@@ -65,15 +76,23 @@ Daily Dose Dev/
 │   ├── daily_dose_logo.svg
 │   └── *.svg                   # today, team, me, library, ai icons
 │
-├── backend/                    # Google Apps Script files (13 files)
+├── admin/                      # Admin dashboard (5 files, 67KB) [NEW - Nov 2025]
+│   ├── index.html              # Dashboard home (9.9KB)
+│   ├── email-campaigns.html    # Campaign composer (36KB)
+│   ├── admin-styles.css        # A8 design system (14KB)
+│   ├── admin-api.js            # API wrapper (5.8KB)
+│   └── admin-config.js         # API config (880B)
+│
+├── backend/                    # Google Apps Script files (14 files)
 │   ├── Code.gs                 # Core REST API (37KB)
+│   ├── EmailCampaigns.gs       # Email campaign system (920 lines) [NEW - Nov 2025]
 │   ├── AdminChallenges.gs      # Challenge management (14KB)
 │   ├── TeamPlaceholders.gs     # Placeholder team assignments (11KB) [NEW - Nov 2025]
 │   ├── Signup.gs               # User signup (13KB)
 │   ├── ClaudeAPI.gs            # AI workout generation (6KB)
 │   ├── Slack.gs                # Slack integration (16KB)
-│   ├── welcome_email.gs        # Welcome emails (11KB)
-│   ├── update_email.gs         # Update emails (13KB)
+│   ├── welcome_email.gs        # Welcome emails (11KB) [To be deprecated]
+│   ├── update_email.gs         # Update emails (13KB) [To be deprecated]
 │   ├── FormMigration.gs        # Form response migration (12KB)
 │   ├── MigrationScripts.gs     # Multi-challenge migration (18KB)
 │   ├── TestingFunctions.gs     # Testing suite (12KB)
@@ -102,18 +121,19 @@ Daily Dose Dev/
 | File | Size | Purpose | Key Functions |
 |------|------|---------|---------------|
 | Code.gs | 37KB | Core REST API, main entry point | doGet(), doPost(), getUserDashboardData() |
+| EmailCampaigns.gs | 920 lines | Email campaign system (NEW - Nov 2025) | getEmailTemplates(), replaceTokens(), sendEmailCampaign() |
 | AdminChallenges.gs | 14KB | Challenge management | createNewChallenge(), setActiveChallenge() |
 | TeamPlaceholders.gs | 11KB | Placeholder team assignment (NEW - Nov 2025) | promptSetPlaceholderTeams(), setPlaceholderTeams() |
 | Signup.gs | 13KB | User signup & preferences | createSignupRequest(), updateUserPreferences() |
 | ClaudeAPI.gs | 6KB | AI workout generation | generateAIWorkout(), callClaudeAPI() |
 | Slack.gs | 16KB | Slack notifications | sendDailyProgressSummary(), sendDailyReminder() |
-| welcome_email.gs | 11KB | Welcome emails | sendWelcomeEmail() |
-| update_email.gs | 13KB | Update emails | sendUpdateEmail() |
+| welcome_email.gs | 11KB | Welcome emails (To be deprecated) | sendWelcomeEmail() |
+| update_email.gs | 13KB | Update emails (To be deprecated) | sendUpdateEmail() |
 | FormMigration.gs | 12KB | Form response import | migrateFormResponses() |
 | MigrationScripts.gs | 18KB | V2→V3 migration utilities | (historical, not actively used) |
 | TestingFunctions.gs | 12KB | Backend testing suite | testUserDashboard(), testWorkoutCompletion() |
 | AutoSort.gs | 3KB | Auto-sort completions | onEdit() trigger |
-| menu.gs | 9KB | Custom admin menu | onOpen(), promptCreateChallenge(), promptSetPlaceholderTeams() |
+| menu.gs | 9KB | Custom admin menu | onOpen(), promptCreateChallenge(), openAdminDashboard() |
 
 ## Google Sheets Structure
 
@@ -438,18 +458,22 @@ For complete function signatures, parameters, return values, and implementation 
 
 ## Administrative Features Summary
 
-The app includes several administrative systems for managing users, challenges, and communications. All admin functions are accessible via the "A8 Custom Menu" in Google Sheets.
+The app includes several administrative systems for managing users, challenges, and communications. Admin functions are accessible via:
+1. **Admin Dashboard** (web interface): `https://martinapt8.github.io/a8-workout-app/admin/` (NEW - Nov 2025)
+2. **A8 Custom Menu** in Google Sheets (traditional workflow)
 
 | Feature | Files | Key Functions | Purpose |
 |---------|-------|---------------|---------|
+| **Email Campaign System** (NEW) | EmailCampaigns.gs, admin/email-campaigns.html | getEmailTemplates(), sendEmailCampaign() | Create, preview, and send personalized email campaigns via web dashboard |
+| **Admin Dashboard** (NEW) | admin/index.html, admin-api.js | Live stats, navigation | Central hub for admin tasks with real-time data |
 | **Form Migration** | FormMigration.gs | migrateFormResponses() | Import users from Google Form responses |
 | **User Signup** | Signup.gs, signup.html | createSignupRequest() | Self-service registration with preferences |
-| **Welcome Emails** | welcome_email.gs | sendWelcomeEmail() | Onboard new users with personalized app links |
-| **Update Emails** | update_email.gs | sendUpdateEmail() | Send mid-challenge updates |
+| **Welcome Emails** (Deprecated) | welcome_email.gs | sendWelcomeEmail() | Onboard new users (replaced by Email Campaign System) |
+| **Update Emails** (Deprecated) | update_email.gs | sendUpdateEmail() | Send updates (replaced by Email Campaign System) |
 | **Slack Integration** | Slack.gs | sendDailyProgressSummary() | Manual progress updates and reminders |
 | **Challenge Management** | AdminChallenges.gs | createNewChallenge(), setActiveChallenge() | Create and switch challenges |
 | **Placeholder Teams** | TeamPlaceholders.gs | promptSetPlaceholderTeams(), setPlaceholderTeams() | Randomly assign signups to balanced teams |
-| **Custom Menu** | menu.gs | Various prompts | UI for all admin functions |
+| **Custom Menu** | menu.gs | Various prompts, openAdminDashboard() | UI for admin functions + dashboard launcher |
 
 ### Quick Admin Workflows
 
@@ -464,6 +488,16 @@ The app includes several administrative systems for managing users, challenges, 
 3. "A8 Custom Menu" → "Set Placeholder Teams" (random balanced assignment)
 4. Admin manually adds team_color values in Challenge_Teams sheet
 5. Add workouts to Workouts sheet with matching `challenge_id`
+
+**Send Email Campaign:** (NEW - Nov 2025)
+1. Open Admin Dashboard: `https://martinapt8.github.io/a8-workout-app/admin/`
+2. Navigate to "Email Campaigns"
+3. Select existing template OR create new template with tokens
+4. Preview email with real user data
+5. Choose targeting mode (All Active, Challenge-Based, or Custom List)
+6. Preview recipients to verify targeting
+7. Optional: Add tracking flag to prevent duplicate sends
+8. Click "Send Email Campaign" and confirm
 
 **Send Progress Update:**
 1. Add coaching tip to Coaching sheet (optional)
@@ -653,12 +687,12 @@ fetch(API_URL, {
 Add `?debug=true` to URL for console logging (implement in Code.gs)
 
 ## Project Information
-**Name**: Daily Dose - A8 Workout Challenge App V3
-**Version**: 3.0 (Multi-Challenge Architecture)
+**Name**: Daily Dose - A8 Workout Challenge App V3.1
+**Version**: 3.1 (Email Campaign System + Admin Dashboard)
 **Deployment**: GitHub Pages frontend + Google Apps Script backend
 **Status**: Production
-**Key Features**: Year-round workout logging, multi-challenge support, flexible teams, AI workouts
-**Last Major Update**: October 2025 (Multi-challenge migration)
+**Key Features**: Year-round workout logging, multi-challenge support, flexible teams, AI workouts, admin dashboard, email campaigns
+**Last Major Update**: November 2025 (Email Campaign System with Admin Dashboard)
 
 ---
 

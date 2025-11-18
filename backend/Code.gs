@@ -298,7 +298,8 @@ function doPost(e) {
         if (!campaignTemplateId || !campaignTargeting) {
           result = { success: false, error: 'Missing required parameters: templateId, targetingOptions' };
         } else {
-          result = sendEmailCampaign(campaignTemplateId, campaignTargeting, trackingFlag);
+          const campaignResult = sendEmailCampaign(campaignTemplateId, campaignTargeting, trackingFlag);
+          result = { success: true, ...campaignResult };
         }
         break;
 

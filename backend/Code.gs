@@ -669,6 +669,31 @@ function getGoalProgress(ss, challengeId) {
   const teamTotals = {};
   const recentCompletions = [];
 
+  // Initialize team_totals with all teams from Challenge_Teams (with 0 counts)
+  const teamsSheet = ss.getSheetByName('Challenge_Teams');
+  if (teamsSheet) {
+    const teamsData = teamsSheet.getDataRange().getValues();
+    const teamsHeaders = teamsData[0];
+
+    const teamsHeaderMap = {};
+    teamsHeaders.forEach((header, index) => {
+      teamsHeaderMap[header] = index;
+    });
+
+    // Build set of unique team names for this challenge
+    for (let i = 1; i < teamsData.length; i++) {
+      if (teamsData[i][teamsHeaderMap['challenge_id']] === challengeId) {
+        const teamName = teamsData[i][teamsHeaderMap['team_name']];
+        if (teamName) {
+          // Initialize with 0 if not already set
+          if (!(teamName in teamTotals)) {
+            teamTotals[teamName] = 0;
+          }
+        }
+      }
+    }
+  }
+
   // PERFORMANCE OPTIMIZATION: Filter by challenge_id FIRST
   for (let i = 1; i < data.length; i++) {
     // Skip rows not belonging to this challenge

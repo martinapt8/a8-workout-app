@@ -1,10 +1,10 @@
 // API Configuration
 // Replace with your Google Apps Script Web App URL after deployment
-// Last updated: 2025-11-18 - Email campaign system deployment
+// Last updated: 2025-11-18 - Team page fix deployment
 const CONFIG = {
   // IMPORTANT: After deploying Code.gs as a Web App, replace this URL
   // with your stable deployment URL: https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
-  API_URL: 'https://script.google.com/macros/s/AKfycbxLTcWJSJ-OvlaxgbqTHHst3vID7x_rZ8OIEyBGyvoR4-s76Yl9S5Rpdg1n5dZ9jGpb/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbx3XBdtJiUwUGOAJevVgz-6Apl9xcOnh-n56s6TwK9J3fqrrRxpyM62NU3d1AhYqgIHtg/exec',
 
   // Optional: Add API key for basic security
   // Set the same key in Google Apps Script Script Properties

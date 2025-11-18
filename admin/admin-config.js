@@ -1,10 +1,10 @@
 // Admin Dashboard API Configuration
-// Last updated: 2025-11-18 - Email Campaign System (Session 2)
+// Last updated: 2025-11-18 - Team page fix deployment
 
 const ADMIN_CONFIG = {
   // Uses same backend deployment as main app
   // This URL should match the CONFIG.API_URL from the main app's config.js
-  API_URL: 'https://script.google.com/macros/s/AKfycbxLTcWJSJ-OvlaxgbqTHHst3vID7x_rZ8OIEyBGyvoR4-s76Yl9S5Rpdg1n5dZ9jGpb/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbx3XBdtJiUwUGOAJevVgz-6Apl9xcOnh-n56s6TwK9J3fqrrRxpyM62NU3d1AhYqgIHtg/exec',
 
   // Base URL for main app (used for links in dashboard)
   APP_URL: 'https://martinapt8.github.io/a8-workout-app/',

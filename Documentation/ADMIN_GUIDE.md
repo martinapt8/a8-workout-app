@@ -1,18 +1,649 @@
 # Administrator Guide
 
-This guide covers all administrative functions for managing the Daily Dose app, including user management, challenge setup, email systems, and Slack integration.
+This guide covers all administrative functions for managing the Daily Dose app, including the admin dashboard, user management, challenge setup, email campaign system, and Slack integration.
+
+**Last Updated**: November 18, 2025 (Email Campaign System + Admin Dashboard)
 
 ---
 
 ## Table of Contents
 
-1. [User Management](#user-management)
-2. [Challenge Management](#challenge-management)
-3. [Email Systems](#email-systems)
-4. [Slack Integration](#slack-integration)
-5. [Custom Menu System](#custom-menu-system)
-6. [Managing During Challenge](#managing-during-challenge)
-7. [Year-Round Management](#year-round-management)
+1. [Admin Dashboard](#admin-dashboard) ⭐ **NEW**
+2. [Email Campaign System](#email-campaign-system) ⭐ **NEW**
+3. [User Management](#user-management)
+4. [Challenge Management](#challenge-management)
+5. [Legacy Email Systems](#legacy-email-systems) ⚠️ **DEPRECATED**
+6. [Slack Integration](#slack-integration)
+7. [Custom Menu System](#custom-menu-system)
+8. [Managing During Challenge](#managing-during-challenge)
+9. [Year-Round Management](#year-round-management)
+
+---
+
+## Admin Dashboard
+
+**NEW - November 2025**: Web-based admin interface for managing email campaigns, viewing stats, and accessing admin tools.
+
+### Overview
+
+The Admin Dashboard is a modern web interface that replaces manual Google Sheets operations for common admin tasks. It provides a user-friendly way to manage email campaigns, view real-time stats, and access administrative functions.
+
+**Access URL:**
+```
+https://martinapt8.github.io/a8-workout-app/admin/
+```
+
+**Quick Access from Google Sheets:**
+- "A8 Custom Menu" → "📧 Open Admin Dashboard"
+
+### Dashboard Home Page
+
+**Location**: `admin/index.html`
+
+**Features:**
+- **Live Statistics Cards**:
+  - Total Active Users (count of users with active_user = TRUE)
+  - Active Challenge (name, dates)
+  - Total Workouts (for active challenge)
+  - Last Updated (dashboard data refresh timestamp)
+- **Navigation**:
+  - Dashboard (home)
+  - Email Campaigns (campaign manager)
+  - View App (opens main app in new tab)
+- **Admin Tools Cards**:
+  - Email Campaigns (functional - launches campaign composer)
+  - User Management (coming soon)
+  - Analytics & Reports (coming soon)
+- **Quick Links**:
+  - Open Google Sheets
+  - Open Apps Script Editor
+  - View Main App
+  - User Signup Page
+
+**Technology:**
+- Fetches real-time data from Google Apps Script API
+- Auto-refreshes stats on page load
+- Mobile-responsive design
+- A8 brand colors (Black, Yellow, White)
+
+### Email Campaigns Page
+
+**Location**: `admin/email-campaigns.html`
+
+Full-featured email campaign composer. See [Email Campaign System](#email-campaign-system) section below for complete documentation.
+
+### Design System
+
+**Files:**
+- `admin/admin-styles.css` (14KB)
+- Roobert font family (shared with main app)
+
+**Components:**
+- Cards, buttons, forms, modals, tables, alerts, toasts
+- Loading overlays and spinners
+- Responsive grid layouts
+- Mobile-first breakpoints
+
+**Colors:**
+- Primary: Black (#000000)
+- Accent: Yellow (#FFC107)
+- Success: Green (#10B981)
+- Error: Red (#EF4444)
+- Background: White (#FFFFFF)
+
+---
+
+## Email Campaign System
+
+**NEW - November 2025**: Template-based email campaign system with token personalization, flexible targeting, and live preview.
+
+Replaces hardcoded `welcome_email.gs` and `update_email.gs` with a flexible web-based campaign manager.
+
+### Quick Start
+
+1. **Access Admin Dashboard**: Navigate to `https://martinapt8.github.io/a8-workout-app/admin/`
+2. **Click "Email Campaigns"** in the navigation or home page
+3. **Create or select a template**
+4. **Preview** with real user data
+5. **Target** your audience (All Active, Challenge-Based, or Custom List)
+6. **Send** campaign with optional tracking
+
+### Template Management
+
+**Creating a New Template:**
+
+1. Click **"+ New Template"** button
+2. Enter **Template Name** (e.g., "Welcome Email")
+3. Enter **Template ID** (lowercase, no spaces, e.g., "welcome_v1")
+4. Compose email content using tokens
+5. Click **"💾 Save Template"**
+
+**Loading an Existing Template:**
+
+1. Select template from **"Select Template"** dropdown
+2. Template fields populate automatically
+3. Edit as needed
+4. Click **"💾 Save Template"** to update
+
+**Deleting a Template:**
+
+1. Load template from dropdown
+2. Click **"🗑️ Delete Template"** button
+3. Confirm deletion (cannot be undone)
+
+**Template Fields:**
+- **Template Name**: Display name shown in dropdown (can contain spaces, special characters)
+- **Template ID**: Unique identifier (lowercase, numbers, underscores only - cannot change after creation)
+- **Subject Line**: Email subject with token support
+- **HTML Body**: Rich email content (supports HTML tags, tokens)
+- **Plain Text Body**: Plain text fallback (tokens still work)
+
+### Token System
+
+Tokens are placeholders that get replaced with real user data when emails are sent.
+
+**Syntax**: `[token_name]`
+
+**User Tokens:**
+- `[display_name]` - User's display name (emoji-safe, cleaned for email)
+- `[deployment_URL]` - User's personalized app link (e.g., `?user=megan`)
+- `[lifetime_workouts]` - User's all-time workout count
+
+**Challenge Tokens:**
+- `[challenge_name]` - Active or specified challenge name
+- `[challenge_start_date]` - Challenge start date (formatted)
+- `[challenge_end_date]` - Challenge end date (formatted)
+- `[days_remaining]` - Days left in challenge
+- `[total_workouts]` - User's workouts in specified challenge
+
+**Team Tokens:**
+- `[team_name]` - User's team name in challenge
+- `[team_total_workouts]` - Team's total workouts in challenge
+
+**Using Tokens:**
+
+1. **Click any token button** in the Token Helper panel (right side)
+2. Token is **copied to clipboard**
+3. Paste into Subject, HTML Body, or Plain Text field
+4. Tokens appear as `[display_name]` in template
+5. When email is sent, `[display_name]` → actual user's name
+
+**Example Template:**
+
+```
+Subject: Welcome to [challenge_name], [display_name]!
+
+HTML Body:
+<div>
+  <h2>Hi [display_name],</h2>
+  <p>Welcome to the Daily Dose! You're all set to join <strong>[challenge_name]</strong>.</p>
+  <p>Your personalized app link: <a href="[deployment_URL]">[deployment_URL]</a></p>
+  <p>Challenge runs from [challenge_start_date] to [challenge_end_date].</p>
+  <p>You're on Team [team_name] - let's go!</p>
+</div>
+
+Plain Text Body:
+Hi [display_name],
+
+Welcome to the Daily Dose! You're all set to join [challenge_name].
+
+Your personalized app link: [deployment_URL]
+
+Challenge runs from [challenge_start_date] to [challenge_end_date].
+
+You're on Team [team_name] - let's go!
+```
+
+**Token Replacement Logic:**
+- Tokens replaced per user (personalized for each recipient)
+- Missing data shows as empty string or default value (e.g., "Not Assigned" for missing team)
+- Challenge tokens require challenge context (either active challenge or specified in preview)
+
+### Live Preview
+
+**Purpose**: See exactly how your email will look with real user data before sending.
+
+**How to Preview:**
+
+1. Click **"👁️ Preview"** button (top right of Email Editor)
+2. **Select a user** from "Preview as User" dropdown
+3. *Optional*: Select a challenge (for challenge-specific tokens)
+4. Click **"Generate Preview"**
+5. View rendered email:
+   - **Subject**: With tokens replaced
+   - **HTML Body**: Rendered with real data
+   - **Plain Text Body**: With tokens replaced
+
+**Preview Modal Sections:**
+- **User Selector**: Choose any active user to preview as
+- **Challenge Selector**: Choose challenge for challenge tokens (defaults to active challenge)
+- **Subject Preview**: Shows final subject line
+- **HTML Preview**: Shows rendered HTML (as it will appear in email)
+- **Plain Text Preview**: Shows plain text version
+
+**Use Cases:**
+- Test token replacement accuracy
+- Check formatting with different user names (short, long, with emojis)
+- Verify links work correctly
+- Ensure mobile-friendly rendering
+
+### Targeting Modes
+
+**Three ways to target recipients:**
+
+#### 1. All Active Users
+
+**What it does**: Sends to every user with `active_user = TRUE`
+
+**When to use**:
+- Company-wide announcements
+- App updates affecting all users
+- General communications
+
+**How to use**:
+1. Select radio button: **"All Active Users"**
+2. Click **"👥 Preview Recipients"** to see list
+3. Confirm user count matches expectation
+4. Send
+
+**Example**: Welcome email to all 41 active users
+
+---
+
+#### 2. Challenge-Based
+
+**What it does**: Sends to users in a specific challenge
+
+**When to use**:
+- Challenge kickoff emails
+- Mid-challenge updates
+- Challenge-specific announcements
+
+**How to use**:
+1. Select radio button: **"Challenge-Based"**
+2. **Select Challenge** from dropdown
+3. *Optional*: Check **"Include users not in any challenge"** (sends to users not assigned to ANY challenge)
+4. Click **"👥 Preview Recipients"** to verify
+5. Send
+
+**Example**: Mid-challenge update to all users in "Year-End Challenge"
+
+**Advanced**: "Include users not in challenge" option useful for:
+- Recruiting non-participants to join
+- Sending year-round updates to users between challenges
+
+---
+
+#### 3. Custom User List
+
+**What it does**: Sends to specific users by user_id
+
+**When to use**:
+- Testing emails with yourself
+- Sending to specific team or group
+- Targeted communications
+
+**How to use**:
+1. Select radio button: **"Custom User List"**
+2. Enter **user IDs** in textarea (comma-separated)
+   - Example: `megan, alex, jordan`
+   - Whitespace around commas is ignored
+3. Click **"👥 Preview Recipients"** to verify
+4. Send
+
+**Example**: Test email to yourself before sending to everyone
+```
+mritty85
+```
+
+**Example**: Send to specific team leads
+```
+megan, alex, jordan, sam
+```
+
+---
+
+### Preview Recipients
+
+**Before sending ANY campaign**, always preview recipients to verify targeting.
+
+**How to Preview Recipients:**
+
+1. Choose targeting mode (All Active, Challenge-Based, or Custom)
+2. Click **"👥 Preview Recipients"** button
+3. **Recipients Preview** section expands showing:
+   - **Total count** (e.g., "Recipients: 41")
+   - **User list table** with:
+     - user_id
+     - display_name
+     - email address
+     - team (if applicable)
+
+**What to Check:**
+- ✅ Count matches expectation
+- ✅ Correct users in list
+- ✅ No unexpected users included
+- ✅ All intended users present
+
+**Red Flags:**
+- ❌ Count is 0 (no one will receive email)
+- ❌ Wrong challenge selected
+- ❌ Typo in custom user_id
+- ❌ Inactive users showing (they shouldn't)
+
+### Tracking Flags
+
+**Purpose**: Prevent duplicate emails to the same user.
+
+**How it works:**
+1. Check **"Update tracking flag after send"**
+2. Enter **flag name** (e.g., `welcome_email_sent`, `update_dec2025_sent`)
+3. When campaign sends successfully:
+   - Flag column in Users sheet is set to `TRUE` for each recipient
+   - If user already has flag = `TRUE`, they are **skipped** (not sent duplicate)
+
+**Use Cases:**
+
+**Welcome Emails:**
+- Flag: `welcome_email_sent`
+- Ensures new users only get welcome email once
+- Safe to run multiple times (skips users already welcomed)
+
+**Challenge Updates:**
+- Flag: `update_dec2025_sent`
+- Ensures mid-challenge update sent only once
+- Can use different flags for different updates
+
+**Best Practices:**
+- Use descriptive flag names: `{purpose}_{date/version}_sent`
+- Include challenge ID for challenge-specific emails
+- Check Users sheet to verify column exists (will be created if missing)
+
+**Skipping Behavior:**
+- Users with flag = `TRUE` are skipped
+- Skipped users appear in **"Skipped"** count in results
+- Details show reason: "Already sent (tracking flag: welcome_email_sent)"
+
+### Sending a Campaign
+
+**Step-by-Step Workflow:**
+
+1. **Create/Select Template**
+   - Choose existing template OR
+   - Create new template with tokens
+
+2. **Preview Email**
+   - Click "Preview" button
+   - Select test user
+   - Verify tokens replaced correctly
+   - Check formatting and links
+
+3. **Choose Targeting**
+   - Select: All Active, Challenge-Based, or Custom List
+   - Configure targeting options
+
+4. **Preview Recipients**
+   - Click "Preview Recipients"
+   - Verify user list and count
+   - Ensure correct audience
+
+5. **Set Tracking Flag** (Optional)
+   - Check "Update tracking flag"
+   - Enter flag name
+   - Prevents duplicate sends
+
+6. **Send Campaign**
+   - Click **"📧 Send Email Campaign"** (large yellow button)
+   - **Confirmation modal** appears:
+     - Shows template name
+     - Shows recipient count
+     - Shows subject line preview
+   - Click **"Confirm Send"** or **"Cancel"**
+
+7. **View Results**
+   - **Success screen** shows:
+     - ✅ Sent: X users
+     - ⏭️ Skipped: X users (if using tracking flag)
+     - ❌ Errors: X users (if any failures)
+   - Click details to see individual user results
+
+**What Happens When You Click Send:**
+
+1. Backend fetches targeted users
+2. For each user:
+   - Checks tracking flag (skips if already sent)
+   - Replaces tokens with user's real data
+   - Sends email via Gmail
+   - Updates tracking flag (if enabled)
+   - Logs success/failure
+3. Returns summary: sent count, skipped count, error count
+
+**Confirmation Safety:**
+- Campaign **cannot be undone** after sending
+- Always shows recipient count before confirming
+- Requires explicit "Confirm Send" click
+
+### Backend Architecture
+
+**Files:**
+- `backend/EmailCampaigns.gs` (920 lines) - Core email campaign engine
+- `backend/Code.gs` - API endpoints (GET and POST)
+- Google Sheets: `Email_Templates` sheet
+
+**Key Functions** (EmailCampaigns.gs):
+
+**Template Management:**
+- `getEmailTemplates()` - Returns all active templates
+- `getTemplateById(templateId)` - Returns single template
+- `saveEmailTemplate(templateData)` - Creates/updates template
+
+**Token Replacement:**
+- `replaceTokens(templateText, userId, challengeId)` - Replaces all tokens
+- `getTokenDataForUser(userId, challengeId)` - Gathers token data
+- `cleanDisplayNameForEmail(displayName)` - Strips emojis for email safety
+
+**User Targeting:**
+- `getTargetedUsers(targetingOptions)` - Returns users based on mode
+- Modes: `all_active`, `challenge`, `custom`
+- Filters: active_user = TRUE, valid email
+
+**Email Preview:**
+- `previewEmailForUser(templateId, userId, challengeId)` - Generates preview with real data
+
+**Campaign Sending:**
+- `sendEmailCampaign(templateId, targetingOptions, trackingFlag)` - Sends to all targeted users
+- Uses `GmailApp.sendEmail()` for actual sending
+- Updates tracking flags in Users sheet
+- Returns results object: `{sent, skipped, errors, details}`
+
+**Helper Functions:**
+- `getEmailCampaignChallengeById(challengeId)` - Fetches challenge data for tokens
+- `getUserTeamForChallenge(userId, challengeId)` - Gets team assignment
+- `updateUserTrackingFlag(userId, flagName, value)` - Updates tracking column
+
+**API Endpoints** (Code.gs):
+
+**GET Endpoints:**
+- `getEmailTemplates` - Fetch all active templates
+- `getTemplateById` - Fetch single template
+- `getActiveUsers` - Get active users for preview dropdown
+- `getAllChallenges` - Get challenges for targeting dropdown
+- `getActiveChallenge` - Get active challenge for dashboard stats
+
+**POST Endpoints:**
+- `saveEmailTemplate` - Save/update template
+- `deleteEmailTemplate` - Delete template (sets active=FALSE)
+- `previewEmail` - Generate email preview for user
+- `getTargetedUsers` - Get user list for targeting
+- `sendEmailCampaign` - Send campaign to users
+
+### Email_Templates Sheet
+
+**Location**: Google Sheets (new sheet tab added in Session 1)
+
+**Columns:**
+| Column | Type | Description | Example |
+|--------|------|-------------|---------|
+| template_id | Text (unique) | Unique identifier | "welcome_v1" |
+| template_name | Text | Display name | "Welcome Email" |
+| subject | Text | Subject line with tokens | "Welcome to [challenge_name]!" |
+| html_body | Text (long) | HTML email content | `<div>Hi [display_name]...</div>` |
+| plain_body | Text (long) | Plain text fallback | "Hi [display_name]..." |
+| created_date | Date | Auto-populated timestamp | 11/18/2025 |
+| last_modified | Date | Updated on each save | 11/18/2025 |
+| active | Boolean | Template visibility | TRUE/FALSE |
+
+**Template Lifecycle:**
+1. Created via admin dashboard (or manually in sheet)
+2. `created_date` set automatically
+3. Edit via dashboard → `last_modified` updated
+4. Delete via dashboard → `active` set to FALSE (soft delete)
+5. Inactive templates hidden from dropdown
+
+**Direct Sheet Editing:**
+- ✅ Can edit templates directly in Google Sheets
+- ✅ Changes appear immediately in dashboard (on refresh)
+- ⚠️ Be careful with `template_id` (used as lookup key)
+- ⚠️ Use `active = FALSE` to hide instead of deleting rows
+
+### Troubleshooting
+
+**Template Dropdown is Empty:**
+
+**Cause**: No templates in Email_Templates sheet OR all templates have `active = FALSE`
+
+**Solution**:
+1. Check Email_Templates sheet exists
+2. Check at least one template has `active = TRUE`
+3. Verify template_id and template_name are not empty
+4. Hard refresh dashboard (Cmd+Shift+R / Ctrl+Shift+R)
+
+---
+
+**"Failed to Load Recipients" Error:**
+
+**Cause**: API response format mismatch or targeting parameters invalid
+
+**Solution**:
+1. Check browser console for detailed error
+2. Verify challenge exists (if using Challenge-Based)
+3. Verify user_ids are correct (if using Custom List)
+4. Hard refresh and try again
+5. Check Code.gs deployment is latest version
+
+---
+
+**"Campaign Send Failed" but Email Was Sent:**
+
+**Cause**: Backend sends successfully but frontend doesn't recognize success response
+
+**Solution**:
+1. Check your inbox - email likely sent successfully
+2. Verify latest Code.gs deployed (should include `success: true` flag)
+3. Issue fixed in Session 2 - redeploy backend if seeing this
+
+---
+
+**Preview Shows "[token_name]" Instead of Real Data:**
+
+**Cause**: Token not recognized or data not available for user
+
+**Solutions**:
+- **Check token spelling**: Must match exactly (e.g., `[display_name]` not `[displayName]`)
+- **User data missing**: User might not have value for that field
+- **Challenge tokens**: Ensure user is in selected challenge
+- **Team tokens**: Ensure user has team assignment in Challenge_Teams
+
+---
+
+**Email Sent to Wrong Users:**
+
+**Cause**: Targeting mode misconfigured
+
+**Prevention**:
+1. ALWAYS click "Preview Recipients" before sending
+2. Verify user count and list match expectation
+3. Use Custom List mode for testing (send to yourself first)
+4. Double-check challenge selection if using Challenge-Based
+
+---
+
+**Rate Limiting (429 Too Many Requests):**
+
+**Cause**: Google Apps Script quotas exceeded (too many API calls too quickly)
+
+**Solution**:
+1. Wait 1-2 minutes for quota to reset
+2. Avoid rapid page refreshes
+3. Don't spam API calls during testing
+4. Use Preview Recipients sparingly
+5. Google Apps Script limits:
+   - URL Fetch calls: 20,000/day
+   - Simultaneous executions: Limited by account type
+
+**Prevention**:
+- Space out test runs by 30-60 seconds
+- Don't refresh dashboard repeatedly
+- Batch operations when possible
+
+---
+
+**Emojis Breaking Email:**
+
+**Cause**: Some email clients don't support emojis properly
+
+**Solution**:
+- Backend automatically cleans display_name with `cleanDisplayNameForEmail()`
+- Emojis stripped from display_name in email body
+- Fallback: "Team Member" if name is empty after cleaning
+- To test: Preview email for user with emoji in display_name
+
+---
+
+**Tracking Flag Not Working:**
+
+**Cause**: Column doesn't exist in Users sheet OR value not updating
+
+**Solution**:
+1. Check Users sheet has column matching flag name (e.g., `welcome_email_sent`)
+2. If missing, add column manually
+3. After sending, check column values updated to TRUE
+4. Users with TRUE should be skipped on next send
+5. Verify flag name spelling matches exactly
+
+---
+
+### Best Practices
+
+**Template Naming:**
+- Use version numbers: `welcome_v1`, `welcome_v2`
+- Include purpose: `kickoff_dec2025`, `midchallenge_update`
+- Lowercase IDs, friendly display names
+
+**Token Usage:**
+- Always test with Preview before sending
+- Use fallback text for optional fields
+- Test with users who have missing data (no team, 0 workouts, etc.)
+
+**Targeting Strategy:**
+- **Test first**: Always send to yourself (Custom List) before mass send
+- **Preview recipients**: NEVER skip this step
+- **Use tracking flags**: Prevent embarrassing duplicate sends
+
+**Email Content:**
+- Keep HTML simple (many email clients strip complex CSS)
+- Always provide plain text version
+- Test links before sending
+- Keep subject lines under 50 characters
+- Mobile-friendly formatting (short paragraphs, large buttons)
+
+**Campaign Workflow:**
+1. Draft template in dashboard
+2. Preview with 2-3 different users
+3. Send test to yourself (Custom List: your user_id)
+4. Check test email in inbox
+5. If good, target real audience and send
+6. Use tracking flag to prevent duplicates
 
 ---
 
@@ -174,9 +805,17 @@ Only needed when first deploying the app:
 
 ---
 
-## Email Systems
+## Legacy Email Systems
 
-### Welcome Email System (welcome_email.gs)
+⚠️ **DEPRECATED - November 2025**: These hardcoded email systems are replaced by the [Email Campaign System](#email-campaign-system). They remain documented for reference but should not be used for new campaigns.
+
+**Migration Path**: Use the [Admin Dashboard](https://martinapt8.github.io/a8-workout-app/admin/) Email Campaign System instead.
+
+---
+
+### Welcome Email System (welcome_email.gs) ⚠️ DEPRECATED
+
+**Status**: Replaced by Email Campaign System with `welcome_v1` template
 
 Sends personalized welcome emails with app links.
 
@@ -192,9 +831,20 @@ Sends personalized welcome emails with app links.
 **Required Settings:**
 - deployed_URL in Settings sheet
 
+**Why Deprecated:**
+- Hardcoded email content (cannot edit without changing code)
+- No live preview functionality
+- Limited to all active users (no flexible targeting)
+- No token-based personalization
+- Harder to maintain and update
+
+**Replacement**: Create a "Welcome Email" template in Email Campaign System with tokens for full flexibility.
+
 ---
 
-### Update Email System (update_email.gs)
+### Update Email System (update_email.gs) ⚠️ DEPRECATED
+
+**Status**: Replaced by Email Campaign System with flexible templates
 
 Sends mid-challenge update emails with new deployment links.
 
@@ -215,6 +865,14 @@ Sends mid-challenge update emails with new deployment links.
 - Subject: "Daily Dose App Update"
 - Body includes mid-challenge progress update and app improvements
 - Lists new features: backfill logging, fixed activity feed, cleaned up menu
+
+**Why Deprecated:**
+- Hardcoded email content specific to one update
+- No reusability for future updates
+- Cannot preview before sending
+- Limited targeting options
+
+**Replacement**: Create update templates in Email Campaign System with challenge-specific tokens and flexible targeting.
 
 ---
 
@@ -258,9 +916,13 @@ The custom menu system (menu.gs) provides easy access to administrative function
 
 ### Menu Items
 
+**Admin Dashboard:** ⭐ **NEW**
+- "📧 Open Admin Dashboard" → `openAdminDashboard()` - Launches web-based admin dashboard in new tab
+
 **Challenge Management:**
 - "Create New Challenge" → `promptCreateChallenge()` - Interactive prompt to create new challenge
 - "Set Active Challenge" → `promptSetActiveChallenge()` - Switch which challenge is active
+- "Set Placeholder Teams" → `promptSetPlaceholderTeams()` - Randomly assign signups to balanced teams (NEW - Nov 2025)
 - "View Challenge Stats" → `promptViewChallengeStats()` - View statistics for any challenge
 - "End Challenge" → `promptEndChallenge()` - End active challenge gracefully
 
@@ -268,8 +930,8 @@ The custom menu system (menu.gs) provides easy access to administrative function
 
 **User Management:**
 - "Migrate Form Responses" → `migrateFormResponses()`
-- "Send Welcome Email" → `sendWelcomeEmail()`
-- "Send Update Email" → `sendUpdateEmail()`
+- "Send Welcome Email" → `sendWelcomeEmail()` ⚠️ DEPRECATED - Use Email Campaign System instead
+- "Send Update Email" → `sendUpdateEmail()` ⚠️ DEPRECATED - Use Email Campaign System instead
 
 **Communication:**
 - "Send Slack Progress Update" → `sendDailyProgressSummary()`

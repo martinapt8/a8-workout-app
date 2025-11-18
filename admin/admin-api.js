@@ -198,6 +198,6 @@ const ADMIN_API = {
    */
   async getTotalWorkouts() {
     const result = await this.get('getGoalProgress');
-    return result.totalWorkouts || 0;
+    return result.total_completions || 0;
   }
 };

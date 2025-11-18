@@ -28,11 +28,11 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
   - **AI Integration**: Claude API for dynamic workout generation
 - **Admin Dashboard** (NEW - Nov 2025):
   - `admin/index.html`: Dashboard home with live stats (9.9KB)
-  - `admin/email-campaigns.html`: Email campaign composer (36KB)
-  - `admin/admin-styles.css`: A8-branded design system (14KB)
+  - `admin/email-campaigns.html`: Email campaign composer with WYSIWYG editor (41KB)
+  - `admin/admin-styles.css`: A8-branded design system (15KB)
   - `admin/admin-api.js`: API wrapper for campaign endpoints (5.8KB)
   - `admin/admin-config.js`: API configuration (880B)
-  - **Features**: Template CRUD, token helper, live preview, 3 targeting modes, campaign sending
+  - **Features**: WYSIWYG email editor (Quill.js), token insertion chips, auto-generated plain text, template CRUD, live preview, 3 targeting modes, campaign sending
   - **Access**: `https://martinapt8.github.io/a8-workout-app/admin/`
 - **Challenge Signup Dashboard** (NEW - Nov 2025):
   - `signups.html`: Public signup viewer with team assignments
@@ -80,10 +80,10 @@ Daily Dose Dev/
 │   ├── daily_dose_logo.svg
 │   └── *.svg                   # today, team, me, library, ai icons
 │
-├── admin/                      # Admin dashboard (5 files, 67KB) [NEW - Nov 2025]
+├── admin/                      # Admin dashboard (5 files, 73KB) [NEW - Nov 2025]
 │   ├── index.html              # Dashboard home (9.9KB)
-│   ├── email-campaigns.html    # Campaign composer (36KB)
-│   ├── admin-styles.css        # A8 design system (14KB)
+│   ├── email-campaigns.html    # Campaign composer with WYSIWYG editor (41KB)
+│   ├── admin-styles.css        # A8 design system (15KB)
 │   ├── admin-api.js            # API wrapper (5.8KB)
 │   └── admin-config.js         # API config (880B)
 │
@@ -468,7 +468,7 @@ The app includes several administrative systems for managing users, challenges, 
 
 | Feature | Files | Key Functions | Purpose |
 |---------|-------|---------------|---------|
-| **Email Campaign System** (NEW) | EmailCampaigns.gs, admin/email-campaigns.html | getEmailTemplates(), sendEmailCampaign() | Create, preview, and send personalized email campaigns via web dashboard |
+| **Email Campaign System** (NEW) | EmailCampaigns.gs, admin/email-campaigns.html | getEmailTemplates(), sendEmailCampaign() | Create, preview, and send personalized email campaigns via WYSIWYG web editor |
 | **Admin Dashboard** (NEW) | admin/index.html, admin-api.js | Live stats, navigation | Central hub for admin tasks with real-time data |
 | **Form Migration** | FormMigration.gs | migrateFormResponses() | Import users from Google Form responses |
 | **User Signup** | Signup.gs, signup.html | createSignupRequest() | Self-service registration with preferences |
@@ -496,8 +496,11 @@ The app includes several administrative systems for managing users, challenges, 
 **Send Email Campaign:** (NEW - Nov 2025)
 1. Open Admin Dashboard: `https://martinapt8.github.io/a8-workout-app/admin/`
 2. Navigate to "Email Campaigns"
-3. Select existing template OR create new template with tokens
-4. Preview email with real user data
+3. Select existing template OR create new template using WYSIWYG editor
+   - Use rich text formatting (bold, italic, lists, links, headers)
+   - Click token buttons to insert personalization fields as yellow chips
+   - Plain text version auto-generated from formatted content
+4. Preview email with real user data and token replacement
 5. Choose targeting mode (All Active, Challenge-Based, or Custom List)
 6. Preview recipients to verify targeting
 7. Optional: Add tracking flag to prevent duplicate sends
@@ -692,11 +695,11 @@ Add `?debug=true` to URL for console logging (implement in Code.gs)
 
 ## Project Information
 **Name**: Daily Dose - A8 Workout Challenge App V3.1
-**Version**: 3.1 (Email Campaign System + Admin Dashboard)
+**Version**: 3.1.1 (WYSIWYG Email Editor Enhancement)
 **Deployment**: GitHub Pages frontend + Google Apps Script backend
 **Status**: Production
-**Key Features**: Year-round workout logging, multi-challenge support, flexible teams, AI workouts, admin dashboard, email campaigns
-**Last Major Update**: November 2025 (Email Campaign System with Admin Dashboard)
+**Key Features**: Year-round workout logging, multi-challenge support, flexible teams, AI workouts, admin dashboard, WYSIWYG email campaigns
+**Last Major Update**: November 2025 (WYSIWYG Email Editor with Auto-Generated Plain Text)
 
 ---
 

@@ -478,6 +478,25 @@ body {
     transform: scale(0.98);
 }
 
+/* Token Chips in Quill Editor */
+.token-chip {
+    display: inline-block;
+    background: var(--primary-yellow);
+    color: var(--primary-black);
+    padding: 2px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.875em;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.token-chip:hover {
+    background: #FFD54F; /* Lighter yellow on hover */
+}
+
 /* ===== MODALS ===== */
 
 .modal-overlay {

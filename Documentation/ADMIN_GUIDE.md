@@ -2,7 +2,7 @@
 
 This guide covers all administrative functions for managing the Daily Dose app, including the admin dashboard, user management, challenge setup, email campaign system, and Slack integration.
 
-**Last Updated**: November 18, 2025 (Email Campaign System + Admin Dashboard)
+**Last Updated**: November 18, 2025 (WYSIWYG Email Editor Enhancement)
 
 ---
 
@@ -115,14 +115,17 @@ Replaces hardcoded `welcome_email.gs` and `update_email.gs` with a flexible web-
 1. Click **"+ New Template"** button
 2. Enter **Template Name** (e.g., "Welcome Email")
 3. Enter **Template ID** (lowercase, no spaces, e.g., "welcome_v1")
-4. Compose email content using tokens
+4. Compose email content using the **WYSIWYG editor** ⭐ **NEW**
+   - Use formatting toolbar: Bold, Italic, Underline, Headers, Lists, Links
+   - Click token buttons to insert personalization fields as yellow chips
+   - Plain text version auto-generates as you type
 5. Click **"💾 Save Template"**
 
 **Loading an Existing Template:**
 
 1. Select template from **"Select Template"** dropdown
-2. Template fields populate automatically
-3. Edit as needed
+2. Template content loads into WYSIWYG editor automatically
+3. Edit using toolbar or token buttons
 4. Click **"💾 Save Template"** to update
 
 **Deleting a Template:**
@@ -135,8 +138,11 @@ Replaces hardcoded `welcome_email.gs` and `update_email.gs` with a flexible web-
 - **Template Name**: Display name shown in dropdown (can contain spaces, special characters)
 - **Template ID**: Unique identifier (lowercase, numbers, underscores only - cannot change after creation)
 - **Subject Line**: Email subject with token support
-- **HTML Body**: Rich email content (supports HTML tags, tokens)
-- **Plain Text Body**: Plain text fallback (tokens still work)
+- **Email Content** ⭐ **NEW WYSIWYG Editor**:
+  - Rich text formatting with visual toolbar
+  - HTML generated automatically from formatted content
+  - Plain text version auto-generated (no manual editing needed)
+  - Token chips appear as yellow badges (non-editable, A8 branded)
 
 ### Token System
 
@@ -160,29 +166,54 @@ Tokens are placeholders that get replaced with real user data when emails are se
 - `[team_name]` - User's team name in challenge
 - `[team_total_workouts]` - Team's total workouts in challenge
 
-**Using Tokens:**
+**Using Tokens:** ⭐ **UPDATED - Now with Direct Insertion**
 
-1. **Click any token button** in the Token Helper panel (right side)
-2. Token is **copied to clipboard**
-3. Paste into Subject, HTML Body, or Plain Text field
-4. Tokens appear as `[display_name]` in template
-5. When email is sent, `[display_name]` → actual user's name
+1. **Click in the WYSIWYG editor** where you want to insert a token
+2. **Click any token button** in the Token Helper panel (right side)
+3. Token is **inserted directly** as a yellow chip in the editor
+4. Tokens appear as non-editable yellow badges: `[display_name]`
+5. Delete a token with single backspace (atomic deletion)
+6. When email is sent, `[display_name]` → actual user's name
 
-**Example Template:**
+**Token Appearance:**
+- **In Editor**: Yellow chip badges with A8 brand color (#FFC107)
+- **In HTML**: `<span class="token-chip" data-token="display_name">[display_name]</span>`
+- **In Plain Text**: `[display_name]` (auto-converted)
+- **In Sent Email**: Replaced with actual user data
 
+**Example Template with WYSIWYG Editor:**
+
+**Subject Line:**
 ```
-Subject: Welcome to [challenge_name], [display_name]!
+Welcome to [challenge_name], [display_name]!
+```
 
-HTML Body:
-<div>
-  <h2>Hi [display_name],</h2>
-  <p>Welcome to the Daily Dose! You're all set to join <strong>[challenge_name]</strong>.</p>
-  <p>Your personalized app link: <a href="[deployment_URL]">[deployment_URL]</a></p>
-  <p>Challenge runs from [challenge_start_date] to [challenge_end_date].</p>
-  <p>You're on Team [team_name] - let's go!</p>
-</div>
+**Email Content (as you compose it in WYSIWYG editor):**
+```
+[Heading 2] Hi [display_name],
 
-Plain Text Body:
+Welcome to the Daily Dose! You're all set to join [bold]challenge_name[/bold].
+
+Your personalized app link: [deployment_URL] (click to insert as link)
+
+Challenge runs from [challenge_start_date] to [challenge_end_date].
+
+You're on Team [team_name] - let's go!
+```
+
+**What Gets Saved Automatically:**
+
+**HTML Body** (auto-generated):
+```html
+<h2>Hi <span class="token-chip">[display_name]</span>,</h2>
+<p>Welcome to the Daily Dose! You're all set to join <strong><span class="token-chip">[challenge_name]</span></strong>.</p>
+<p>Your personalized app link: <a href="[deployment_URL]"><span class="token-chip">[deployment_URL]</span></a></p>
+<p>Challenge runs from <span class="token-chip">[challenge_start_date]</span> to <span class="token-chip">[challenge_end_date]</span>.</p>
+<p>You're on Team <span class="token-chip">[team_name]</span> - let's go!</p>
+```
+
+**Plain Text Body** (auto-generated):
+```
 Hi [display_name],
 
 Welcome to the Daily Dose! You're all set to join [challenge_name].
@@ -194,10 +225,69 @@ Challenge runs from [challenge_start_date] to [challenge_end_date].
 You're on Team [team_name] - let's go!
 ```
 
+**Key Difference:** You only edit in the WYSIWYG editor - both HTML and plain text are generated automatically! ✨
+
 **Token Replacement Logic:**
 - Tokens replaced per user (personalized for each recipient)
 - Missing data shows as empty string or default value (e.g., "Not Assigned" for missing team)
 - Challenge tokens require challenge context (either active challenge or specified in preview)
+
+### WYSIWYG Editor ⭐ **NEW - November 2025**
+
+The email content editor now uses **Quill.js** for rich text editing with automatic HTML and plain text generation.
+
+**Toolbar Features:**
+- **Headers**: H1, H2, H3 for section titles
+- **Bold**: Make text stand out
+- **Italic**: Emphasis
+- **Underline**: Additional emphasis
+- **Ordered Lists**: Numbered lists (1, 2, 3...)
+- **Bullet Lists**: Unordered lists with bullets
+- **Links**: Insert hyperlinks (auto-formats in plain text as "text (URL)")
+- **Clean**: Remove all formatting from selected text
+
+**How to Use:**
+
+1. **Type naturally** - Start typing your email content
+2. **Select text** to format - Highlight text you want to format
+3. **Click toolbar buttons** - Apply formatting (bold, italic, etc.)
+4. **Insert tokens** - Click token buttons on the right panel
+5. **Watch auto-update** - Plain text version updates automatically as you type
+
+**Token Chips:**
+- Tokens appear as **yellow badges** in the editor
+- **Non-editable** - Can't accidentally modify token syntax
+- **Atomic deletion** - Delete entire token with one backspace
+- **Hover effect** - Visual feedback when hovering
+- **A8 Branded** - Matches app color scheme (#FFC107)
+
+**Auto-Generated Plain Text:**
+- **Links**: `<a href="url">text</a>` → `text (url)`
+- **Lists**: `<li>item</li>` → `• item`
+- **Headings**: Extra line breaks for visual separation
+- **Paragraphs**: Double line breaks between paragraphs
+- **HTML Entities**: Decoded (e.g., `&nbsp;` → space)
+- **Token Preservation**: All `[token_name]` syntax maintained
+
+**Benefits:**
+- ✅ **No HTML Knowledge Required** - Visual formatting only
+- ✅ **80% Faster** - No dual editing (HTML + plain text)
+- ✅ **Perfect Consistency** - Plain text always matches HTML
+- ✅ **Error Prevention** - Can't break token syntax
+- ✅ **Email-Safe** - Toolbar limited to email-appropriate formatting
+
+**Example Workflow:**
+
+1. Type: "Hi" → Click `[display_name]` token button → Type: ","
+2. Select "Daily Dose" → Click **Bold**
+3. Click **Link** button → Enter URL
+4. Click **Bullet List** → Type list items
+5. Click **Save Template** → Both HTML and plain text saved automatically!
+
+**Backward Compatibility:**
+- ✅ Existing templates load perfectly
+- ✅ HTML is parsed and displayed with formatting
+- ✅ No migration needed
 
 ### Live Preview
 

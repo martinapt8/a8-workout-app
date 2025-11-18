@@ -286,7 +286,7 @@ function doPost(e) {
         if (!targetingOptions) {
           result = { success: false, error: 'Missing targetingOptions parameter' };
         } else {
-          result = getTargetedUsers(targetingOptions);
+          result = { users: getTargetedUsers(targetingOptions) };
         }
         break;
 

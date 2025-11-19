@@ -21,11 +21,11 @@
     <meta name="theme-color" content="#000000">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20251118-1">
+    <link rel="stylesheet" href="styles.css?v=20251118-2">
 
     <!-- API Configuration and Helper -->
-    <script src="config.js?v=20251118-1"></script>
-    <script src="api.js?v=20251118-1"></script>
+    <script src="config.js?v=20251118-2"></script>
+    <script src="api.js?v=20251118-2"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -474,6 +474,16 @@
                 userData = await API.getDashboard(userId);
                 const apiEnd = performance.now();
                 console.log(`API call completed in ${(apiEnd - apiStart).toFixed(0)}ms`);
+
+                // DEBUG: Log full API response
+                console.log('=== FULL API RESPONSE ===');
+                console.log('userData:', userData);
+                console.log('challenge:', userData.challenge);
+                console.log('user.team_name:', userData.user?.team_name);
+                console.log('user.team_color:', userData.user?.team_color);
+                console.log('goalProgress:', userData.goalProgress);
+                console.log('myTeamBreakdown:', userData.myTeamBreakdown);
+                console.log('========================');
 
                 // Handle no active challenge (off-season mode)
                 if (userData.offSeasonMode) {

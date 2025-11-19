@@ -24,6 +24,33 @@ fi
 echo "✅ config.js has been updated"
 echo ""
 
+# Check cache-busting versions
+echo "🔍 Checking cache-busting versions..."
+echo ""
+echo "Found the following cache-busting versions in HTML files:"
+grep -h "?v=" *.html admin/*.html 2>/dev/null | grep -o "?v=[0-9-]*" | sort -u || echo "  (none found)"
+echo ""
+read -p "Are all cache-busting versions up-to-date and consistent? (y/n): " VERSION_OK
+if [ "$VERSION_OK" != "y" ] && [ "$VERSION_OK" != "Y" ]; then
+    echo ""
+    echo "❌ Please update cache-busting versions before deploying"
+    echo ""
+    echo "Instructions:"
+    echo "1. Use format: YYYYMMDD-N (e.g., 20251119-1)"
+    echo "2. Update ALL HTML files with the same version:"
+    echo "   - index.html (styles.css, config.js, api.js)"
+    echo "   - signup.html (styles.css, config.js, api.js)"
+    echo "   - signup_challenge.html (styles.css, config.js, api.js)"
+    echo "   - signups.html (styles.css, config.js, api.js)"
+    echo "   - admin/index.html (admin-styles.css, admin-config.js, admin-api.js)"
+    echo "   - admin/email-campaigns.html (admin-styles.css, admin-config.js, admin-api.js)"
+    echo "3. See DEPLOYMENT_AND_WORKFLOW.md for details"
+    echo ""
+    exit 1
+fi
+echo "✅ Cache-busting versions confirmed"
+echo ""
+
 # Check if git is initialized
 if [ ! -d ".git" ]; then
     echo "📦 Initializing git repository..."

@@ -49,7 +49,28 @@ Production Environment:
 - [ ] Test API directly in browser: `YOUR_API_URL?action=getDashboard&userId=yourname`
 - [ ] Claude API key is in Script Properties (if using AI)
 
-### 4. Documentation Review
+### 4. Update Cache-Busting Versions
+**CRITICAL: Update version parameters to ensure users get fresh files**
+
+Version format: `YYYYMMDD-N` (date + daily increment counter)
+
+- [ ] Update version in **ALL** HTML files to today's date (or increment if multiple deploys today):
+  - [ ] `index.html` (lines: styles.css, config.js, api.js)
+  - [ ] `signup.html` (lines: styles.css, config.js, api.js)
+  - [ ] `signup_challenge.html` (lines: styles.css, config.js, api.js)
+  - [ ] `signups.html` (lines: styles.css, config.js, api.js)
+  - [ ] `admin/index.html` (lines: admin-styles.css, admin-config.js, admin-api.js)
+  - [ ] `admin/email-campaigns.html` (lines: admin-styles.css, admin-config.js, admin-api.js)
+- [ ] Verify all files have **consistent version numbers** (use `grep -h "?v=" *.html admin/*.html | sort -u`)
+- [ ] Document version in CHANGELOG.md commit message
+
+**Example**: If deploying on Nov 19, 2025:
+- First deploy of the day: `?v=20251119-1`
+- Second deploy of the day: `?v=20251119-2`
+
+**Note**: Cache-busting ensures users automatically receive updates without clearing browser cache or re-bookmarking.
+
+### 5. Documentation Review
 - [ ] README.md has correct deployment instructions
 - [ ] Config.js has correct API URL (or instructions to update)
 - [ ] All documentation files are up to date

@@ -147,8 +147,7 @@ Daily Dose Dev/
 |--------|-------|---------|-------------|
 | A | user_id | meg | Unique identifier (lowercase, user-controlled) |
 | B | display_name | 🎯 Megan | Display name with optional emoji (shown in app/boards) |
-| E | total_workouts | 47 | Workout count for active challenge only (per-challenge tracking) |
-| F | last_completed | 10/31/2025 | Date of last workout (any challenge) |
+| - | last_completed | 10/31/2025 | Date of last workout (any challenge) |
 | - | email | megan@example.com | User email address |
 | - | full_name | Megan Smith | Full legal name |
 | - | join_date | 10/1/2025 | Date user first joined app |
@@ -161,7 +160,7 @@ Daily Dose Dev/
 
 **Note**: Column order may vary. Backend uses header-based mapping for flexibility.
 
-**Important**: `total_workouts` tracks workouts for the ACTIVE challenge only (updated by `updateUserStats()` when workouts are logged). Lifetime workout counts are calculated on-demand via `getLifetimeWorkoutCount()` and returned in API responses as `lifetime_workouts`. Per-challenge historical totals are calculated from Completions by filtering on `challenge_id`.
+**Important**: All workout counts are calculated on-demand from the Completions sheet. Lifetime workout counts are calculated via `getLifetimeWorkoutCount()` and returned in API responses as `lifetime_workouts`. Per-challenge historical totals are calculated from Completions by filtering on `challenge_id`.
 
 ### Sheet 2: Workouts
 | Column | Field | Example | Description |
@@ -265,8 +264,10 @@ Daily Dose Dev/
 
 **Token Support** - Use these placeholders in subject, html_body, and plain_body:
 - **User tokens**: `[display_name]`, `[deployment_URL]`, `[lifetime_workouts]`
-- **Challenge tokens**: `[challenge_name]`, `[challenge_start_date]`, `[challenge_end_date]`, `[days_remaining]`, `[total_workouts]`
+- **Challenge tokens**: `[challenge_name]`, `[challenge_start_date]`, `[challenge_end_date]`, `[days_remaining]`
 - **Team tokens**: `[team_name]`, `[team_total_workouts]`
+
+**Note**: The `[total_workouts]` token was removed in November 2025 as it duplicated functionality with `[lifetime_workouts]`. Use `[lifetime_workouts]` for total workout counts or calculate challenge-specific counts on-demand from Completions.
 
 **Integration**: Used by `EmailCampaigns.gs` for template-based email campaigns. Replaces hardcoded email system from `welcome_email.gs` and `update_email.gs`.
 
@@ -521,6 +522,69 @@ See `Documentation/ADMIN_GUIDE.md` for detailed procedures, validation rules, an
 - Deploy backend (Google Apps Script as Web App)
 - Deploy frontend (GitHub Pages)
 - Optional: Configure Claude API key for AI workouts
+
+### Cache-Busting Strategy
+**Purpose**: Ensure users automatically receive updates without clearing browser cache or re-bookmarking their personal URL.
+
+**How it works**: All CSS and JavaScript files are loaded with version query parameters (e.g., `styles.css?v=20251119-1`). When the version changes, browsers treat it as a new file and fetch fresh content.
+
+**Version Format**: `YYYYMMDD-N`
+- `YYYYMMDD`: Date of deployment (e.g., 20251119)
+- `N`: Daily increment counter (1, 2, 3...) for multiple deploys on same day
+
+**Files using cache-busting**:
+- **Main App** (`index.html`): `styles.css`, `config.js`, `api.js`
+- **Signup Pages** (`signup.html`, `signup_challenge.html`): `styles.css`, `config.js`, `api.js`
+- **Signups Viewer** (`signups.html`): `styles.css`, `config.js`, `api.js`
+- **Admin Dashboard** (`admin/index.html`, `admin/email-campaigns.html`): `admin-styles.css`, `admin-config.js`, `admin-api.js`
+
+**When to update versions**:
+- ✅ **ALWAYS** before deploying any frontend changes (CSS, JS, HTML)
+- ✅ When updating API endpoint URL in `config.js` or `admin-config.js`
+- ✅ When adding new features or fixing bugs
+- ❌ **NOT needed** for backend-only changes (Google Apps Script updates)
+- ❌ **NOT needed** for documentation-only updates
+
+**How to update**:
+1. Determine today's date (e.g., Nov 19, 2025 → `20251119`)
+2. Check if you've already deployed today:
+   - First deploy: Use `-1` (e.g., `20251119-1`)
+   - Second deploy: Use `-2` (e.g., `20251119-2`)
+3. Update version parameter in **ALL** HTML files (see list above)
+4. Verify consistency: `grep -h "?v=" *.html admin/*.html | sort -u`
+5. Deploy using `./deploy.sh` (includes version check reminder)
+6. Document version in CHANGELOG.md commit message
+
+**What gets updated automatically**:
+- ✅ CSS styling changes
+- ✅ JavaScript logic changes
+- ✅ API endpoint URL changes (via `config.js`)
+- ✅ All HTML content changes
+
+**What does NOT update automatically**:
+- ❌ GitHub Pages domain changes (users would need new bookmark)
+- ❌ URL parameter format changes (e.g., `?user=` → `?id=`)
+- ❌ LocalStorage schema breaking changes
+- ❌ Service Worker breaking changes (if PWA features added)
+
+**Deployment safeguards**:
+- `deploy.sh` checks version consistency before deployment
+- `DEPLOYMENT_AND_WORKFLOW.md` includes Pre-Deployment Checklist with version update steps
+- Version check displays all unique versions found across HTML files for verification
+
+**Example workflow**:
+```bash
+# 1. Make frontend changes
+# 2. Update versions in all HTML files
+grep -rn "?v=" *.html admin/*.html  # Find all version strings
+# Replace 20251118-2 with 20251119-1 in all files
+# 3. Run deployment
+./deploy.sh  # Script will verify versions are consistent
+# 4. Document in CHANGELOG
+git commit -m "feat: Add new feature (cache-busting: 20251119-1)"
+```
+
+See `Documentation/DEPLOYMENT_AND_WORKFLOW.md` for detailed deployment procedures.
 
 ### Challenge Management
 - **Create**: "A8 Custom Menu" → "Create New Challenge"

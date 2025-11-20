@@ -10,32 +10,20 @@
         /* Full-width layout for embed page */
         .sheets-container {
             margin-left: 250px;
-            padding: 2rem;
+            padding: 0;
             max-width: none; /* Override default max-width for full embed */
-        }
-
-        .sheets-header {
-            margin-bottom: 1.5rem;
-        }
-
-        .sheets-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--primary-black);
-            margin: 0;
+            height: 100vh;
         }
 
         .sheets-embed-container {
             background: white;
-            border-radius: 8px;
-            box-shadow: var(--shadow);
             overflow: hidden;
-            border: 1px solid var(--gray-200);
+            height: 100vh;
         }
 
         .sheets-embed-container iframe {
             width: 100%;
-            height: calc(100vh - 140px); /* Full height minus header and padding */
+            height: 100vh; /* Full viewport height */
             border: none;
             display: block;
         }
@@ -52,21 +40,6 @@
             font-size: 3rem;
             display: block;
             margin-bottom: 1rem;
-        }
-
-        /* Info banner */
-        .info-banner {
-            background-color: #FFF9E6;
-            border: 1px solid #FFC107;
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            color: #856404;
-        }
-
-        .info-banner strong {
-            color: #000;
         }
     </style>
 </head>
@@ -115,16 +88,6 @@
 
     <!-- Main Content -->
     <main class="sheets-container">
-        <div class="sheets-header">
-            <h1>Google Sheets Database</h1>
-        </div>
-
-        <!-- Info Banner -->
-        <div class="info-banner">
-            <strong>💡 Full Google Sheets Interface:</strong> You can view, edit, and access custom menus (including Apps Script menus) directly below.
-            If prompted to sign in, use your Google account with edit permissions for this sheet.
-        </div>
-
         <div class="sheets-embed-container">
             <div class="loading-message" id="loadingMessage">
                 Loading Google Sheets...

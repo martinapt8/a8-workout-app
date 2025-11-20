@@ -366,6 +366,17 @@ For complete function signatures, parameters, return values, and implementation 
   - Validates no future dates
   - Sets timestamps to 6 PM (18:00) for consistent date handling
   - Challenge date boundary enforcement
+- **Profile Editing** (on Me page - added Nov 2025)
+  - Self-service editing of display_name, preferred_duration, and equipment_available
+  - Collapsed by default (click "Edit Profile" to expand) - healthy friction
+  - Pre-populates form with current user values from Users sheet
+  - Duration selection (10/20/30 min) - single-select button UI
+  - Equipment selection (Bodyweight/Kettlebell/Dumbbell/Bands/Full Gym) - multi-select button UI
+  - Frontend validation (display_name 1-50 chars required, duration required)
+  - Backend validation with specific error messages
+  - Full page refresh after successful save to update all UI
+  - Mobile-responsive with equipment grid collapsing to single column on small screens
+  - Works on PWA saved to home screen
 - **Upcoming Challenges Display** (on Me page)
   - Shows all challenges with status='upcoming' for sign-up awareness
   - Visible to ALL users regardless of participation or team status
@@ -436,6 +447,18 @@ For complete function signatures, parameters, return values, and implementation 
 - PWA capabilities for "Add to Home Screen" functionality
 
 ### 🔍 Next Testing Focus
+- **Profile Editing** (recent addition - November 20, 2025)
+  - Test Edit Profile button expand/collapse on desktop and mobile
+  - Verify display_name, duration, and equipment pre-populate correctly
+  - Test duration button selection (single-select, yellow highlight)
+  - Test equipment button selection (multi-select, yellow highlights)
+  - Verify validation messages (empty name, no duration selected)
+  - Test Save button → full page refresh → verify changes appear everywhere
+  - Test Cancel button → form collapses without saving
+  - Mobile: verify equipment grid collapses to single column on small screens
+  - Mobile: verify touch targets are adequate (44px minimum)
+  - PWA: test on home screen saved app
+  - Edge cases: very long display names (50 char limit), special characters, emojis
 - **Multi-month calendar navigation** (recent addition - November 4, 2025)
   - Test prev/next month buttons on desktop and mobile
   - Verify year rollover (Dec 2025 → Jan 2026)
@@ -752,11 +775,11 @@ Add `?debug=true` to URL for console logging (implement in Code.gs)
 
 ## Project Information
 **Name**: Daily Dose - A8 Workout Challenge App V3.1
-**Version**: 3.1.1 (WYSIWYG Email Editor Enhancement)
+**Version**: 3.1.2 (Profile Editing Feature)
 **Deployment**: GitHub Pages frontend + Google Apps Script backend
 **Status**: Production
-**Key Features**: Year-round workout logging, multi-challenge support, flexible teams, AI workouts, admin dashboard, WYSIWYG email campaigns
-**Last Major Update**: November 2025 (WYSIWYG Email Editor with Auto-Generated Plain Text)
+**Key Features**: Year-round workout logging, multi-challenge support, flexible teams, AI workouts, admin dashboard, WYSIWYG email campaigns, self-service profile editing
+**Last Major Update**: November 2025 (Self-Service Profile Editing on Me Page)
 
 ---
 

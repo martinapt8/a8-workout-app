@@ -486,7 +486,9 @@ function getUserInfo(ss, userId) {
         user_id: data[i][headers['user_id']],
         display_name: data[i][headers['display_name']],
         last_completed: data[i][headers['last_completed']] ? formatDate(data[i][headers['last_completed']], ss) : null,
-        join_date: data[i][headers['join_date']] ? formatDate(data[i][headers['join_date']], ss) : null
+        join_date: data[i][headers['join_date']] ? formatDate(data[i][headers['join_date']], ss) : null,
+        preferred_duration: data[i][headers['preferred_duration']] || null,
+        equipment_available: data[i][headers['equipment_available']] || null
       };
     }
   }

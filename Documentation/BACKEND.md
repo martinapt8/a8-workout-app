@@ -23,9 +23,6 @@ The backend is a RESTful API built with Google Apps Script that processes form-e
 | Slack.gs | 16KB | Slack notifications | sendDailyProgressSummary(), sendDailyReminder() |
 | welcome_email.gs | 11KB | Welcome emails | sendWelcomeEmail() |
 | update_email.gs | 13KB | Update emails | sendUpdateEmail() |
-| FormMigration.gs | 12KB | Form response import | migrateFormResponses() |
-| MigrationScripts.gs | 18KB | V2→V3 migration utilities | (historical, not actively used) |
-| TestingFunctions.gs | 12KB | Backend testing suite | testUserDashboard(), testWorkoutCompletion() |
 | AutoSort.gs | 3KB | Auto-sort completions | onEdit() trigger |
 | menu.gs | 9KB | Custom spreadsheet menu | onOpen(), promptCreateChallenge() |
 
@@ -35,16 +32,13 @@ The project includes several Google Apps Script files for different functionalit
 
 1. **Code.gs**: Core web app functions and REST API (main entry point)
 2. **ClaudeAPI.gs**: AI workout generation via Claude API
-3. **FormMigration.gs**: Migrates form responses to Users table
-4. **Signup.gs**: User signup and preference management
-5. **welcome_email.gs**: Sends personalized welcome emails with app links
-6. **update_email.gs**: Sends mid-challenge update emails with new deployment links
-7. **Slack.gs**: Slack notifications and progress updates
-8. **AdminChallenges.gs**: Challenge creation and management functions
-9. **menu.gs**: Creates custom spreadsheet menu for admin functions
-10. **MigrationScripts.gs**: Multi-challenge migration utilities
-11. **TestingFunctions.gs**: Testing suite for backend validation
-12. **AutoSort.gs**: Auto-sorts Completions sheet by timestamp
+3. **Signup.gs**: User signup and preference management
+4. **welcome_email.gs**: Sends personalized welcome emails with app links
+5. **update_email.gs**: Sends mid-challenge update emails with new deployment links
+6. **Slack.gs**: Slack notifications and progress updates
+7. **AdminChallenges.gs**: Challenge creation and management functions
+8. **menu.gs**: Creates custom spreadsheet menu for admin functions
+9. **AutoSort.gs**: Auto-sorts Completions sheet by timestamp
 
 ---
 
@@ -67,6 +61,21 @@ Returns the currently active challenge from Challenges sheet:
 - Returns challenge object with id, name, dates, goal, and status
 - Returns null if no active challenge
 - **Critical**: Only one challenge should have status='active' at a time
+- **Note**: For backfilled workouts, use `getChallengeActiveOnDate()` instead to get the challenge active on a specific date
+
+### `getChallengeActiveOnDate(ss, targetDate)` (NEW - Nov 19, 2025)
+Returns which challenge was active on a specific date (for backfilling workouts):
+- **Parameters**:
+  - `ss`: Spreadsheet object
+  - `targetDate`: JavaScript Date object to check
+- **Logic**: Searches Challenges sheet for challenge where `start_date <= targetDate <= end_date`
+- **Returns**: Challenge object (regardless of current status) or null if no challenge was active on that date
+- **Purpose**: Ensures backfilled workouts get assigned to the correct historical challenge, not the current active challenge
+- **Example Use Case**:
+  - December Challenge ended (status='completed')
+  - January Challenge now active (status='active')
+  - User backlogs Dec 15 workout → should get `dec_2025`, not `jan_2026`
+- **Date Handling**: Normalizes dates to midnight for accurate boundary comparisons
 
 ### `getActiveWorkout(challengeId)`
 Returns the current workout based on today's date and challenge:
@@ -77,17 +86,36 @@ Returns the current workout based on today's date and challenge:
 - Returns newest if overlap exists
 - Returns null if no active workout
 
-### `markWorkoutComplete(userId, workoutType, workoutDetails, completionDate)`
-Records a workout completion:
-- `workoutType`: "prescribed" (uses active workout_id), "other" (logs as "Other Workout"), or "ai" (logs as "AI Workout")
-- `workoutDetails`: Optional text description for "other" workouts (e.g., "30 min run") or AI parameters
-- `completionDate`: Optional date string (YYYY-MM-DD) for backfilling past workouts
-- **Automatically assigns `challenge_id`** from active challenge (or "year_round" if no active challenge)
-- Triggers `updateUserStats()` to update total_workouts and last_completed
-- Adds entry to Completions sheet with challenge_id in column F
-- Prevents duplicate logging for same date
-- Validates dates are not in the future
-- **Supports year-round logging** even when no challenge is active
+### `markWorkoutComplete(userId, workoutType, workoutDetails, completionDate)` (UPDATED - Nov 19, 2025)
+Records a workout completion with intelligent challenge attribution:
+- **Parameters**:
+  - `userId`: User identifier
+  - `workoutType`: "prescribed" (uses active workout_id), "other" (logs as "Other Workout"), or "ai" (logs as "AI Workout")
+  - `workoutDetails`: Optional text description for "other" workouts (e.g., "30 min run") or AI parameters
+  - `completionDate`: Optional date string (YYYY-MM-DD) for backfilling past workouts
+- **Challenge Attribution Logic** (FIXED Nov 19, 2025):
+  - **Current day workouts**: Uses `getActiveChallenge()` to find currently active challenge
+  - **Backfilled workouts**: Uses `getChallengeActiveOnDate(targetDate)` to find challenge active on completion date
+  - **Challenge participation check**: Verifies user is in Challenge_Teams for the relevant challenge
+  - **Challenge participants**: `challenge_id = active_challenge_id` (counts toward challenge goal)
+  - **Non-participants**: `challenge_id = null` (year-round workout, doesn't count toward goal)
+  - **No active challenge**: `challenge_id = null` (year-round workout)
+- **Workout Lookup** (FIXED Nov 19, 2025):
+  - For prescribed workouts: Uses `relevantChallenge.challenge_id` to find workout (even for non-participants)
+  - Allows non-challenge users to complete prescribed workouts during active challenges
+  - Still stores their completion with `challenge_id = null`
+- **Data Storage**: Adds entry to Completions sheet with:
+  - `timestamp`: Completion date/time (6 PM for backfills, current time for today)
+  - `user_id`: User identifier
+  - `workout_id`: Prescribed workout ID, "AI Workout", or "Other Workout"
+  - `team_name`: User's team for this challenge (null if not participating)
+  - `other_workout_details`: Description or AI parameters
+  - `challenge_id`: Assigned challenge ID or null
+- **Validations**:
+  - Prevents duplicate logging for same date (using correct challenge_id)
+  - Validates dates are not in the future
+  - Checks user exists in Users sheet
+- **Year-Round Support**: Users can log workouts anytime, with or without active challenges
 
 ### `getGoalProgress(challengeId)`
 Returns collective progress data for a specific challenge:
@@ -174,7 +202,7 @@ Generates AI-powered workout using Claude API (ClaudeAPI.gs):
 Returns total workout count across all challenges and year-round:
 - Counts all completions for user regardless of challenge_id
 - Used for dashboard API to populate `lifetime_workouts` field
-- More comprehensive than Users.total_workouts (which is per-challenge)
+- **Single source of truth**: All workout counts calculated from Completions sheet
 - **Performance**: Single pass through Completions sheet
 
 ### `getUserAllChallengeStats(ss, userId)`
@@ -182,7 +210,7 @@ Returns user's challenge history AND upcoming challenges for all users (powers M
 - Returns object with two arrays:
   - **userChallenges**: User's historical challenges with:
     - challenge_id, challenge_name
-    - workout_count (user's completions for that challenge)
+    - workout_count (user's completions for that challenge, defaults to 0)
     - team_name, team_color (from Challenge_Teams)
     - start_date, end_date (formatted as MM/DD/YYYY)
     - Includes "year_round" as special challenge for off-season workouts
@@ -192,7 +220,12 @@ Returns user's challenge history AND upcoming challenges for all users (powers M
     - start_date, end_date (formatted as MM/DD/YYYY)
     - Visible to ALL users regardless of participation (for sign-up awareness)
     - Sorted by start_date (earliest first)
+- **Data Sources**:
+  - Checks **Completions sheet** for workout counts
+  - Checks **Challenge_Teams sheet** for user registrations (ensures challenges show even with 0 workouts)
+  - Enriches with challenge details from Challenges sheet
 - **Use Case**: Displays "My Challenges" section on Me page with both historical and upcoming
+- **Fix (Nov 19, 2025)**: Now includes challenges user signed up for even if they haven't logged a workout yet
 
 ### `getChallengeSignups(ss, challengeId)`
 Returns all signups for a specific challenge (powers signups.html page):
@@ -286,13 +319,6 @@ Reads Settings sheet and returns object with all key-value pairs
 ### `getUserInfo(ss, userId)`
 Finds user by user_id (case-insensitive) and returns user data
 
-### `updateUserStats(ss, userId)`
-Updates user's total_workouts and last_completed fields:
-- Counts completions for active challenge only
-- Updates Users sheet columns: total_workouts, last_completed
-- Called automatically by `markWorkoutComplete()`
-- **Note**: For lifetime totals, use `getLifetimeWorkoutCount()` instead
-
 ### `getTeamTotals(ss, challengeId)`
 Aggregates workout totals by team for a specific challenge:
 - Filters completions by `challenge_id`
@@ -339,11 +365,10 @@ Ends the active challenge gracefully:
 ### Related Documentation
 - **[CLAUDE.md](../CLAUDE.md)** - Main project documentation with database schema, architecture, and quick reference
 - **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** - Complete admin procedures, email systems, Slack integration, challenge setup
-- **[TESTING_FUNCTIONS_GUIDE.md](TESTING_FUNCTIONS_GUIDE.md)** - Backend testing suite and procedures
 - **[DEPLOYMENT_AND_WORKFLOW.md](DEPLOYMENT_AND_WORKFLOW.md)** - Deployment procedures and troubleshooting
 
 ### Quick Links
 - For database schema (Google Sheets structure), see CLAUDE.md
 - For API endpoint contracts, see CLAUDE.md
 - For frontend integration, see FRONTEND_PAGES.md
-- For testing backend functions, see TESTING_FUNCTIONS_GUIDE.md
+- For testing and debugging, use Apps Script Executions log in the editor

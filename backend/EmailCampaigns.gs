@@ -247,7 +247,7 @@ function getTokenDataForUser(userId, challengeId = null) {
   if (userInfo) {
     tokenData.display_name = cleanDisplayNameForEmail(userInfo.display_name);
     tokenData.deployment_URL = getDeployedUrlForEmail() + '?user=' + userId;
-    tokenData.lifetime_workouts = getLifetimeWorkoutCount(userId);
+    tokenData.lifetime_workouts = getLifetimeWorkoutCount(ss, userId);
   }
 
   // Get challenge info (use active challenge if not specified)
@@ -315,39 +315,6 @@ function getEmailCampaignChallengeById(challengeId) {
 }
 
 /**
- * Get user's team assignment for a specific challenge
- * @param {string} userId - User ID
- * @param {string} challengeId - Challenge ID
- * @returns {Object|null} Team info or null
- */
-function getUserTeamForChallenge(userId, challengeId) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName('Challenge_Teams');
-
-  if (!sheet) return null;
-
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-
-  const colMap = {};
-  headers.forEach((header, index) => {
-    colMap[header] = index;
-  });
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    if (row[colMap['user_id']] === userId && row[colMap['challenge_id']] === challengeId) {
-      return {
-        team_name: row[colMap['team_name']],
-        team_color: row[colMap['team_color']]
-      };
-    }
-  }
-
-  return null;
-}
-
-/**
  * Get user's workout count for a specific challenge
  * @param {string} userId - User ID
  * @param {string} challengeId - Challenge ID
@@ -402,36 +369,6 @@ function getTeamChallengeWorkoutCount(teamName, challengeId) {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     if (row[colMap['team_name']] === teamName && row[colMap['challenge_id']] === challengeId) {
-      count++;
-    }
-  }
-
-  return count;
-}
-
-/**
- * Get lifetime workout count for a user (all challenges)
- * @param {string} userId - User ID
- * @returns {number} Total workout count
- */
-function getLifetimeWorkoutCount(userId) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName('Completions');
-
-  if (!sheet) return 0;
-
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-
-  const colMap = {};
-  headers.forEach((header, index) => {
-    colMap[header] = index;
-  });
-
-  let count = 0;
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    if (row[colMap['user_id']] === userId) {
       count++;
     }
   }

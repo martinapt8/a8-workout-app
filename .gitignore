@@ -35,3 +35,13 @@ build/
 # Sample data with PII (Personal Identifiable Information)
 SampleData/
 *.csv
+
+# Archive folders
+archive/
+Documentation/archive/
+
+# Assets/Graphics (large files)
+Loop Graphics/
+
+# Unrelated projects
+holiday_lights/

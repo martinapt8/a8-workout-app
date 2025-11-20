@@ -134,8 +134,8 @@
 - [ ] User_id and team_name are correct
 
 ### Users Sheet
-- [ ] total_workouts increments correctly
 - [ ] last_completed updates to most recent date
+- [ ] lifetime_workouts calculated correctly from Completions (via API response)
 
 ## Performance Testing
 - [ ] Initial page load is under 3 seconds

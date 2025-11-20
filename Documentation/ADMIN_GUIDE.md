@@ -164,11 +164,12 @@ Tokens are placeholders that get replaced with real user data when emails are se
 - `[challenge_start_date]` - Challenge start date (formatted)
 - `[challenge_end_date]` - Challenge end date (formatted)
 - `[days_remaining]` - Days left in challenge
-- `[total_workouts]` - User's workouts in specified challenge
 
 **Team Tokens:**
 - `[team_name]` - User's team name in challenge
 - `[team_total_workouts]` - Team's total workouts in challenge
+
+**Note**: The `[total_workouts]` token was deprecated in November 2025. Use `[lifetime_workouts]` for total counts or calculate challenge-specific counts programmatically if needed.
 
 **Using Tokens:** ⭐ **UPDATED - Now with Direct Insertion**
 
@@ -1061,7 +1062,7 @@ Managing the app during off-challenge periods:
 
 - **No Active Challenge**: Users can still log workouts (stored with NULL `challenge_id`)
 - **Year-Round Workouts**: Add workouts to Workouts sheet with NULL `challenge_id` to make them available anytime
-- **Lifetime Stats**: Users' total_workouts field tracks all workouts across all challenges
+- **Lifetime Stats**: All workout counts calculated on-demand from Completions sheet
 - **Historical Data**: All past challenge data remains in Completions sheet for future analysis
 
 ---

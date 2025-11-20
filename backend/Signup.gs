@@ -137,10 +137,6 @@ function createSignupRequest(data) {
       newRow[indices.total_workouts] = 0;
     }
 
-    if (indices.last_completed !== -1) {
-      newRow[indices.last_completed] = '';
-    }
-
     // Leave active_user empty for admin review
     if (indices.active_user !== -1) {
       newRow[indices.active_user] = '';
@@ -567,7 +563,11 @@ function getChallengeInfo(challengeId) {
           const nowInAppTz = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
           const deadlineDate = new Date(challengesData[i][signupDeadlineCol]);
 
-          if (nowInAppTz > deadlineDate) {
+          // Compare dates only (not datetime) to allow signups through the entire deadline date
+          const nowDateString = Utilities.formatDate(nowInAppTz, timezone, 'yyyy-MM-dd');
+          const deadlineDateString = Utilities.formatDate(deadlineDate, timezone, 'yyyy-MM-dd');
+
+          if (nowDateString > deadlineDateString) {
             signupOpen = false;
             deadlineMessage = `Signup deadline (${signupDeadline}) has passed`;
           } else {
@@ -850,10 +850,6 @@ function createChallengeSignup(data) {
 
       if (indices.total_workouts !== -1) {
         newRow[indices.total_workouts] = 0;
-      }
-
-      if (indices.last_completed !== -1) {
-        newRow[indices.last_completed] = '';
       }
 
       // Auto-approve challenge signups

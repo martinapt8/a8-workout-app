@@ -88,7 +88,7 @@ Daily Dose Dev/
 │   ├── admin-api.js            # API wrapper (5.8KB)
 │   └── admin-config.js         # API config (880B)
 │
-├── backend/                    # Google Apps Script files (14 files)
+├── backend/                    # Google Apps Script files (11 files)
 │   ├── Code.gs                 # Core REST API (37KB)
 │   ├── EmailCampaigns.gs       # Email campaign system (920 lines) [NEW - Nov 2025]
 │   ├── AdminChallenges.gs      # Challenge management (14KB)
@@ -98,9 +98,6 @@ Daily Dose Dev/
 │   ├── Slack.gs                # Slack integration (16KB)
 │   ├── welcome_email.gs        # Welcome emails (11KB) [To be deprecated]
 │   ├── update_email.gs         # Update emails (13KB) [To be deprecated]
-│   ├── FormMigration.gs        # Form response migration (12KB)
-│   ├── MigrationScripts.gs     # Multi-challenge migration (18KB)
-│   ├── TestingFunctions.gs     # Testing suite (12KB)
 │   ├── AutoSort.gs             # Auto-sort completions (3KB)
 │   └── menu.gs                 # Custom spreadsheet menu (9KB)
 │
@@ -134,9 +131,6 @@ Daily Dose Dev/
 | Slack.gs | 16KB | Slack notifications | sendDailyProgressSummary(), sendDailyReminder() |
 | welcome_email.gs | 11KB | Welcome emails (To be deprecated) | sendWelcomeEmail() |
 | update_email.gs | 13KB | Update emails (To be deprecated) | sendUpdateEmail() |
-| FormMigration.gs | 12KB | Form response import | migrateFormResponses() |
-| MigrationScripts.gs | 18KB | V2→V3 migration utilities | (historical, not actively used) |
-| TestingFunctions.gs | 12KB | Backend testing suite | testUserDashboard(), testWorkoutCompletion() |
 | AutoSort.gs | 3KB | Auto-sort completions | onEdit() trigger |
 | menu.gs | 9KB | Custom admin menu | onOpen(), promptCreateChallenge(), openAdminDashboard() |
 
@@ -435,7 +429,6 @@ For complete function signatures, parameters, return values, and implementation 
 - Mobile-responsive design with touch-optimized UI
 - Instructions display in workout cards
 - Hyperlinked movements for video tutorials
-- Form response migration to Users table (FormMigration.gs)
 - Welcome email system with emoji handling (welcome_email.gs)
 - Simplified Slack integration with manual progress updates and coaching tips (Slack.gs)
 - Administrative menu system with migration, email, and Slack functions
@@ -472,7 +465,6 @@ The app includes several administrative systems for managing users, challenges, 
 |---------|-------|---------------|---------|
 | **Email Campaign System** (NEW) | EmailCampaigns.gs, admin/email-campaigns.html | getEmailTemplates(), sendEmailCampaign() | Create, preview, and send personalized email campaigns via WYSIWYG web editor |
 | **Admin Dashboard** (NEW) | admin/index.html, admin-api.js | Live stats, navigation | Central hub for admin tasks with real-time data |
-| **Form Migration** | FormMigration.gs | migrateFormResponses() | Import users from Google Form responses |
 | **User Signup** | Signup.gs, signup.html | createSignupRequest() | Self-service registration with preferences |
 | **Welcome Emails** (Deprecated) | welcome_email.gs | sendWelcomeEmail() | Onboard new users (replaced by Email Campaign System) |
 | **Update Emails** (Deprecated) | update_email.gs | sendUpdateEmail() | Send updates (replaced by Email Campaign System) |
@@ -668,10 +660,9 @@ fetch(API_URL, {
 
 ### Test Backend Functions
 1. Open Apps Script Editor
-2. Select function from dropdown (e.g., `testUserDashboard`)
-3. Click Run button
-4. Check Execution log for results
-5. See `TESTING_FUNCTIONS_GUIDE.md` for complete test suite
+2. Click "Executions" in left sidebar to view API logs
+3. Filter by status/date to find specific requests
+4. Click on execution to view detailed logs and debug issues
 
 ### View Challenge Analytics
 1. Open Completions sheet

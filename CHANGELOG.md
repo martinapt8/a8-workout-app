@@ -1,6 +1,241 @@
 # A8 Workout Challenge App
 
-## Current Status (Latest Update - November 18, 2025)
+## Current Status (Latest Update - November 20, 2025)
+
+### 🐛 Fix: Hide Signup Button When Deadline Passed (November 20, 2025)
+
+**Fixed signups viewer to hide signup button when challenge deadline has passed**:
+
+- **User Report**: The signups viewer page (`signups.html`) was showing the "Join This Challenge" button even after the signup deadline had passed, misleading users into starting the signup process only to be rejected.
+- **Root Cause #1**: The `getChallengeById()` helper function in `backend/Code.gs` (lines 1426-1452) was missing the `signup_deadline` field in its return object, causing the API to return `null` for deadlines.
+- **Root Cause #2**: Frontend had no logic to check deadline and conditionally show/hide signup button.
+- **The Fix**:
+  - **Backend** (`backend/Code.gs:1447`):
+    - Added `signup_deadline: data[i][headerMap['signup_deadline']]` to `getChallengeById()` return object
+    - Now properly exposes deadline via `getChallengeSignups` API endpoint
+  - **Frontend** (`signups.html:414-448`):
+    - Added `checkSignupDeadlinePassed()` function that parses deadline (MM/DD/YYYY format)
+    - Creates deadline timestamp at 23:59:59 (end of day) matching backend validation
+    - Compares current time to deadline to determine if signups are closed
+    - Safely handles missing deadlines (returns `false` = always open)
+  - **UI Updates** (`signups.html:365-381, 498-516`):
+    - Added "Signups for this challenge have closed" message with gray styling
+    - Conditionally shows signup button (open) OR closed message (past deadline)
+    - Button hidden completely when deadline passed, not just disabled
+- **User Impact**:
+  - ✅ Users see "Signups closed" message after deadline instead of being able to click button
+  - ✅ Prevents confusion and wasted clicks on expired signup links
+  - ✅ Matches backend validation behavior (23:59:59 end-of-day logic)
+  - ✅ No deadline = signup button always shows (graceful fallback)
+
+**Files Changed**:
+- `backend/Code.gs`: Added `signup_deadline` field to `getChallengeById()` function (1 line)
+- `signups.html`: Added deadline check logic, closed message UI, and conditional rendering (68 lines)
+
+---
+
+### 🐛 Fix: Signup Deadline Date Comparison (November 19, 2025)
+
+**Fixed signup deadline logic to allow signups through the entire deadline date**:
+
+- **User Report**: Setting `signup_deadline = 11/19/2025` was blocking signups on Nov 19 itself, requiring admins to set the deadline to Nov 20 to allow signups on Nov 19 (unintuitive).
+- **Root Cause**: The `getChallengeInfo()` function in `backend/Signup.gs` (lines 561-571) was comparing datetime objects (`nowInAppTz > deadlineDate`), but the deadline date defaulted to midnight (00:00:00), so any time after midnight on the deadline date was considered "past deadline."
+- **The Fix** (`backend/Signup.gs:561-576`):
+  - Changed from datetime comparison to date-only comparison
+  - Format both current date and deadline date as `'yyyy-MM-dd'` strings
+  - Compare strings: `if (nowDateString > deadlineDateString)`
+  - Added explanatory comment about date-only comparison
+- **User Impact**:
+  - ✅ `signup_deadline = 11/19/2025` now allows signups all day on Nov 19 (12:00 AM - 11:59 PM)
+  - ✅ Starting Nov 20, signups are correctly blocked
+  - ✅ Intuitive behavior matches how deadline date displays to users
+  - ✅ No need to set deadline "one day later" anymore
+
+**Files Changed**:
+- `backend/Signup.gs`: Updated date comparison logic in `getChallengeInfo()` (lines 561-576)
+
+---
+
+### 🧹 Remove `last_completed` Update Code (November 19, 2025)
+
+**Cleaned up redundant field initialization after implementing formula-based calculation**:
+
+- **Background**: The `last_completed` column in the Users sheet now uses a formula (`=MAXIFS(Completions!A:A, Completions!B:B, A2)`) to automatically calculate the most recent workout date from the Completions table. This eliminates the need for manual updates during workout logging.
+- **Problem**: Code was still initializing this field to an empty string when creating new users, which could interfere with formula execution.
+- **The Fix** (`backend/Signup.gs`):
+  - Removed `last_completed` initialization in `createSignupRequest()` function (lines 140-142)
+  - Removed `last_completed` initialization in `createChallengeSignup()` function (lines 855-857)
+  - Left column index lookup code intact (harmless, may be used for reading)
+- **User Impact**:
+  - ✅ New user signups no longer write to `last_completed` column
+  - ✅ Formula automatically populates field when users log their first workout
+  - ✅ No risk of overwriting formula-calculated values
+  - ✅ Existing read code in `Code.gs` continues to work correctly
+- **Note**: The `FormMigration.gs` file also initializes `last_completed` but was not modified as it will eventually be sunset.
+
+**Files Changed**:
+- `backend/Signup.gs`: Removed two instances of `last_completed = ''` initialization (6 lines removed)
+
+---
+
+### 🐛 Critical Fix: Challenge Attribution & Backfill Logic (November 19, 2025)
+
+**Fixed TWO critical bugs in workout logging that caused incorrect challenge_id assignment**:
+
+#### Bug #1: Non-Challenge Users Getting Challenge_ID
+- **User Report**: A user who had NOT signed up for the active challenge logged a workout, and it incorrectly received the active challenge_id in the Completions sheet, making it count toward the challenge goal.
+- **Root Cause**: The `markWorkoutComplete()` function (backend/Code.gs:926-1035) was assigning the active challenge_id to ALL users who logged workouts, without checking if they were registered in the Challenge_Teams sheet.
+- **The Fix** (`backend/Code.gs:969-982`):
+  - Added Challenge_Teams membership check before assigning challenge_id
+  - Only users found in Challenge_Teams for a challenge get that challenge's ID
+  - Non-participants get `challenge_id = null` (year-round workouts)
+  - Applies to ALL workout types (prescribed, AI, Other)
+- **User Impact**:
+  - ✅ Non-challenge users can log workouts year-round without affecting challenge goals
+  - ✅ Challenge goals now only count actual participants' workouts
+  - ✅ Team progress calculations are accurate
+  - ✅ Data integrity maintained for challenge analytics
+
+#### Bug #2: Backfilled Workouts Using Wrong Challenge
+- **Discovery**: When investigating Bug #1, discovered that backfilled workouts were assigned to the CURRENT active challenge instead of the challenge that was active on the TARGET DATE.
+- **Example Scenario**:
+  - December Challenge ends (status='completed')
+  - January Challenge starts (status='active')
+  - User tries to backfill a Dec 15 workout
+  - **BUG**: Workout gets `challenge_id = jan_2026` instead of `dec_2025`
+- **Root Cause**: `markWorkoutComplete()` only called `getActiveChallenge()` (returns current active challenge), not checking which challenge was active on the completion date.
+- **The Fix**:
+  - **NEW function** `getChallengeActiveOnDate(ss, targetDate)` (backend/Code.gs:1361-1403)
+    - Searches Challenges sheet for challenge where `start_date <= targetDate <= end_date`
+    - Returns the historical challenge regardless of current status
+  - **Updated** `markWorkoutComplete()` (backend/Code.gs:957-967)
+    - Backfills: Use `getChallengeActiveOnDate()` to find challenge active on target date
+    - Current day: Use `getActiveChallenge()` for currently active challenge
+    - Check Challenge_Teams membership for the RELEVANT challenge (not always current)
+  - **Fixed** duplicate detection logic (backend/Code.gs:984-996)
+    - Moved duplicate checks AFTER challenge determination
+    - Uses correct challenge_id for validation
+- **User Impact**:
+  - ✅ Backfilled workouts correctly attributed to historical challenges
+  - ✅ Team assignments use correct challenge's teams
+  - ✅ Challenge analytics remain accurate across challenge transitions
+  - ✅ Duplicate detection works correctly for past challenges
+
+#### Bug #3: Non-Challenge Users Couldn't Log Prescribed Workouts
+- **Discovery**: After fixing Bug #1, non-challenge users got "No active workout today" error when trying to log prescribed workouts.
+- **Root Cause**: `getActiveWorkout(ss, challengeId)` returns `null` when `challengeId = null`, blocking non-participants from accessing prescribed workouts.
+- **The Fix** (`backend/Code.gs:1011-1019`):
+  - Separated "lookup challenge" (for finding workout) from "storage challenge" (for attribution)
+  - Use `relevantChallenge.challenge_id` to find prescribed workout
+  - Still store with user's actual `challengeId` (null for non-participants)
+- **User Impact**:
+  - ✅ Non-challenge users can complete prescribed workouts
+  - ✅ Their workouts don't count toward challenge goals (`challenge_id = null`)
+  - ✅ Year-round engagement maintained for all users
+  - ✅ Consistent UX - everyone sees same "Today's Workout"
+
+**Technical Details**:
+- Challenge participants: `challengeId = active_challenge_id`, counts toward goal
+- Non-participants: `challengeId = null`, doesn't count toward goal
+- Backfills: `challengeId` determined by target date's challenge, not current challenge
+- Prescribed workouts accessible to all users during active challenges
+
+**Files Changed**:
+- `backend/Code.gs`:
+  - NEW: `getChallengeActiveOnDate()` function (lines 1361-1403)
+  - UPDATED: `markWorkoutComplete()` - date-aware challenge lookup, Challenge_Teams validation, fixed workout lookup (lines 926-1035)
+- `Documentation/BACKEND.md`: Documented new function and updated `markWorkoutComplete()` logic
+- `CHANGELOG.md`: Added this entry
+
+---
+
+### 🐛 Fix: Registered Challenges Not Showing Without Workouts (November 19, 2025)
+
+**Fixed bug where user's registered challenges wouldn't appear in "My Challenges" until they logged their first workout**:
+
+- **User Report**: User carolina signed up for the October Challenge, showing up correctly in Challenge_Teams with Team Curl Power, but the challenge didn't appear on her "Me" page until after logging a workout.
+- **Root Cause**: The `getUserAllChallengeStats()` function (backend/Code.gs:1560-1659) was only checking the Completions sheet to build the list of user's challenges. If a user signed up but hadn't completed any workouts yet, their challenge wouldn't appear in the list.
+- **The Fix** (`backend/Code.gs`):
+  - Added secondary lookup to Challenge_Teams sheet (lines 1589-1614)
+  - Now checks both Completions (for workout counts) AND Challenge_Teams (for registrations)
+  - If user is in Challenge_Teams but has 0 workouts, challenge now appears with `workout_count: 0`
+  - Team name and color still correctly pulled from `getUserTeamForChallenge()`
+- **User Impact**:
+  - ✅ Registered challenges now appear on "Me" page immediately after signup
+  - ✅ Users can see they're part of a team even before logging first workout
+  - ✅ Workout count displays as "0 workouts" until they complete their first one
+  - ✅ Maintains correct team assignments and challenge details
+
+**Files Changed**:
+- `backend/Code.gs`: Modified `getUserAllChallengeStats()` to include Challenge_Teams lookup
+- `Documentation/BACKEND.md`: Updated function documentation with new data sources
+- `CHANGELOG.md`: Added this entry
+
+---
+
+### 🗑️ Remove Redundant `total_workouts` Column (November 19, 2025)
+
+**Simplified backend by removing unused `total_workouts` column from Users table**:
+- **Root Cause**: The `total_workouts` column in the Users sheet was being calculated and stored but **never displayed anywhere** in the frontend. All workout counts are calculated on-demand from the Completions sheet, making this column redundant.
+- **Analysis**:
+  - Frontend "Me" page displays `lifetime_workouts` (calculated from Completions)
+  - Team totals use Completions sheet directly
+  - Past challenges use Completions sheet directly via `getUserAllChallengeStats()`
+  - The `total_workouts` column was only meant to cache "active challenge workout count" but was never used
+- **The Fix**:
+  - ✅ Removed `total_workouts` field from API responses in `getUserDashboardData()`
+  - ✅ Removed `updateUserStats()` function (67 lines) that calculated and stored `total_workouts`
+  - ✅ Removed call to `updateUserStats()` in `markWorkoutComplete()`
+  - ✅ Removed `resetAllUserStats()` admin function (14 lines)
+  - ✅ Removed `total_workouts` from `getUserInfo()` return object
+  - ✅ Updated CLAUDE.md documentation to reflect changes
+- **Benefits**:
+  - **Simpler codebase**: Removed 80+ lines of unnecessary code
+  - **Fewer bugs**: No more potential sync issues between cached and calculated counts
+  - **Single source of truth**: All workout counts come from Completions sheet
+  - **Better performance**: No extra writes to Users sheet on every workout completion
+  - **Future-proof**: If Completions table grows large, we can add back strategic caching with proper indexing
+- **Note**: The `total_workouts` column can remain in the Users sheet without causing issues (it will just be ignored). Admins can delete the column manually if desired, or leave it for historical reference.
+
+**Files Changed**:
+- `backend/Code.gs`: Removed `updateUserStats()`, `resetAllUserStats()`, removed `total_workouts` from API responses
+- `CLAUDE.md`: Updated Users table schema, removed `total_workouts` references, updated email token documentation
+
+---
+
+### 🐛 Critical Duplicate Function Bugs Fix (November 18, 2025)
+
+**Fixed TWO critical bugs caused by duplicate function definitions in EmailCampaigns.gs**:
+
+#### Bug #1: Team Display Bug (Fixed Earlier Today)
+- **Root Cause**: A duplicate, incomplete version of the `getUserTeamForChallenge()` function existed in `backend/EmailCampaigns.gs`. This conflicted with the correct version in `backend/Code.gs`, causing the Google Apps Script runtime to execute the wrong function and return `null` for team data, even when the data was correct in the `Challenge_Teams` sheet.
+- **The Fix** (`backend/EmailCampaigns.gs`):
+  - Removed the entire duplicate `getUserTeamForChallenge()` function block from `backend/EmailCampaigns.gs`.
+  - This eliminates the function name collision, ensuring the correct, fully-featured function from `Code.gs` is always executed.
+- **User Impact**:
+  - ✅ Team Progress page is now visible for all users assigned to a team.
+  - ✅ User's team name and color now correctly appear on the "Me" page and in the API response.
+  - ✅ "My Team's Workouts" section now correctly displays team members and their stats.
+
+#### Bug #2: Workout Count Bug (NEWLY DISCOVERED & FIXED)
+- **Root Cause**: A duplicate `getLifetimeWorkoutCount()` function existed in `backend/EmailCampaigns.gs` with a DIFFERENT function signature than the correct version in `backend/Code.gs`:
+  - **Code.gs** (correct): `getLifetimeWorkoutCount(ss, userId)` - takes TWO parameters
+  - **EmailCampaigns.gs** (duplicate): `getLifetimeWorkoutCount(userId)` - takes ONE parameter
+  - When Code.gs called `getLifetimeWorkoutCount(ss, userId)`, Google Apps Script was unpredictably executing the EmailCampaigns.gs version, causing `ss` to be treated as `userId` and `userId` to be undefined, resulting in zero workout counts for all users.
+- **The Fix** (`backend/EmailCampaigns.gs`):
+  - Removed the entire duplicate `getLifetimeWorkoutCount()` function block (lines 379-407).
+  - Updated the ONE remaining call to `getLifetimeWorkoutCount()` in EmailCampaigns.gs (line 250) to pass the `ss` parameter correctly.
+  - This eliminates the function signature conflict, ensuring the correct version from Code.gs is always executed.
+- **User Impact**:
+  - ✅ `total_workouts` in Users sheet now updates correctly when logging workouts (was incorrectly showing 1 or 0).
+  - ✅ Lifetime workout counts now display correctly on the "Me" page (was showing zero for all users).
+  - ✅ Challenge-specific workout counts now calculate correctly.
+  - ✅ All existing data is intact - this was a calculation bug, not a data corruption issue.
+
+**Files Changed**:
+- `backend/EmailCampaigns.gs`: Removed TWO conflicting duplicate functions (`getUserTeamForChallenge`, `getLifetimeWorkoutCount`), updated function call to use correct signature.
+
+---
 
 ### 🎨 Admin Dashboard Sidebar Navigation (November 18, 2025)
 

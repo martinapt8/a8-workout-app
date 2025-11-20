@@ -1,10 +1,10 @@
 // API Configuration
 // Replace with your Google Apps Script Web App URL after deployment
-// Last updated: 2025-11-18 - Team page fix deployment
+// Last updated: 2025-11-20 - Fresh deployment to fix 403 error
 const CONFIG = {
   // IMPORTANT: After deploying Code.gs as a Web App, replace this URL
   // with your stable deployment URL: https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
-  API_URL: 'https://script.google.com/macros/s/AKfycbx3XBdtJiUwUGOAJevVgz-6Apl9xcOnh-n56s6TwK9J3fqrrRxpyM62NU3d1AhYqgIHtg/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbzhgQzBQn3xdaZYGe4EbWQiaBeE_csRLG29azzUbgN2vZOvmpKrM-xf-ytfsWeS5iWkJg/exec',
 
   // Optional: Add API key for basic security
   // Set the same key in Google Apps Script Script Properties

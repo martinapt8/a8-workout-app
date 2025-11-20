@@ -2,6 +2,68 @@
 
 ## Current Status (Latest Update - November 20, 2025)
 
+### ✨ Feature: Profile Update on Me Page (November 20, 2025)
+
+**Added self-service profile editing for users to update their preferences**:
+
+- **Feature**: Users can now edit their display name, preferred workout duration, and equipment availability directly from the Me page
+- **Location**: Edit Profile card positioned at the bottom of Me page (below past workout form)
+- **User Experience**:
+  - Collapsed by default (healthy friction) - users click "Edit Profile" button to expand
+  - Form pre-populates with current user values from Users sheet
+  - No confirmation dialog - direct save on "Save Changes" button
+  - Full page refresh after successful save to show updates everywhere
+- **Implementation**:
+  - **Frontend** (`index.html`):
+    - Added Edit Profile card with expand/collapse functionality (lines 249-298)
+    - Display name text input (max 50 characters)
+    - Duration selection buttons (10/20/30 min) - single-select, matching signup form design
+    - Equipment selection buttons (Bodyweight/Kettlebell/Dumbbell/Bands/Full Gym) - multi-select
+    - JavaScript functions for form interaction (lines 1690-1824)
+    - Event listeners for edit, cancel, save buttons (lines 1488-1494)
+    - Validation: display_name (1-50 chars, required), duration (must select one)
+  - **Styling** (`styles.css:1188-1309`):
+    - Button states with yellow (#FFC107) highlights for selected items
+    - Mobile-responsive grid layouts (equipment collapses to single column <480px)
+    - Success/error message styling
+  - **API** (`api.js:162-178`):
+    - Added `updateUserProfile()` method using form-encoded POST
+    - Handles equipment as array or comma-separated string
+  - **Backend** (`Code.gs`):
+    - Added `updateUserProfile` case to doPost() switch (lines 273-284)
+    - New `updateUserProfile()` function with validation (lines 1760-1843)
+    - Updates Users sheet columns: display_name, preferred_duration, equipment_available
+    - Returns success/error response with updated user data
+- **Bug Fixes During Development**:
+  - **Issue #1**: Duration and equipment weren't pre-selecting when form opened
+    - **Root Cause**: `getUserInfo()` function wasn't returning `preferred_duration` and `equipment_available` fields
+    - **Fix**: Added fields to `getUserInfo()` return object (lines 490-491)
+  - **Issue #2**: Fields still undefined in frontend after getUserInfo fix
+    - **Root Cause**: `getUserDashboardData()` was manually constructing user object without including new fields
+    - **Fix**: Added `preferred_duration` and `equipment_available` to both active challenge (lines 441-442) and off-season mode (lines 406-407) user objects
+    - **New Deployment**: Required fresh Google Apps Script deployment URL to apply backend changes
+  - **Issue #3**: Equipment pre-selected correctly but duration still not selecting
+    - **Root Cause**: Type mismatch - backend returns `preferred_duration: 20` (number), but HTML `dataset.duration` is always string `"20"`
+    - **Fix**: Changed from strict equality (`===`) to loose equality (`==`) for type coercion (line 1745)
+    - **Added Debug Logging**: Detailed console logs trace comparison values and types
+- **User Impact**:
+  - ✅ Users can update their own display name (most common request)
+  - ✅ Users can adjust workout duration preferences (10/20/30 min)
+  - ✅ Users can update equipment availability for AI workout generation
+  - ✅ Changes reflect immediately throughout app after page refresh
+  - ✅ Works on PWA saved to home screen
+  - ✅ Mobile-optimized with proper touch targets
+- **Cache-busting**: Incremented through versions `20251120-2` through `20251120-6` during development and bug fixes
+
+**Files Changed**:
+- `index.html`: Edit Profile card HTML, JavaScript functions, event listeners, debug logging, cache-busting
+- `styles.css`: Edit profile form styling with mobile responsiveness
+- `api.js`: Added `updateUserProfile()` API method
+- `backend/Code.gs`: Added `updateUserProfile()` function and API route, updated `getUserInfo()` and `getUserDashboardData()` to return preference fields
+- `config.js`: Updated API_URL to new deployment (with getUserInfo fix)
+
+---
+
 ### 🎄 Holiday Feature: Festive Lights Decoration (November 20, 2025)
 
 **Added holiday lights below logo for December 2025 challenge**:

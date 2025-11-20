@@ -270,6 +270,19 @@ function doPost(e) {
         result = createChallengeSignup(challengeSignupData);
         break;
 
+      case 'updateUserProfile':
+        const updateUserId = requestData.userId;
+        const updateDisplayName = requestData.displayName;
+        const updateDuration = requestData.preferredDuration;
+        const updateEquipment = requestData.equipment;
+
+        if (!updateUserId || !updateDisplayName || !updateDuration) {
+          result = { success: false, error: 'Missing required parameters: userId, displayName, preferredDuration' };
+        } else {
+          result = updateUserProfile(updateUserId, updateDisplayName, updateDuration, updateEquipment);
+        }
+        break;
+
       // Email Campaign Management Endpoints
       case 'getEmailTemplates':
         result = { templates: getEmailTemplates() };
@@ -1755,4 +1768,89 @@ function getUserAllChallengeStats(ss, userId) {
     userChallenges: userChallenges,
     upcomingChallenges: upcomingChallenges
   };
+}
+
+/**
+ * Updates user profile preferences
+ * @param {string} userId - User identifier
+ * @param {string} displayName - New display name
+ * @param {string} preferredDuration - Workout duration preference (10/20/30)
+ * @param {string} equipment - Comma-separated equipment list
+ * @returns {Object} Success status and updated user data
+ */
+function updateUserProfile(userId, displayName, preferredDuration, equipment) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const usersSheet = ss.getSheetByName('Users');
+    const data = usersSheet.getDataRange().getValues();
+    const headers = data[0];
+
+    // Find column indices
+    const userIdCol = headers.indexOf('user_id');
+    const displayNameCol = headers.indexOf('display_name');
+    const durationCol = headers.indexOf('preferred_duration');
+    const equipmentCol = headers.indexOf('equipment_available');
+
+    // Validation
+    if (!userId || !displayName || !preferredDuration) {
+      return {
+        success: false,
+        error: 'Missing required fields'
+      };
+    }
+
+    if (displayName.length > 50) {
+      return {
+        success: false,
+        error: 'Display name must be 50 characters or less'
+      };
+    }
+
+    if (!['10', '20', '30'].includes(preferredDuration)) {
+      return {
+        success: false,
+        error: 'Invalid duration value'
+      };
+    }
+
+    // Find user row
+    let userRow = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][userIdCol] === userId) {
+        userRow = i + 1; // Sheet rows are 1-indexed
+        break;
+      }
+    }
+
+    if (userRow === -1) {
+      return {
+        success: false,
+        error: 'User not found'
+      };
+    }
+
+    // Update values
+    usersSheet.getRange(userRow, displayNameCol + 1).setValue(displayName);
+    usersSheet.getRange(userRow, durationCol + 1).setValue(preferredDuration);
+    usersSheet.getRange(userRow, equipmentCol + 1).setValue(equipment);
+
+    Logger.log(`Profile updated for user: ${userId} - Display Name: ${displayName}, Duration: ${preferredDuration}, Equipment: ${equipment}`);
+
+    return {
+      success: true,
+      user: {
+        user_id: userId,
+        display_name: displayName,
+        preferred_duration: preferredDuration,
+        equipment_available: equipment
+      }
+    };
+
+  } catch (error) {
+    Logger.log('Error updating user profile: ' + error.toString());
+    return {
+      success: false,
+      error: 'Server error during profile update'
+    };
+  }
 }

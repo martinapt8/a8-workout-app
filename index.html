@@ -21,11 +21,11 @@
     <meta name="theme-color" content="#000000">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20251120-1">
+    <link rel="stylesheet" href="styles.css?v=20251120-2">
 
     <!-- API Configuration and Helper -->
-    <script src="config.js?v=20251120-1"></script>
-    <script src="api.js?v=20251120-1"></script>
+    <script src="config.js?v=20251120-2"></script>
+    <script src="api.js?v=20251120-2"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -242,6 +242,57 @@
                                 Log Past Workout
                             </button>
                             <div id="me-past-workout-message" class="past-workout-message"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Profile Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Edit Profile</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Collapsed state (default) -->
+                        <button id="edit-profile-button" class="btn btn-primary">Edit Profile</button>
+
+                        <!-- Expanded form (hidden by default) -->
+                        <div id="edit-profile-form" style="display: none;">
+                            <!-- Display Name -->
+                            <div class="form-group">
+                                <label for="edit-display-name" class="form-label">Display Name</label>
+                                <input type="text" id="edit-display-name" class="form-input" maxlength="50" placeholder="Your display name">
+                            </div>
+
+                            <!-- Duration (single-select buttons) -->
+                            <div class="form-group">
+                                <label class="form-label">Preferred Duration</label>
+                                <div class="button-group duration">
+                                    <button type="button" class="option-button" data-duration="10">10 min</button>
+                                    <button type="button" class="option-button" data-duration="20">20 min</button>
+                                    <button type="button" class="option-button" data-duration="30">30 min</button>
+                                </div>
+                            </div>
+
+                            <!-- Equipment (multi-select buttons) -->
+                            <div class="form-group">
+                                <label class="form-label">Equipment Available</label>
+                                <div class="button-group equipment">
+                                    <button type="button" class="option-button" data-equipment="Bodyweight">Bodyweight</button>
+                                    <button type="button" class="option-button" data-equipment="Kettlebell">Kettlebell</button>
+                                    <button type="button" class="option-button" data-equipment="Dumbbell">Dumbbell</button>
+                                    <button type="button" class="option-button" data-equipment="Bands">Bands</button>
+                                    <button type="button" class="option-button" data-equipment="Full Gym">Full Gym</button>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="form-actions">
+                                <button id="save-profile-button" class="btn btn-primary">Save Changes</button>
+                                <button id="cancel-edit-button" class="btn btn-secondary">Cancel</button>
+                            </div>
+
+                            <!-- Messages -->
+                            <div id="edit-profile-message" class="form-message" style="display: none;"></div>
                         </div>
                     </div>
                 </div>
@@ -1434,6 +1485,14 @@
                 document.getElementById('library-list').style.display = 'block';
             });
 
+            // Edit Profile buttons
+            document.getElementById('edit-profile-button').addEventListener('click', toggleEditProfileForm);
+            document.getElementById('cancel-edit-button').addEventListener('click', toggleEditProfileForm);
+            document.getElementById('save-profile-button').addEventListener('click', saveProfileChanges);
+
+            // Setup edit profile form button interactions
+            setupEditFormButtons();
+
             // Set up date input constraints for Me page
             setupMePastWorkoutDatePicker();
         }
@@ -1634,6 +1693,142 @@
             logBtn.textContent = 'Log Past Workout';
             workoutInput.disabled = false;
             dateInput.disabled = false;
+        }
+
+        // ===== Edit Profile Functions =====
+
+        // Toggle edit profile form visibility
+        function toggleEditProfileForm() {
+            const form = document.getElementById('edit-profile-form');
+            const button = document.getElementById('edit-profile-button');
+
+            if (form.style.display === 'none') {
+                // Expand: populate with current values
+                populateEditForm();
+                form.style.display = 'block';
+                button.style.display = 'none';
+            } else {
+                // Collapse
+                form.style.display = 'none';
+                button.style.display = 'block';
+                // Clear any messages
+                document.getElementById('edit-profile-message').style.display = 'none';
+            }
+        }
+
+        // Populate form with current user values
+        function populateEditForm() {
+            if (!userData || !userData.user) {
+                console.error('User data not available');
+                return;
+            }
+
+            // Display name
+            document.getElementById('edit-display-name').value = userData.user.display_name || '';
+
+            // Duration - select current value
+            const durationButtons = document.querySelectorAll('#edit-profile-form .duration .option-button');
+            durationButtons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.duration === userData.user.preferred_duration) {
+                    btn.classList.add('selected');
+                }
+            });
+
+            // Equipment - select current values
+            const currentEquipment = userData.user.equipment_available ?
+                userData.user.equipment_available.split(',').map(e => e.trim()) : [];
+            const equipmentButtons = document.querySelectorAll('#edit-profile-form .equipment .option-button');
+            equipmentButtons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (currentEquipment.includes(btn.dataset.equipment)) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        // Setup button interaction handlers for edit form
+        function setupEditFormButtons() {
+            // Duration (single-select)
+            document.querySelectorAll('#edit-profile-form .duration .option-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('#edit-profile-form .duration .option-button').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    button.classList.add('selected');
+                });
+            });
+
+            // Equipment (multi-select)
+            document.querySelectorAll('#edit-profile-form .equipment .option-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    button.classList.toggle('selected');
+                });
+            });
+        }
+
+        // Save profile changes
+        async function saveProfileChanges() {
+            const displayName = document.getElementById('edit-display-name').value.trim();
+
+            // Validation
+            if (!displayName || displayName.length === 0) {
+                showEditMessage('Display name cannot be empty', 'error');
+                return;
+            }
+
+            if (displayName.length > 50) {
+                showEditMessage('Display name must be 50 characters or less', 'error');
+                return;
+            }
+
+            // Get selected duration
+            const selectedDurationBtn = document.querySelector('#edit-profile-form .duration .option-button.selected');
+            const duration = selectedDurationBtn ? selectedDurationBtn.dataset.duration : null;
+
+            if (!duration) {
+                showEditMessage('Please select a preferred duration', 'error');
+                return;
+            }
+
+            // Get selected equipment
+            const selectedEquipmentBtns = document.querySelectorAll('#edit-profile-form .equipment .option-button.selected');
+            const equipment = Array.from(selectedEquipmentBtns).map(btn => btn.dataset.equipment);
+
+            // Disable button during save
+            const saveBtn = document.getElementById('save-profile-button');
+            const cancelBtn = document.getElementById('cancel-edit-button');
+            saveBtn.disabled = true;
+            cancelBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const response = await API.updateUserProfile(currentUserId, displayName, duration, equipment);
+
+                if (response.success) {
+                    // Full page refresh (as per user preference)
+                    window.location.reload();
+                } else {
+                    showEditMessage(response.error || 'Failed to update profile', 'error');
+                    saveBtn.disabled = false;
+                    cancelBtn.disabled = false;
+                    saveBtn.textContent = 'Save Changes';
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                showEditMessage('Network error. Please try again.', 'error');
+                saveBtn.disabled = false;
+                cancelBtn.disabled = false;
+                saveBtn.textContent = 'Save Changes';
+            }
+        }
+
+        // Show success/error message
+        function showEditMessage(message, type) {
+            const messageDiv = document.getElementById('edit-profile-message');
+            messageDiv.textContent = message;
+            messageDiv.className = 'form-message ' + (type === 'success' ? 'success' : 'error');
+            messageDiv.style.display = 'block';
         }
 
         // Complete workout (prescribed or other)

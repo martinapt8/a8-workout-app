@@ -157,5 +157,23 @@ const API = {
       workoutDetails,
       completionDate
     });
+  },
+
+  /**
+   * Update user profile preferences
+   * @param {string} userId - User identifier
+   * @param {string} displayName - New display name
+   * @param {string} preferredDuration - Workout duration preference (10/20/30)
+   * @param {Array|string} equipment - Equipment available (array or comma-separated string)
+   */
+  async updateUserProfile(userId, displayName, preferredDuration, equipment) {
+    const equipmentString = Array.isArray(equipment) ? equipment.join(',') : equipment;
+
+    return this.post('updateUserProfile', {
+      userId: userId,
+      displayName: displayName,
+      preferredDuration: preferredDuration,
+      equipment: equipmentString
+    });
   }
 };

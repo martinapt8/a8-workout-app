@@ -102,13 +102,13 @@ Google Sheets URLs are stored in `admin/admin-config.js`:
 // Full edit URL (for external link in new tab)
 const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/edit?gid=SHEET_TAB_ID#gid=SHEET_TAB_ID';
 
-// Embed URL (uses /edit with rm=minimal for streamlined editing interface in iframe)
-const GOOGLE_SHEETS_EMBED_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/edit?rm=minimal&gid=SHEET_TAB_ID';
+// Embed URL (uses full /edit URL to preserve custom Apps Script menus)
+const GOOGLE_SHEETS_EMBED_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/edit?gid=SHEET_TAB_ID';
 ```
 
 **URL Parameters Explained:**
-- **`/edit` URL**: Provides full editing capabilities (not read-only)
-- **`rm=minimal` parameter**: Removes extra UI chrome (menu bar, etc.) for cleaner embedding
+- **`/edit` URL**: Provides full editing capabilities with complete Google Sheets UI
+- **No `rm` parameter**: Preserves full interface including custom Apps Script menus
 - **`gid` parameter**: Specifies which sheet tab to display (e.g., `272721508` = Users sheet)
 
 **Navigation Flow:**
@@ -121,12 +121,14 @@ Admin Dashboard Sidebar
 
 **Technical Notes:**
 - Iframe loads Google Sheets with **full editing capabilities** (not read-only)
-- Uses `rm=minimal` parameter to reduce UI clutter in embedded view
+- Uses full Google Sheets UI (no `rm` parameter) to preserve custom Apps Script menus
+- Custom menus (e.g., "A8 Custom Menu") should be accessible in the menu bar
 - Requires Google authentication - will prompt to sign in if not already logged in
 - Respects existing Google Sheets permissions (admin must have edit access to the sheet)
 - Loading state displays while iframe initializes
 - Error fallback provides external link if embed fails
 - No additional API calls required (direct Google Sheets embed)
+- **Note**: Full UI may include extra Google Sheets chrome (Share button, comments, etc.)
 
 **Layout:**
 - Sidebar: 250px fixed width (shared with all admin pages)

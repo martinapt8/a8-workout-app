@@ -135,6 +135,24 @@ All main app pages feature bottom navigation with icons for quick switching betw
 │  Workout: [________]    │
 │  [Log Past Workout]     │
 ├─────────────────────────┤
+│  ✏️ Edit Profile        │
+│  [Edit Profile]         │
+│  (collapsed by default) │
+│                         │
+│  --- When expanded: --- │
+│  Display Name:          │
+│  [🎯 Megan      ]       │
+│                         │
+│  Preferred Duration:    │
+│  [10 min][20 min][30 min]│
+│                         │
+│  Equipment Available:   │
+│  [Bodyweight][Kettlebell]│
+│  [Dumbbell][Bands]      │
+│  [Full Gym]             │
+│                         │
+│  [Save Changes][Cancel] │
+├─────────────────────────┤
 │  [💪Today|📈Team|👤Me|📚Library] │
 └─────────────────────────┘
 ```
@@ -150,6 +168,14 @@ All main app pages feature bottom navigation with icons for quick switching betw
 - Checkmarks on completed dates
 - Past workout backfill form
 - Date picker and workout description input
+- **Profile editing card** (NEW - Nov 20, 2025):
+  - Collapsed by default (healthy friction)
+  - Expands when "Edit Profile" clicked
+  - Pre-populated with current values
+  - Display name text input (1-50 chars)
+  - Duration selection buttons (single-select)
+  - Equipment selection buttons (multi-select)
+  - Save/Cancel actions
 - Bottom navigation bar
 
 **Features:**
@@ -159,6 +185,12 @@ All main app pages feature bottom navigation with icons for quick switching betw
 - Hybrid lazy loading (±3 months)
 - Duplicate prevention per date
 - Future date validation
+- **Self-service profile editing** (NEW - Nov 20, 2025):
+  - Update display name, duration preference, equipment availability
+  - Frontend validation (required fields, character limits)
+  - Backend validation with specific error messages
+  - Full page refresh after successful save
+  - Mobile-responsive (equipment grid collapses to single column)
 
 ---
 

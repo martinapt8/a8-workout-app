@@ -47,13 +47,17 @@ The project includes several Google Apps Script files for different functionalit
 ### `doGet(e)` / `doPost(e)`
 Main REST API entry points. Handles URL parameters and JSON payloads. Routes to appropriate action handlers based on `action` parameter.
 
-### `getUserDashboardData(userId)`
+### `getUserDashboardData(userId)` (UPDATED - Nov 20, 2025)
 Returns all data needed for the user's dashboard:
-- User info (name, team, completion status)
+- User info (name, team, completion status, **preferences**)
 - Active challenge details (or null if no active challenge)
 - Today's workout details (from active challenge or year-round workouts)
 - Completion status for today
 - Challenge metadata and progress
+- **User Object Fields** (updated Nov 20, 2025):
+  - `user_id`, `display_name`, `team_name`, `team_color`
+  - `lifetime_workouts`, `last_completed`, `join_date`
+  - `preferred_duration`, `equipment_available` (for profile editing)
 
 ### `getActiveChallenge()`
 Returns the currently active challenge from Challenges sheet:
@@ -316,8 +320,38 @@ Creates dynamic mapping of column headers to indices for flexible column access
 ### `getSettings(ss)`
 Reads Settings sheet and returns object with all key-value pairs
 
-### `getUserInfo(ss, userId)`
-Finds user by user_id (case-insensitive) and returns user data
+### `getUserInfo(ss, userId)` (UPDATED - Nov 20, 2025)
+Finds user by user_id (case-insensitive) and returns user data:
+- **Returns**: User object with fields:
+  - `user_id`: User identifier
+  - `display_name`: Display name with optional emoji
+  - `last_completed`: Last workout date (formatted)
+  - `join_date`: Date user joined (formatted)
+  - `preferred_duration`: Workout duration preference (10/20/30 min) - **NEW**
+  - `equipment_available`: Comma-separated equipment list - **NEW**
+- **Used by**: `getUserDashboardData()` to populate user object in API responses
+- **Note**: These fields enable profile editing feature on Me page
+
+### `updateUserProfile(userId, displayName, preferredDuration, equipment)` (NEW - Nov 20, 2025)
+Updates user preferences in Users sheet:
+- **Parameters**:
+  - `userId`: User identifier (required)
+  - `displayName`: New display name, 1-50 characters (required)
+  - `preferredDuration`: Workout duration preference - must be "10", "20", or "30" (required)
+  - `equipment`: Comma-separated equipment list (optional, can be empty string)
+- **Validation**:
+  - Checks userId exists in Users sheet
+  - Validates displayName length (1-50 chars)
+  - Validates preferredDuration is one of: "10", "20", "30"
+  - Returns specific error messages for validation failures
+- **Updates**: Three columns in Users sheet:
+  - `display_name`: User's display name
+  - `preferred_duration`: Workout duration preference
+  - `equipment_available`: Available equipment for AI workouts
+- **Returns**: Success object with updated user data, or error object with message
+- **Logging**: Logs all profile updates with user, field values for admin tracking
+- **API Route**: Accessed via `doPost()` with action='updateUserProfile'
+- **Frontend**: Called by Edit Profile form on Me page
 
 ### `getTeamTotals(ss, challengeId)`
 Aggregates workout totals by team for a specific challenge:

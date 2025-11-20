@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets - Daily Dose Admin</title>
+    <link rel="stylesheet" href="admin-styles.css?v=20251120-1">
+    <link rel="icon" type="image/png" href="../assets/daily_dose_logo_sm.png">
+    <style>
+        /* Full-width layout for embed page */
+        .sheets-container {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: none; /* Override default max-width for full embed */
+        }
+
+        .sheets-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .sheets-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-black);
+            margin: 0;
+        }
+
+        .sheets-embed-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .sheets-embed-container iframe {
+            width: 100%;
+            height: calc(100vh - 140px); /* Full height minus header and padding */
+            border: none;
+            display: block;
+        }
+
+        /* Loading state */
+        .loading-message {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-600);
+        }
+
+        .loading-message::before {
+            content: '⏳';
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <img src="../assets/daily_dose_logo_sm.png" alt="Daily Dose Logo">
+            <span class="sidebar-brand-text">Daily Dose</span>
+        </div>
+
+        <nav>
+            <ul class="sidebar-nav">
+                <!-- Admin Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Admin</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="index.html" class="sidebar-nav-child">Admin Home</a></li>
+                        <li><a href="https://martinapt8.github.io/a8-workout-app/?user=mritty85" class="sidebar-nav-child" target="_blank">View Main App</a></li>
+                        <li><a class="sidebar-nav-child disabled">User Management</a></li>
+                        <li><a class="sidebar-nav-child disabled">Reporting</a></li>
+                    </ul>
+                </li>
+
+                <!-- Comms Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Comms</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="email-campaigns.html" class="sidebar-nav-child">Send Emails</a></li>
+                        <li><a class="sidebar-nav-child disabled">Send Slack Updates</a></li>
+                    </ul>
+                </li>
+
+                <!-- Google Admin Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Google Admin</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="sheets.html" class="sidebar-nav-child active">View Sheets</a></li>
+                        <li><a href="https://docs.google.com/spreadsheets/d/1IVFs2QmrevDV6pNuuuOLXtsZls8HcChnJn_qK8IHV7M/edit?gid=272721508#gid=272721508" class="sidebar-nav-child" target="_blank">Open Google Sheets</a></li>
+                        <li><a href="https://script.google.com/u/0/home/projects/19-ZM76X7s6QJkvx-tkexXcdoevOk7UNziac98w70wKA_kGEf6RssoS32/edit" class="sidebar-nav-child" target="_blank">Open Apps Script Editor</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="sheets-container">
+        <div class="sheets-header">
+            <h1>Google Sheets Database</h1>
+        </div>
+
+        <div class="sheets-embed-container">
+            <div class="loading-message" id="loadingMessage">
+                Loading Google Sheets...
+            </div>
+            <iframe
+                id="sheetsEmbed"
+                src=""
+                frameborder="0"
+                allowfullscreen
+                style="display: none;">
+            </iframe>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="admin-config.js?v=20251120-1"></script>
+    <script>
+        // Load Google Sheets embed on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const iframe = document.getElementById('sheetsEmbed');
+            const loadingMessage = document.getElementById('loadingMessage');
+
+            // Check if GOOGLE_SHEETS_EMBED_URL is defined in config
+            if (typeof GOOGLE_SHEETS_EMBED_URL === 'undefined') {
+                loadingMessage.innerHTML = `
+                    <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">⚠️</span>
+                    <strong>Configuration Error</strong>
+                    <p style="margin-top: 0.5rem;">Google Sheets URL not configured in admin-config.js</p>
+                `;
+                return;
+            }
+
+            // Set iframe source and show it
+            iframe.src = GOOGLE_SHEETS_EMBED_URL;
+
+            // Hide loading message and show iframe once loaded
+            iframe.onload = () => {
+                loadingMessage.style.display = 'none';
+                iframe.style.display = 'block';
+            };
+
+            // Handle load errors
+            iframe.onerror = () => {
+                loadingMessage.innerHTML = `
+                    <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">⚠️</span>
+                    <strong>Failed to Load Sheets</strong>
+                    <p style="margin-top: 0.5rem;">
+                        Unable to embed Google Sheets.
+                        <a href="${GOOGLE_SHEETS_URL}" target="_blank" style="color: var(--primary-yellow); text-decoration: underline;">
+                            Open in new tab
+                        </a>
+                    </p>
+                `;
+            };
+        });
+    </script>
+</body>
+</html>

@@ -29,11 +29,12 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
 - **Admin Dashboard** (NEW - Nov 2025):
   - `admin/index.html`: Dashboard home with live stats (9.9KB)
   - `admin/email-campaigns.html`: Email campaign composer with WYSIWYG editor (41KB)
+  - `admin/sheets.html`: Google Sheets embed viewer (NEW - Nov 2025)
   - `admin/admin-styles.css`: A8-branded design system (15KB)
   - `admin/admin-api.js`: API wrapper for campaign endpoints (5.8KB)
   - `admin/admin-config.js`: API configuration (880B)
   - **UI Design**: Fixed sidebar navigation (250px) with black background, hierarchical menu (Admin, Comms, Google Admin sections), yellow accent colors
-  - **Features**: WYSIWYG email editor (Quill.js), token insertion chips, auto-generated plain text, template CRUD, live preview, 3 targeting modes, campaign sending
+  - **Features**: WYSIWYG email editor (Quill.js), token insertion chips, auto-generated plain text, template CRUD, live preview, 3 targeting modes, campaign sending, embedded Google Sheets viewer
   - **Access**: `https://martinapt8.github.io/a8-workout-app/admin/`
 - **Challenge Signup Dashboard** (NEW - Nov 2025):
   - `signups.html`: Public signup viewer with team assignments

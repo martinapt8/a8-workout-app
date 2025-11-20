@@ -14,6 +14,13 @@ const ADMIN_CONFIG = {
   // API_KEY: 'your-secret-key-here'
 };
 
+// Google Sheets Configuration (for embed page)
+// Full edit URL (for external link in new tab)
+const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1IVFs2QmrevDV6pNuuuOLXtsZls8HcChnJn_qK8IHV7M/edit?gid=272721508#gid=272721508';
+
+// Embed URL (uses /preview instead of /edit for iframe embedding)
+const GOOGLE_SHEETS_EMBED_URL = 'https://docs.google.com/spreadsheets/d/1IVFs2QmrevDV6pNuuuOLXtsZls8HcChnJn_qK8IHV7M/preview?gid=272721508';
+
 // Note: The backend Code.gs handles both main app and admin dashboard requests
 // via the same Web App deployment. Admin-specific actions (getEmailTemplates,
 // saveEmailTemplate, etc.) are routed through the existing doPost() handler.

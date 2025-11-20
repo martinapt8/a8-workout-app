@@ -44,7 +44,7 @@ https://martinapt8.github.io/a8-workout-app/admin/
 - **Three menu sections**:
   - **Admin**: Admin Home, View Main App, User Management (WIP), Reporting (WIP)
   - **Comms**: Send Emails, Send Slack Updates (WIP)
-  - **Google Admin**: Open Google Sheets, Open Apps Script Editor
+  - **Google Admin**: View Sheets (NEW - embedded viewer), Open Google Sheets (external), Open Apps Script Editor (external)
 - **Hierarchical structure**: Non-clickable parent labels, indented child links
 - **Yellow accent colors** (#FFC107) on hover and active states
 - **Desktop-focused**: Optimized for admin workflows (mobile not a priority)
@@ -75,6 +75,75 @@ https://martinapt8.github.io/a8-workout-app/admin/
 **Location**: `admin/email-campaigns.html`
 
 Full-featured email campaign composer. See [Email Campaign System](#email-campaign-system) section below for complete documentation.
+
+### Google Sheets Embed Page
+
+**NEW - November 20, 2025**: Embedded Google Sheets viewer within the admin dashboard.
+
+**Location**: `admin/sheets.html`
+
+**Purpose:**
+Allows admins to view and edit the Google Sheets database directly within the admin dashboard, reducing the need to switch between browser tabs/windows.
+
+**Features:**
+- **Full-screen embed**: Maximizes iframe size within dashboard layout (uses `calc(100vh - 140px)` height)
+- **Seamless navigation**: Access via sidebar "View Sheets" link
+- **External link option**: "Open Google Sheets" link in sidebar still available for native Sheets experience
+- **Auto-configured**: Sheet URL and tab selection managed via `admin-config.js`
+- **Error handling**: Displays friendly error messages if embed fails to load
+
+**Access:**
+- **Via Admin Dashboard**: Click "View Sheets" in the Google Admin sidebar section
+- **Direct URL**: `https://martinapt8.github.io/a8-workout-app/admin/sheets.html`
+
+**Configuration:**
+Google Sheets URLs are stored in `admin/admin-config.js`:
+```javascript
+// Full edit URL (for external link in new tab)
+const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/edit?gid=SHEET_TAB_ID#gid=SHEET_TAB_ID';
+
+// Embed URL (uses /preview instead of /edit for iframe embedding)
+const GOOGLE_SHEETS_EMBED_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/preview?gid=SHEET_TAB_ID';
+```
+
+**Key Differences: `/edit` vs `/preview`:**
+- **`/edit` URL**: Full editing capabilities, used for external "Open Google Sheets" link
+- **`/preview` URL**: Optimized for iframe embedding, prevents some permission issues
+- **`gid` parameter**: Specifies which sheet tab to display (e.g., `272721508` = Users sheet)
+
+**Navigation Flow:**
+```
+Admin Dashboard Sidebar
+├─ View Sheets → admin/sheets.html (embedded viewer)
+├─ Open Google Sheets → External tab (native Sheets)
+└─ Open Apps Script Editor → External tab (Apps Script IDE)
+```
+
+**Technical Notes:**
+- Iframe loads Google Sheets in preview mode for optimal embedding
+- Loading state displays while iframe initializes
+- Error fallback provides external link if embed fails
+- No additional API calls required (direct Google Sheets embed)
+- Respects existing Google Sheets permissions (admin must have edit access)
+
+**Layout:**
+- Sidebar: 250px fixed width (shared with all admin pages)
+- Embed container: Full remaining width with rounded corners and shadow
+- Header: Minimal (just "Google Sheets Database" title)
+- No max-width constraint for maximum embed space
+
+**When to Use:**
+- ✅ Quick edits to user data, team assignments, or settings
+- ✅ Viewing workout schedules or completion logs
+- ✅ Checking email templates or challenge details
+- ❌ Complex multi-sheet operations (use native Sheets via "Open Google Sheets")
+- ❌ Apps Script editing (use "Open Apps Script Editor" link)
+
+**Updating Sheet URL:**
+If the Google Sheets ID or default tab changes, update `admin-config.js` and redeploy:
+1. Edit `GOOGLE_SHEETS_URL` and `GOOGLE_SHEETS_EMBED_URL` in `admin/admin-config.js`
+2. Increment cache-busting version in all admin HTML files
+3. Deploy changes via `./deploy.sh`
 
 ### Design System
 

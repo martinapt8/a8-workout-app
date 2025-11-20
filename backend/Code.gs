@@ -402,7 +402,9 @@ function getUserDashboardData(userId) {
           team_color: null,
           lifetime_workouts: lifetimeWorkouts,
           last_completed: user.last_completed || null,
-          join_date: user.join_date || null
+          join_date: user.join_date || null,
+          preferred_duration: user.preferred_duration || null,
+          equipment_available: user.equipment_available || null
         },
         challenge: null,
         activeWorkout: null,
@@ -437,7 +439,9 @@ function getUserDashboardData(userId) {
         team_color: userTeam ? userTeam.team_color : null,
         lifetime_workouts: lifetimeWorkouts,
         last_completed: user.last_completed || null,
-        join_date: user.join_date || null
+        join_date: user.join_date || null,
+        preferred_duration: user.preferred_duration || null,
+        equipment_available: user.equipment_available || null
       },
       challenge: activeChallenge, // RENAMED from "settings"
       activeWorkout: activeWorkout,

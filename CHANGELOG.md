@@ -2,6 +2,35 @@
 
 ## Current Status (Latest Update - November 20, 2025)
 
+### 🚨 Critical Fix: Backend Deployment 403 Error (November 20, 2025)
+
+**Fixed app-breaking 403 error caused by Google Apps Script deployment issue**:
+
+- **User Report**: Main app (`index.html`) was completely broken for all users with CORS error: "Access to fetch at 'https://script.google.com/...' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present"
+- **Root Cause**: Previous Google Apps Script deployment (endpoint `AKfycbx3XBdtJiUwUGOAJevVgz...`) started returning HTTP 403 Forbidden errors, likely due to deployment settings being reset or changed during recent backend updates.
+- **Why it was confusing**:
+  - ✅ App worked fine for several weeks before breaking suddenly
+  - ✅ Admin dashboard and signups page still worked (were being tested while logged into Google)
+  - ✅ Backend supports both GET and POST requests via `doGet()` and `doPost()`
+  - ❌ 403 responses don't include proper CORS headers, causing browser to show CORS error instead of 403
+- **The Fix**:
+  - Created fresh Google Apps Script deployment with correct settings:
+    - **Execute as**: "Me" (your Google account)
+    - **Who has access**: "Anyone" (not "Anyone with Google Account")
+  - Updated API URL in `config.js` and `admin/admin-config.js`
+  - New stable endpoint: `AKfycbzhgQzBQn3xdaZYGe4EbWQiaBeE_csRLG29azzUbgN2vZOvmpKrM-xf-ytfsWeS5iWkJg`
+- **User Impact**:
+  - ✅ App fully functional again for all users
+  - ✅ All 5 pages working (Today, Team, Me, Library, A8AI)
+  - ✅ API calls resolving correctly without CORS errors
+- **Lesson Learned**: When redeploying backend, verify deployment settings haven't changed. Test with logged-out browser or incognito mode to catch 403 errors early.
+
+**Files Changed**:
+- `config.js`: Updated `API_URL` to new deployment endpoint
+- `admin/admin-config.js`: Updated `API_URL` to new deployment endpoint
+
+---
+
 ### 🐛 Fix: Hide Signup Button When Deadline Passed (November 20, 2025)
 
 **Fixed signups viewer to hide signup button when challenge deadline has passed**:

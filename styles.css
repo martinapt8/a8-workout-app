@@ -1488,6 +1488,15 @@ body {
     margin-bottom: 12px;
 }
 
+/* Holiday Lights Decoration */
+.holiday-lights {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    display: block;
+    margin: 0 auto 16px auto;
+}
+
 /* Center and resize all page titles */
 .card-header h1,
 .card-header h2 {

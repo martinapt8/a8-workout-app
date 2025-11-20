@@ -21,11 +21,11 @@
     <meta name="theme-color" content="#000000">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20251120-5">
+    <link rel="stylesheet" href="styles.css?v=20251120-6">
 
     <!-- API Configuration and Helper -->
-    <script src="config.js?v=20251120-5"></script>
-    <script src="api.js?v=20251120-5"></script>
+    <script src="config.js?v=20251120-6"></script>
+    <script src="api.js?v=20251120-6"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -1737,10 +1737,13 @@
 
             // Duration - select current value
             const durationButtons = document.querySelectorAll('#edit-profile-form .duration .option-button');
+            console.log('Duration comparison - user value:', userData.user.preferred_duration, 'type:', typeof userData.user.preferred_duration);
             durationButtons.forEach(btn => {
                 btn.classList.remove('selected');
-                if (btn.dataset.duration === userData.user.preferred_duration) {
-                    console.log('Selecting duration button:', btn.dataset.duration);
+                console.log('Button dataset.duration:', btn.dataset.duration, 'type:', typeof btn.dataset.duration, 'match:', btn.dataset.duration == userData.user.preferred_duration);
+                // Use == for loose comparison to handle string vs number
+                if (btn.dataset.duration == userData.user.preferred_duration) {
+                    console.log('✓ Selecting duration button:', btn.dataset.duration);
                     btn.classList.add('selected');
                 }
             });

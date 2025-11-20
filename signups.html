@@ -151,6 +151,17 @@
             transform: translateY(0);
         }
 
+        .signup-closed-message {
+            background: var(--gray-700);
+            color: var(--gray-300);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 15px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -362,8 +373,11 @@
                 <span class="challenge-meta-item" id="challengeGoal"></span>
                 <span class="challenge-meta-item" id="signupDeadline"></span>
             </div>
-            <div class="signup-link-container">
+            <div class="signup-link-container" id="signupLinkContainer">
                 <a href="#" id="signupLink" class="signup-button" target="_blank">Join This Challenge</a>
+            </div>
+            <div class="signup-closed-message" id="signupClosedMessage" style="display: none;">
+                ⚠️ Signups for this challenge have closed.
             </div>
         </div>
 
@@ -395,6 +409,33 @@
         function getUrlParameter(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
+        }
+
+        // Check if signup deadline has passed
+        // Returns true if deadline has passed (signups closed), false if still open
+        function checkSignupDeadlinePassed(deadlineStr) {
+            if (!deadlineStr) {
+                // No deadline means signups are always open
+                return false;
+            }
+
+            try {
+                // Parse deadline date (format: MM/DD/YYYY)
+                const [month, day, year] = deadlineStr.split('/').map(num => parseInt(num, 10));
+
+                // Create deadline date at end of day (23:59:59)
+                const deadlineDate = new Date(year, month - 1, day, 23, 59, 59);
+
+                // Get current date/time
+                const now = new Date();
+
+                // Compare: if current time is after deadline, signups are closed
+                return now > deadlineDate;
+            } catch (error) {
+                console.error('Error parsing signup deadline:', error);
+                // On error, assume signups are open (safer default)
+                return false;
+            }
         }
 
         // Load signup data
@@ -454,9 +495,20 @@
                 document.getElementById('signupDeadline').innerHTML = `⏰ Signup Deadline: ${challenge.signup_deadline}`;
             }
 
-            // Set signup link with challenge ID
-            const signupUrl = `https://martinapt8.github.io/a8-workout-app/signup_challenge.html?challenge=${encodeURIComponent(challenge.challenge_id)}`;
-            document.getElementById('signupLink').href = signupUrl;
+            // Check if signup deadline has passed
+            const isSignupClosed = checkSignupDeadlinePassed(challenge.signup_deadline);
+
+            if (isSignupClosed) {
+                // Hide signup button and show closed message
+                document.getElementById('signupLinkContainer').style.display = 'none';
+                document.getElementById('signupClosedMessage').style.display = 'block';
+            } else {
+                // Show signup button with challenge ID
+                const signupUrl = `https://martinapt8.github.io/a8-workout-app/signup_challenge.html?challenge=${encodeURIComponent(challenge.challenge_id)}`;
+                document.getElementById('signupLink').href = signupUrl;
+                document.getElementById('signupLinkContainer').style.display = 'block';
+                document.getElementById('signupClosedMessage').style.display = 'none';
+            }
 
             // Calculate stats
             const totalSignups = signups.length;

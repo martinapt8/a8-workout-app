@@ -102,13 +102,13 @@ Google Sheets URLs are stored in `admin/admin-config.js`:
 // Full edit URL (for external link in new tab)
 const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/edit?gid=SHEET_TAB_ID#gid=SHEET_TAB_ID';
 
-// Embed URL (uses /preview instead of /edit for iframe embedding)
-const GOOGLE_SHEETS_EMBED_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/preview?gid=SHEET_TAB_ID';
+// Embed URL (uses /edit with rm=minimal for streamlined editing interface in iframe)
+const GOOGLE_SHEETS_EMBED_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/edit?rm=minimal&gid=SHEET_TAB_ID';
 ```
 
-**Key Differences: `/edit` vs `/preview`:**
-- **`/edit` URL**: Full editing capabilities, used for external "Open Google Sheets" link
-- **`/preview` URL**: Optimized for iframe embedding, prevents some permission issues
+**URL Parameters Explained:**
+- **`/edit` URL**: Provides full editing capabilities (not read-only)
+- **`rm=minimal` parameter**: Removes extra UI chrome (menu bar, etc.) for cleaner embedding
 - **`gid` parameter**: Specifies which sheet tab to display (e.g., `272721508` = Users sheet)
 
 **Navigation Flow:**
@@ -120,11 +120,13 @@ Admin Dashboard Sidebar
 ```
 
 **Technical Notes:**
-- Iframe loads Google Sheets in preview mode for optimal embedding
+- Iframe loads Google Sheets with **full editing capabilities** (not read-only)
+- Uses `rm=minimal` parameter to reduce UI clutter in embedded view
+- Requires Google authentication - will prompt to sign in if not already logged in
+- Respects existing Google Sheets permissions (admin must have edit access to the sheet)
 - Loading state displays while iframe initializes
 - Error fallback provides external link if embed fails
 - No additional API calls required (direct Google Sheets embed)
-- Respects existing Google Sheets permissions (admin must have edit access)
 
 **Layout:**
 - Sidebar: 250px fixed width (shared with all admin pages)

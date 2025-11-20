@@ -416,6 +416,7 @@
         function checkSignupDeadlinePassed(deadlineStr) {
             if (!deadlineStr) {
                 // No deadline means signups are always open
+                console.log('No deadline provided, signups are open');
                 return false;
             }
 
@@ -428,6 +429,14 @@
 
                 // Get current date/time
                 const now = new Date();
+
+                console.log('Deadline comparison:', {
+                    deadlineStr,
+                    parsed: { month, day, year },
+                    deadlineDate: deadlineDate.toISOString(),
+                    now: now.toISOString(),
+                    isPast: now > deadlineDate
+                });
 
                 // Compare: if current time is after deadline, signups are closed
                 return now > deadlineDate;
@@ -497,6 +506,11 @@
 
             // Check if signup deadline has passed
             const isSignupClosed = checkSignupDeadlinePassed(challenge.signup_deadline);
+            console.log('Signup deadline check:', {
+                deadline: challenge.signup_deadline,
+                isSignupClosed: isSignupClosed,
+                currentTime: new Date().toISOString()
+            });
 
             if (isSignupClosed) {
                 // Hide signup button and show closed message

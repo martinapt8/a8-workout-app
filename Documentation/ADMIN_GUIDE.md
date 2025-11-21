@@ -2,7 +2,7 @@
 
 This guide covers all administrative functions for managing the Daily Dose app, including the admin dashboard, user management, challenge setup, email campaign system, and Slack integration.
 
-**Last Updated**: November 18, 2025 (Admin Sidebar Navigation)
+**Last Updated**: November 21, 2025 (Email Campaign Troubleshooting & Deployment Best Practices)
 
 ---
 
@@ -423,18 +423,34 @@ The email content editor now uses **Quill.js** for rich text editing with automa
 **What it does**: Sends to users in a specific challenge
 
 **When to use**:
+- **Pre-launch welcome emails** (send to upcoming challenges before start date) ⭐ **NEW**
 - Challenge kickoff emails
 - Mid-challenge updates
 - Challenge-specific announcements
+- Post-challenge wrap-ups
 
 **How to use**:
 1. Select radio button: **"Challenge-Based"**
-2. **Select Challenge** from dropdown
+2. **Select Challenge** from dropdown (shows all challenges: active, upcoming, completed)
 3. *Optional*: Check **"Include users not in any challenge"** (sends to users not assigned to ANY challenge)
 4. Click **"👥 Preview Recipients"** to verify
 5. Send
 
-**Example**: Mid-challenge update to all users in "Year-End Challenge"
+**Example 1**: Pre-launch welcome email to upcoming challenge (Nov 2025)
+- Target: dd_dec2025 (status='upcoming', starts 11/24/2025)
+- Sent on: 11/21/2025 (3 days before start)
+- Recipients: All users in Challenge_Teams with challenge_id='dd_dec2025'
+- Tokens used: `[team_name]`, `[challenge_start_date]`, `[challenge_end_date]`
+
+**Example 2**: Mid-challenge update to active challenge
+- Target: "Year-End Challenge" (status='active')
+- Recipients: All users currently participating
+
+**Challenge Status Support** (Fixed November 2025):
+- ✅ **upcoming**: Send pre-launch emails to signed-up users
+- ✅ **active**: Send to current participants
+- ✅ **completed**: Send post-challenge wrap-ups
+- All challenge tokens (`[team_name]`, `[challenge_start_date]`, etc.) work regardless of status
 
 **Advanced**: "Include users not in challenge" option useful for:
 - Recruiting non-participants to join
@@ -675,6 +691,54 @@ megan, alex, jordan, sam
 - ⚠️ Use `active = FALSE` to hide instead of deleting rows
 
 ### Troubleshooting
+
+**"Campaign Sent Successfully! Sent: 0, Skipped: 0, Errors: 1"** ⚠️ **CRITICAL**
+
+**Cause**: Email campaign appears to succeed but no emails sent, showing 1 error with no details.
+
+**Most Common Causes**:
+1. **Stale Google Apps Script deployment** - Code updated but old deployment still running
+2. **No users found** - Targeting criteria returned zero users (fixed Nov 2025 with better error messages)
+3. **Backend bug** - Missing parameters or function errors (check execution logs)
+
+**Solution**:
+1. **Check Executions in Apps Script**:
+   - Open Google Apps Script Editor (Extensions → Apps Script)
+   - Click "Executions" (clock icon in left sidebar)
+   - Look for **doPost** executions (NOT doGet - that's the main app)
+   - Click on most recent execution to view logs
+   - Look for error messages or "Found 0 users" log
+
+2. **Verify New Deployment is Active**:
+   - In Apps Script Editor: Click "Deploy" → "Manage deployments"
+   - Check that latest version is deployed
+   - If code was recently updated, create **"New Version"** of deployment
+   - Copy new Web App URL and update `admin-config.js`
+   - Increment cache-busting version in HTML files (e.g., `20251121-3`)
+   - Deploy via `./deploy.sh` to push to GitHub Pages
+
+3. **Check Targeting Returns Users**:
+   - Click "Preview Recipients" before sending
+   - If shows "Recipients: 0", adjust targeting criteria:
+     - Challenge-Based: Verify challenge_id is correct (no typos, check Challenges sheet)
+     - Challenge-Based: Verify users are in Challenge_Teams for that challenge
+     - Custom List: Verify user_ids are spelled correctly
+     - All Active: Verify Users sheet has users with `active_user = TRUE`
+
+**Prevention**:
+- ✅ Always click "Preview Recipients" before sending (catches zero-user issues)
+- ✅ After updating backend code, create new deployment version
+- ✅ Check execution logs (doPost) to see detailed error messages
+- ✅ Use Custom List mode to send test email to yourself first
+
+**Fixed in November 2025**:
+- Added comprehensive logging to `sendEmailCampaign()` function
+- Added specific error message when zero users found
+- All logs now visible in Apps Script Executions (doPost)
+
+**Related Changelog Entry**: See "Bug Fix: Email Campaign System for Upcoming Challenges (November 21, 2025)" in CHANGELOG.md
+
+---
 
 **Template Dropdown is Empty:**
 

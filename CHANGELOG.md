@@ -1,6 +1,59 @@
 # A8 Workout Challenge App
 
-## Current Status (Latest Update - November 20, 2025)
+## Current Status (Latest Update - November 21, 2025)
+
+### 🐛 Bug Fix: Profile Editing Variable Reference Error (November 21, 2025)
+
+**Fixed critical JavaScript error preventing profile updates**:
+
+- **Issue**: Users could not save profile changes - received "Network error. Please try again." message
+- **Console Error**: `ReferenceError: currentUserId is not defined at saveProfileChanges (index.html:1822:62)`
+- **Root Cause**: Line 1822 in `saveProfileChanges()` function referenced undefined variable `currentUserId` instead of `userData.user.user_id`
+  - Throughout the codebase, user ID is accessed via `userData.user.user_id` (see lines 950, 1091, 1117, 1577, 1659, 1882, 1937, 2350)
+  - Profile save function incorrectly used non-existent `currentUserId` variable
+- **Fix**: Changed line 1822 from:
+  ```javascript
+  const response = await API.updateUserProfile(currentUserId, displayName, duration, equipment);
+  ```
+  to:
+  ```javascript
+  const response = await API.updateUserProfile(userData.user.user_id, displayName, duration, equipment);
+  ```
+- **Impact**:
+  - ✅ Profile editing now works on desktop and mobile
+  - ✅ Users can successfully update display_name, preferred_duration, and equipment_available
+  - ✅ Consistent variable naming pattern across entire codebase
+  - ✅ Full page refresh shows updated values immediately
+
+**Testing Notes**:
+- Test profile save on desktop and mobile browsers
+- Verify display name, duration, and equipment changes persist after page refresh
+- Confirm no console errors during save operation
+
+---
+
+### 🐛 Bug Fix: Duplicate Challenge Display (November 20, 2025)
+
+**Fixed duplicate challenge display in "My Challenges" section**:
+
+- **Issue**: Upcoming challenges were appearing twice - once in yellow "Upcoming" card and once in gray "Past Challenge" card
+- **Root Cause**: `getUserAllChallengeStats()` in `backend/Code.gs` was including challenges with `status='upcoming'` in both `userChallenges` and `upcomingChallenges` arrays
+  - When users signed up for upcoming challenges, they were added to `Challenge_Teams`
+  - Function scanned `Challenge_Teams` and added ALL registered challenges to `userChallenges` (including upcoming)
+  - Function ALSO scanned `Challenges` sheet for `status='upcoming'` and added to `upcomingChallenges`
+  - Result: Same challenge appeared in both arrays
+- **Fix**: Added status filter at line 1724 in `Code.gs`:
+  ```javascript
+  // Only include challenges that are NOT upcoming (upcoming challenges are shown separately)
+  if (challenge && challenge.status !== 'upcoming') {
+  ```
+- **Impact**:
+  - ✅ Upcoming challenges now only appear in yellow "Upcoming" section
+  - ✅ Past/active challenges appear in gray "My Challenges" section
+  - ✅ No duplicate displays
+  - ✅ Maintains proper separation between upcoming awareness and participation history
+
+---
 
 ### ✨ Feature: Profile Update on Me Page (November 20, 2025)
 

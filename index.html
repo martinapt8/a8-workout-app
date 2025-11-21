@@ -21,11 +21,11 @@
     <meta name="theme-color" content="#000000">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20251120-6">
+    <link rel="stylesheet" href="styles.css?v=20251121-1">
 
     <!-- API Configuration and Helper -->
-    <script src="config.js?v=20251120-6"></script>
-    <script src="api.js?v=20251120-6"></script>
+    <script src="config.js?v=20251121-1"></script>
+    <script src="api.js?v=20251121-1"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -1819,7 +1819,7 @@
             saveBtn.textContent = 'Saving...';
 
             try {
-                const response = await API.updateUserProfile(currentUserId, displayName, duration, equipment);
+                const response = await API.updateUserProfile(userData.user.user_id, displayName, duration, equipment);
 
                 if (response.success) {
                     // Full page refresh (as per user preference)

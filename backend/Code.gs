@@ -1720,7 +1720,8 @@ function getUserAllChallengeStats(ss, userId) {
       const challenge = getChallengeById(ss, challengeId);
       const teamInfo = getUserTeamForChallenge(ss, userId, challengeId);
 
-      if (challenge) {
+      // Only include challenges that are NOT upcoming (upcoming challenges are shown separately)
+      if (challenge && challenge.status !== 'upcoming') {
         userChallenges.push({
           challenge_id: challengeId,
           challenge_name: challenge.challenge_name,

@@ -218,6 +218,7 @@ Returns user's challenge history AND upcoming challenges for all users (powers M
     - team_name, team_color (from Challenge_Teams)
     - start_date, end_date (formatted as MM/DD/YYYY)
     - Includes "year_round" as special challenge for off-season workouts
+    - **Important**: Excludes challenges with `status='upcoming'` (shown separately in upcomingChallenges)
     - Sorted by date (most recent first)
   - **upcomingChallenges**: All challenges where status='upcoming':
     - challenge_id, challenge_name
@@ -228,8 +229,11 @@ Returns user's challenge history AND upcoming challenges for all users (powers M
   - Checks **Completions sheet** for workout counts
   - Checks **Challenge_Teams sheet** for user registrations (ensures challenges show even with 0 workouts)
   - Enriches with challenge details from Challenges sheet
+  - **Filters by status**: Only adds non-upcoming challenges to userChallenges array
 - **Use Case**: Displays "My Challenges" section on Me page with both historical and upcoming
-- **Fix (Nov 19, 2025)**: Now includes challenges user signed up for even if they haven't logged a workout yet
+- **Fixes**:
+  - **(Nov 19, 2025)**: Now includes challenges user signed up for even if they haven't logged a workout yet
+  - **(Nov 20, 2025)**: Fixed duplicate challenge display by excluding `status='upcoming'` from userChallenges array
 
 ### `getChallengeSignups(ss, challengeId)`
 Returns all signups for a specific challenge (powers signups.html page):

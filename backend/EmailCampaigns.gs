@@ -270,7 +270,7 @@ function getTokenDataForUser(userId, challengeId = null) {
     // Get user's team info for this challenge
     const teamInfo = getUserTeamForChallenge(ss, userId, challenge.challenge_id);
     if (teamInfo) {
-      tokenData.team_name = teamInfo.team_name;
+      tokenData.team_name = cleanDisplayNameForEmail(teamInfo.team_name);
       tokenData.team_total_workouts = getTeamChallengeWorkoutCount(teamInfo.team_name, challenge.challenge_id);
     }
   }

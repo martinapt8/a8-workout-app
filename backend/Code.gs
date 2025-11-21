@@ -139,6 +139,24 @@ function doGet(e) {
         }
         break;
 
+      case 'getChallengeAnalytics':
+        const analyticsChallenge = e.parameter.challengeId;
+        if (!analyticsChallenge) {
+          result = { error: 'Missing challengeId parameter' };
+        } else {
+          result = getChallengeStats(analyticsChallenge);
+        }
+        break;
+
+      case 'getChallengeTimeSeriesData':
+        const timeSeriesChallenge = e.parameter.challengeId;
+        if (!timeSeriesChallenge) {
+          result = { error: 'Missing challengeId parameter' };
+        } else {
+          result = getChallengeTimeSeriesData(timeSeriesChallenge);
+        }
+        break;
+
       case 'getActiveUsers':
         const ss7 = SpreadsheetApp.getActiveSpreadsheet();
         const activeUsersSheet = ss7.getSheetByName('Users');

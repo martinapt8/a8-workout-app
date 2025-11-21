@@ -199,5 +199,25 @@ const ADMIN_API = {
   async getTotalWorkouts() {
     const result = await this.get('getGoalProgress');
     return result.total_completions || 0;
+  },
+
+  // ===== Challenge Analytics Methods =====
+
+  /**
+   * Get analytics for a specific challenge
+   * @param {string} challengeId - Challenge ID to get analytics for
+   * @returns {Promise<Object>} Analytics data with total_completions, unique_participants, team_totals, etc.
+   */
+  async getChallengeAnalytics(challengeId) {
+    return this.get('getChallengeAnalytics', { challengeId });
+  },
+
+  /**
+   * Get time series data for a challenge (for cumulative trend chart)
+   * @param {string} challengeId - Challenge ID to get time series for
+   * @returns {Promise<Object>} Time series data with dates, daily counts, and cumulative counts
+   */
+  async getChallengeTimeSeriesData(challengeId) {
+    return this.get('getChallengeTimeSeriesData', { challengeId });
   }
 };

@@ -381,6 +381,88 @@ function getChallengeStats(challengeId) {
 }
 
 /**
+ * Get time series data for challenge workouts (for cumulative trend chart)
+ * @param {string} challengeId - Challenge identifier
+ * @returns {Object} Time series data with dates and cumulative counts
+ */
+function getChallengeTimeSeriesData(challengeId) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const completionsSheet = ss.getSheetByName('Completions');
+  const challengesSheet = ss.getSheetByName('Challenges');
+
+  if (!completionsSheet || !challengesSheet) {
+    return { error: 'Required sheets not found' };
+  }
+
+  // Get challenge date range
+  const challengesData = challengesSheet.getDataRange().getValues();
+  const challengeHeaders = challengesData[0];
+  const challengeIdCol = challengeHeaders.indexOf('challenge_id');
+  const startDateCol = challengeHeaders.indexOf('start_date');
+  const endDateCol = challengeHeaders.indexOf('end_date');
+  const goalCol = challengeHeaders.indexOf('total_goal');
+
+  let challengeStartDate, challengeEndDate, challengeGoal;
+  for (let i = 1; i < challengesData.length; i++) {
+    if (challengesData[i][challengeIdCol] === challengeId) {
+      challengeStartDate = new Date(challengesData[i][startDateCol]);
+      challengeEndDate = new Date(challengesData[i][endDateCol]);
+      challengeGoal = challengesData[i][goalCol];
+      break;
+    }
+  }
+
+  if (!challengeStartDate || !challengeEndDate) {
+    return { error: 'Challenge not found' };
+  }
+
+  // Get completions data
+  const completionsData = completionsSheet.getDataRange().getValues();
+  const completionsHeaders = completionsData[0];
+  const headerMap = {};
+  completionsHeaders.forEach((header, index) => {
+    headerMap[header] = index;
+  });
+
+  // Count workouts by date
+  const dailyCounts = {};
+  for (let i = 1; i < completionsData.length; i++) {
+    if (completionsData[i][headerMap['challenge_id']] === challengeId) {
+      const timestamp = new Date(completionsData[i][headerMap['timestamp']]);
+      const dateStr = Utilities.formatDate(timestamp, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      dailyCounts[dateStr] = (dailyCounts[dateStr] || 0) + 1;
+    }
+  }
+
+  // Build cumulative time series for entire date range
+  const timeSeries = [];
+  let cumulativeTotal = 0;
+  const currentDate = new Date(challengeStartDate);
+
+  while (currentDate <= challengeEndDate) {
+    const dateStr = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    const dailyCount = dailyCounts[dateStr] || 0;
+    cumulativeTotal += dailyCount;
+
+    timeSeries.push({
+      date: dateStr,
+      daily_count: dailyCount,
+      cumulative_count: cumulativeTotal
+    });
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return {
+    challenge_id: challengeId,
+    start_date: Utilities.formatDate(challengeStartDate, Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+    end_date: Utilities.formatDate(challengeEndDate, Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+    goal: challengeGoal,
+    time_series: timeSeries
+  };
+}
+
+/**
  * Get list of all challenges
  * @returns {Array} Array of challenge objects
  */

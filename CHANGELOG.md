@@ -2,6 +2,186 @@
 
 ## Current Status (Latest Update - November 21, 2025)
 
+### 🎯 Feature: Challenge Analytics Dashboard (November 21, 2025)
+
+**Added comprehensive challenge analytics and visualization system to admin dashboard**:
+
+#### New Admin Dashboard Page: `/admin/challenges.html`
+
+**Purpose**: Provide admins with historical challenge data, real-time analytics, and visual reports for sharing with participants.
+
+#### What Was Built
+
+**1. Backend API Enhancements** (`backend/Code.gs`, `backend/AdminChallenges.gs`):
+- ✅ New GET endpoint: `getChallengeAnalytics` - Returns challenge statistics (participants, workouts, team totals, workout types, daily breakdown)
+- ✅ New GET endpoint: `getChallengeTimeSeriesData` - Returns day-by-day cumulative workout data for trend charts
+- ✅ New function: `getChallengeTimeSeriesData(challengeId)` - Generates complete time series from challenge start to end date
+- ✅ Frontend API wrappers in `admin/admin-api.js` for both new endpoints
+
+**2. Challenge Summary Table** (Section 1):
+- ✅ Single sortable table showing ALL challenges (active/upcoming/completed)
+- ✅ 8 columns: Challenge Name, Status, Start Date, End Date, Goal, Participants, Total Workouts, Completion %
+- ✅ Color-coded status badges: Green (active), Blue (upcoming), Gray (completed)
+- ✅ Click column headers to sort (status uses custom sorting: active → upcoming → completed)
+- ✅ Auto-fetches analytics for all challenges in parallel on page load
+- ✅ Calculates completion percentage (workouts / goal * 100)
+
+**3. Challenge Selector & Stat Cards** (Section 2):
+- ✅ Dropdown selector auto-populated with all challenges
+- ✅ Auto-defaults to active challenge on page load
+- ✅ 4 stat cards update when challenge selected:
+  - Total Workouts (from Completions sheet)
+  - Participants (unique users on teams)
+  - Goal Progress % (visual percentage with fraction display)
+  - Days Remaining (dynamic: positive = remaining, 0 = today, negative = ended X days ago)
+
+**4. Visual 1: Workouts Over Time** (Section 3 - Chart.js):
+- ✅ Cumulative trend line chart showing workout progression
+- ✅ Blue line: Actual cumulative workouts (filled area)
+- ✅ Red dashed line: Goal target (flat horizontal line for pacing reference)
+- ✅ Date labels on X-axis (auto-skips for readability)
+- ✅ Workout count on Y-axis (starts at 0, auto-scales)
+- ✅ Hover tooltips show exact counts per date
+- ✅ Responsive design (maintains aspect ratio)
+- ✅ Perfect for screenshots to share in team chat for motivation
+
+**5. Visual 2: Workouts by Team** (Section 4 - Chart.js):
+- ✅ Vertical bar chart comparing team performance
+- ✅ Teams on X-axis, workout counts on Y-axis
+- ✅ Color-coded bars (8 distinct colors: red, blue, green, yellow, purple, orange, pink, teal)
+- ✅ Hover tooltips show team name and exact workout count
+- ✅ Responsive design
+- ✅ Sorted by team name alphabetically
+
+**6. Navigation Updates**:
+- ✅ Added "Challenges" menu item to sidebar in ALL admin pages:
+  - `admin/index.html`
+  - `admin/email-campaigns.html`
+  - `admin/sheets.html`
+  - `admin/challenges.html` (new page)
+- ✅ Active state highlighting for current page
+
+#### Technical Implementation
+
+**Chart.js Integration**:
+- CDN-based loading (Chart.js v4.4.0) - no local files required
+- Two chart instances managed: `trendChartInstance` and `teamChartInstance`
+- Charts destroyed and recreated on challenge selection to prevent memory leaks
+- Responsive canvas elements with 300px height
+
+**Data Loading Strategy**:
+- Parallel API calls for optimal performance (all challenges loaded simultaneously)
+- Challenge summary table: Fetches analytics for all challenges on page load
+- Selected challenge: Fetches both analytics and time series data in parallel
+- Error handling with user-friendly alert messages
+
+**Sorting Logic**:
+- Client-side table sorting (click column headers)
+- Custom status sorting: active (1) → upcoming (2) → completed (3)
+- Date sorting uses actual Date objects for accuracy
+- Numeric sorting for goal, participants, workouts, completion %
+- Sort direction toggles on repeated clicks (ascending ↔ descending)
+
+**Date Handling**:
+- Time series generates entry for EVERY day in challenge date range (even if 0 workouts)
+- Cumulative calculation ensures line chart shows steady progression
+- Days remaining calculation handles past/present/future challenges
+- Date formatting: `toLocaleDateString()` for consistency with admin dashboard style
+
+#### Files Changed
+
+**New Files**:
+- `admin/challenges.html` (~650 lines) - Complete challenge analytics page
+
+**Modified Files**:
+- `backend/Code.gs` - Added 2 GET endpoint cases (lines 142-158)
+- `backend/AdminChallenges.gs` - Added `getChallengeTimeSeriesData()` function (~80 lines)
+- `admin/admin-api.js` - Added 2 API wrapper functions
+- `admin/index.html` - Added "Challenges" sidebar link
+- `admin/email-campaigns.html` - Added "Challenges" sidebar link
+- `admin/sheets.html` - Added "Challenges" sidebar link
+- `config.js` - Updated API_URL with new deployment
+- `admin/admin-config.js` - Updated API_URL with new deployment
+
+#### Use Cases
+
+1. **Historical Tracking**: View all past challenges in one table with key metrics
+2. **Real-Time Monitoring**: Check active challenge progress and days remaining
+3. **Team Comparison**: Quickly identify which teams need encouragement
+4. **Trend Analysis**: Take screenshot of cumulative chart to share in Slack/email showing if team is on pace to hit goal
+5. **Post-Challenge Review**: Analyze completed challenges to inform future planning (goal setting, team sizes, etc.)
+
+#### Future Enhancement Opportunities
+
+- Export challenge summary table to CSV for external reporting
+- Fetch actual team colors from Challenge_Teams sheet (currently uses default palette)
+- Participant breakdown table showing individual workout counts per challenge
+- Screenshot button to generate downloadable PNG of charts
+- Comparison mode: Select 2 challenges to view side-by-side
+- Team drill-down: Click team bar to see individual member performance
+- Add non-profit donation tracking column to Challenges sheet
+
+#### Performance Considerations
+
+- Parallel data loading minimizes wait time (all challenges fetched simultaneously)
+- Chart instances properly destroyed to prevent memory leaks
+- Client-side sorting avoids repeated API calls
+- Time series pre-generated for entire date range (no lazy loading needed for typical 30-day challenges)
+
+#### Testing Recommendations
+
+1. Test with multiple challenges of different statuses (active, upcoming, completed)
+2. Verify sorting works on all columns (especially custom status sorting)
+3. Test chart rendering with challenges of varying lengths (7 days vs 30 days)
+4. Verify days remaining calculation for past/current/future challenges
+5. Test dropdown selector defaults to active challenge
+6. Verify responsive design on mobile (sidebar navigation, chart resizing)
+7. Check browser console for API errors or failed requests
+8. Test with challenges that have 0 workouts (should render empty charts gracefully)
+
+---
+
+### 🐛 Bug Fix: Email Campaign Emoji Handling (November 21, 2025)
+
+**Fixed emoji encoding errors in email campaigns by consistently stripping emojis from all user-facing tokens**:
+
+#### The Bug
+- **Issue**: Email campaigns sent to users with emojis in team names or display names showed broken character encoding
+  - Display names: Emojis silently dropped (e.g., "🎯 Megan" → "Megan")
+  - Team names: Showed `????` encoding errors (e.g., "🔥 Red Team" → "Feliz Navi-Bod ??????")
+- **Root Cause**: Inconsistent emoji handling in token replacement
+  - `display_name` token (line 248): Actively cleaned via `cleanDisplayNameForEmail()` which strips all emojis/non-ASCII
+  - `team_name` token (line 273): Passed through raw without cleaning, causing email encoding issues
+  - Different behavior led to different failure modes
+
+#### The Fix
+- **EmailCampaigns.gs:273**: Applied same emoji-stripping logic to team names:
+  ```javascript
+  // Before (inconsistent):
+  tokenData.team_name = teamInfo.team_name;
+
+  // After (consistent):
+  tokenData.team_name = cleanDisplayNameForEmail(teamInfo.team_name);
+  ```
+- Reuses existing `cleanDisplayNameForEmail()` function which removes all emojis and non-ASCII characters (line 402-410)
+- Ensures consistent behavior: both display_name and team_name are cleaned identically before email insertion
+
+#### Impact
+- ✅ No more `????` encoding errors in email campaigns
+- ✅ Consistent emoji handling across all tokens (display_name, team_name)
+- ✅ Team names appear clean in emails (e.g., "🔥 Red Team" → "Red Team")
+- ✅ Emojis still visible in app UI, just stripped from emails for compatibility
+- ✅ Minimal code change (1 line) leverages existing, proven cleaning logic
+- ✅ No risk to WYSIWYG editor, HTML generation, or email encoding
+
+#### Why Strip Instead of Fix Encoding?
+1. **Lower risk**: No changes to email encoding, WYSIWYG editor, or HTML generation
+2. **Email compatibility**: Some email clients still struggle with emoji encoding
+3. **Consistency**: Same behavior for all user-facing text tokens
+4. **Proven solution**: Reuses existing cleaning function that's been working for display_name
+
+---
+
 ### 🐛 Bug Fix: Email Campaign System for Upcoming Challenges (November 21, 2025)
 
 **Fixed email campaign system to work with upcoming challenges and added comprehensive debugging**:

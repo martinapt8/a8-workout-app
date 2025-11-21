@@ -28,13 +28,14 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
   - **AI Integration**: Claude API for dynamic workout generation
 - **Admin Dashboard** (NEW - Nov 2025):
   - `admin/index.html`: Dashboard home with live stats (9.9KB)
+  - `admin/challenges.html`: Challenge analytics with sortable table, Chart.js visualizations (NEW - Nov 21, 2025)
   - `admin/email-campaigns.html`: Email campaign composer with WYSIWYG editor (41KB)
-  - `admin/sheets.html`: Google Sheets embed viewer (NEW - Nov 2025)
+  - `admin/sheets.html`: Google Sheets embed viewer
   - `admin/admin-styles.css`: A8-branded design system (15KB)
-  - `admin/admin-api.js`: API wrapper for campaign endpoints (5.8KB)
+  - `admin/admin-api.js`: API wrapper for campaign & analytics endpoints (6KB)
   - `admin/admin-config.js`: API configuration (880B)
   - **UI Design**: Fixed sidebar navigation (250px) with black background, hierarchical menu (Admin, Comms, Google Admin sections), yellow accent colors
-  - **Features**: WYSIWYG email editor (Quill.js), token insertion chips, auto-generated plain text, template CRUD, live preview, 3 targeting modes, campaign sending, embedded Google Sheets viewer
+  - **Features**: WYSIWYG email editor (Quill.js), challenge analytics with sortable table & Chart.js visuals (cumulative trend line, team bar chart), token insertion chips, auto-generated plain text, template CRUD, live preview, 3 targeting modes, campaign sending, embedded Google Sheets viewer
   - **Access**: `https://martinapt8.github.io/a8-workout-app/admin/`
 - **Challenge Signup Dashboard** (NEW - Nov 2025):
   - `signups.html`: Public signup viewer with team assignments
@@ -47,7 +48,7 @@ Each challenge features rotating prescribed workouts, flexible team assignments,
 - **RESTful API**: Form-encoded POST endpoints for all operations
 - **Core API** (`Code.gs`): Main app endpoints (getDashboard, markWorkoutComplete, etc.)
 - **Email Campaigns API** (`EmailCampaigns.gs`): Template management, token replacement, campaign sending (NEW - Nov 2025)
-- **Admin Dashboard API**: Additional GET endpoints (getActiveUsersCount, getAllChallenges, getActiveUsers, getChallengeSignups, etc.)
+- **Admin Dashboard API**: Additional GET endpoints (getActiveUsersCount, getAllChallenges, getActiveUsers, getChallengeSignups, getChallengeAnalytics, getChallengeTimeSeriesData, etc.)
 - **No Authentication**: URL parameters identify users (`?user=martin`)
 - **CORS Solution**: Uses form-encoded POST (URLSearchParams) instead of JSON to bypass CORS preflight restrictions
 
@@ -82,11 +83,13 @@ Daily Dose Dev/
 │   ├── daily_dose_logo.svg
 │   └── *.svg                   # today, team, me, library, ai icons
 │
-├── admin/                      # Admin dashboard (5 files, 73KB) [NEW - Nov 2025]
+├── admin/                      # Admin dashboard (6 files) [NEW - Nov 2025]
 │   ├── index.html              # Dashboard home (9.9KB)
+│   ├── challenges.html         # Challenge analytics page (NEW - Nov 21, 2025)
 │   ├── email-campaigns.html    # Campaign composer with WYSIWYG editor (41KB)
+│   ├── sheets.html             # Google Sheets embed viewer
 │   ├── admin-styles.css        # A8 design system (15KB)
-│   ├── admin-api.js            # API wrapper (5.8KB)
+│   ├── admin-api.js            # API wrapper (6KB)
 │   └── admin-config.js         # API config (880B)
 │
 ├── backend/                    # Google Apps Script files (11 files)
@@ -322,6 +325,7 @@ The backend is built with Google Apps Script and provides a RESTful API for the 
 - **Core Functions**: `getUserDashboardData()`, `getActiveChallenge()`, `markWorkoutComplete()`, `getGoalProgress()`, etc.
 - **Helper Functions**: `getSettings()`, `getUserInfo()`, `updateUserStats()`, `getTeamTotals()`, etc.
 - **Admin Functions**: `createNewChallenge()`, `setActiveChallenge()`, `setupChallengeTeams()`, `endCurrentChallenge()`
+- **Analytics Functions**: `getChallengeStats()`, `getChallengeTimeSeriesData()` (NEW - Nov 21, 2025)
 
 For complete function signatures, parameters, return values, and implementation details, see [BACKEND.md](Documentation/BACKEND.md).
 
@@ -649,6 +653,8 @@ fetch(API_URL, {
 - `getUserAllCompletions` - Get all completion dates across all challenges (with optional date range filtering)
 - `getUserAllChallengeStats` - Get user's past challenge history AND upcoming challenges (for Me page)
 - `getRecentCompletionsAll` - Get recent completions across all users/challenges for activity feed (works year-round)
+- `getChallengeAnalytics` - Get challenge statistics (participants, workouts, teams) (NEW - Nov 21, 2025)
+- `getChallengeTimeSeriesData` - Get day-by-day cumulative workout data for charts (NEW - Nov 21, 2025)
 - `generateAIWorkout` - Generate AI workout
 - `markWorkoutComplete` - Log a workout (POST only)
 - `createSignup` - Create new user signup (POST only)

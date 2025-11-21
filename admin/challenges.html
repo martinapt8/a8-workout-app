@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenges - Daily Dose Admin</title>
+    <link rel="stylesheet" href="admin-styles.css?v=20251121-4">
+    <link rel="icon" type="image/png" href="../assets/daily_dose_logo_sm.png">
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <img src="../assets/daily_dose_logo_sm.png" alt="Daily Dose Logo">
+            <span class="sidebar-brand-text">Daily Dose</span>
+        </div>
+
+        <nav>
+            <ul class="sidebar-nav">
+                <!-- Admin Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Admin</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="index.html" class="sidebar-nav-child">Admin Home</a></li>
+                        <li><a href="challenges.html" class="sidebar-nav-child active">Challenges</a></li>
+                        <li><a href="https://martinapt8.github.io/a8-workout-app/?user=mritty85" class="sidebar-nav-child" target="_blank">View Main App</a></li>
+                        <li><a class="sidebar-nav-child disabled">User Management</a></li>
+                        <li><a class="sidebar-nav-child disabled">Reporting</a></li>
+                    </ul>
+                </li>
+
+                <!-- Comms Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Comms</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="email-campaigns.html" class="sidebar-nav-child">Send Emails</a></li>
+                        <li><a class="sidebar-nav-child disabled">Send Slack Updates</a></li>
+                    </ul>
+                </li>
+
+                <!-- Google Admin Section -->
+                <li class="sidebar-nav-section">
+                    <span class="sidebar-nav-parent non-clickable">Google Admin</span>
+                    <ul class="sidebar-nav-children">
+                        <li><a href="sheets.html" class="sidebar-nav-child">View Sheets</a></li>
+                        <li><a href="https://docs.google.com/spreadsheets/d/1IVFs2QmrevDV6pNuuuOLXtsZls8HcChnJn_qK8IHV7M/edit?gid=272721508#gid=272721508" class="sidebar-nav-child" target="_blank">Open Google Sheets</a></li>
+                        <li><a href="https://script.google.com/u/0/home/projects/19-ZM76X7s6QJkvx-tkexXcdoevOk7UNziac98w70wKA_kGEf6RssoS32/edit" class="sidebar-nav-child" target="_blank">Open Apps Script Editor</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-container">
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Section 1: Challenge Summary Table -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">🏆 Challenge Summary</h2>
+                    <p class="card-subtitle">Historical overview of all challenges</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="table" id="challengeTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)" style="cursor: pointer;">Challenge Name ▴▾</th>
+                                <th onclick="sortTable(1)" style="cursor: pointer;">Status ▴▾</th>
+                                <th onclick="sortTable(2)" style="cursor: pointer;">Start Date ▴▾</th>
+                                <th onclick="sortTable(3)" style="cursor: pointer;">End Date ▴▾</th>
+                                <th onclick="sortTable(4)" style="cursor: pointer;">Goal ▴▾</th>
+                                <th onclick="sortTable(5)" style="cursor: pointer;">Participants ▴▾</th>
+                                <th onclick="sortTable(6)" style="cursor: pointer;">Total Workouts ▴▾</th>
+                                <th onclick="sortTable(7)" style="cursor: pointer;">Completion % ▴▾</th>
+                            </tr>
+                        </thead>
+                        <tbody id="challengeTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 2rem;">
+                                    <div class="loading">Loading challenges...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Challenge Analytics -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">📊 Challenge Analytics</h2>
+                    <p class="card-subtitle">Detailed analytics for a specific challenge</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label" for="challengeSelect">Select Challenge</label>
+                    <select class="form-select" id="challengeSelect" onchange="loadChallengeAnalytics()">
+                        <option value="">-- Select a challenge --</option>
+                    </select>
+                </div>
+
+                <!-- Stats Cards Grid -->
+                <div id="statsGrid" class="stats-grid hidden">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Workouts</div>
+                        <div class="stat-value" id="statTotalWorkouts">0</div>
+                        <div class="stat-meta">Logged by all participants</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Participants</div>
+                        <div class="stat-value" id="statParticipants">0</div>
+                        <div class="stat-meta">Unique users on teams</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Goal Progress</div>
+                        <div class="stat-value" id="statGoalProgress">0%</div>
+                        <div class="stat-meta" id="statGoalMeta">0 / 0 workouts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Days Remaining</div>
+                        <div class="stat-value" id="statDaysRemaining">--</div>
+                        <div class="stat-meta" id="statDateRange">--</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Visual 1 - Workouts Over Time -->
+        <section class="card" id="chartSection1" class="hidden">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">📈 Workouts Over Time</h2>
+                    <p class="card-subtitle">Cumulative workout trend vs. goal</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" height="300"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 4: Visual 2 - Workouts by Team -->
+        <section class="card" id="chartSection2" class="hidden">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">👥 Workouts by Team</h2>
+                    <p class="card-subtitle">Team performance comparison</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="teamChart" height="300"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="admin-config.js?v=20251121-4"></script>
+    <script src="admin-api.js?v=20251121-4"></script>
+    <script>
+        // Global variables
+        let allChallenges = [];
+        let currentSortColumn = -1;
+        let currentSortAscending = true;
+        let trendChartInstance = null;
+        let teamChartInstance = null;
+
+        // Initialize page on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadAllChallenges();
+            await populateChallengeSelector();
+        });
+
+        // Load all challenges and populate summary table
+        async function loadAllChallenges() {
+            try {
+                const result = await ADMIN_API.getAllChallenges();
+                allChallenges = result.challenges || [];
+
+                // Get analytics for each challenge
+                const tableBody = document.getElementById('challengeTableBody');
+                tableBody.innerHTML = '';
+
+                if (allChallenges.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No challenges found</td></tr>';
+                    return;
+                }
+
+                // Fetch analytics for all challenges in parallel
+                const analyticsPromises = allChallenges.map(c =>
+                    ADMIN_API.getChallengeAnalytics(c.challenge_id)
+                        .catch(err => ({ error: true, challenge_id: c.challenge_id }))
+                );
+                const analyticsResults = await Promise.all(analyticsPromises);
+
+                // Build table rows
+                allChallenges.forEach((challenge, idx) => {
+                    const analytics = analyticsResults[idx];
+                    const row = buildChallengeTableRow(challenge, analytics);
+                    tableBody.appendChild(row);
+                });
+
+                // Sort by status (active first) then by start_date desc
+                sortTable(1); // Sort by status
+            } catch (error) {
+                console.error('Error loading challenges:', error);
+                showAlert('Error loading challenges: ' + error.message, 'error');
+            }
+        }
+
+        // Build a table row for a challenge
+        function buildChallengeTableRow(challenge, analytics) {
+            const row = document.createElement('tr');
+
+            // Status badge styling
+            let statusBadge = '';
+            if (challenge.status === 'active') {
+                statusBadge = '<span class="badge badge-success">Active</span>';
+            } else if (challenge.status === 'upcoming') {
+                statusBadge = '<span class="badge badge-info">Upcoming</span>';
+            } else {
+                statusBadge = '<span class="badge badge-secondary">Completed</span>';
+            }
+
+            // Calculate metrics
+            const participants = analytics.unique_participants || 0;
+            const totalWorkouts = analytics.total_completions || 0;
+            const goal = challenge.total_goal || 0;
+            const completionPct = goal > 0 ? Math.round((totalWorkouts / goal) * 100) : 0;
+
+            // Format dates
+            const startDate = formatDate(challenge.start_date);
+            const endDate = formatDate(challenge.end_date);
+
+            row.innerHTML = `
+                <td><strong>${challenge.challenge_name}</strong></td>
+                <td>${statusBadge}</td>
+                <td>${startDate}</td>
+                <td>${endDate}</td>
+                <td>${goal}</td>
+                <td>${participants}</td>
+                <td>${totalWorkouts}</td>
+                <td><strong>${completionPct}%</strong></td>
+            `;
+
+            // Store data attributes for sorting
+            row.dataset.status = challenge.status;
+            row.dataset.startDate = challenge.start_date;
+            row.dataset.endDate = challenge.end_date;
+            row.dataset.goal = goal;
+            row.dataset.participants = participants;
+            row.dataset.totalWorkouts = totalWorkouts;
+            row.dataset.completionPct = completionPct;
+
+            return row;
+        }
+
+        // Populate challenge selector dropdown
+        async function populateChallengeSelector() {
+            const select = document.getElementById('challengeSelect');
+            select.innerHTML = '<option value="">-- Select a challenge --</option>';
+
+            allChallenges.forEach(challenge => {
+                const option = document.createElement('option');
+                option.value = challenge.challenge_id;
+                option.textContent = `${challenge.challenge_name} (${challenge.status})`;
+
+                // Default to active challenge
+                if (challenge.status === 'active') {
+                    option.selected = true;
+                }
+
+                select.appendChild(option);
+            });
+
+            // If there's an active challenge, load it automatically
+            if (select.value) {
+                await loadChallengeAnalytics();
+            }
+        }
+
+        // Load analytics for selected challenge
+        async function loadChallengeAnalytics() {
+            const challengeId = document.getElementById('challengeSelect').value;
+
+            if (!challengeId) {
+                document.getElementById('statsGrid').classList.add('hidden');
+                document.getElementById('chartSection1').classList.add('hidden');
+                document.getElementById('chartSection2').classList.add('hidden');
+                return;
+            }
+
+            try {
+                // Fetch analytics and time series data in parallel
+                const [analytics, timeSeriesData] = await Promise.all([
+                    ADMIN_API.getChallengeAnalytics(challengeId),
+                    ADMIN_API.getChallengeTimeSeriesData(challengeId)
+                ]);
+
+                // Update stat cards
+                updateStatCards(analytics, timeSeriesData);
+
+                // Render charts
+                renderTrendChart(timeSeriesData);
+                renderTeamChart(analytics);
+
+                // Show sections
+                document.getElementById('statsGrid').classList.remove('hidden');
+                document.getElementById('chartSection1').classList.remove('hidden');
+                document.getElementById('chartSection2').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error loading challenge analytics:', error);
+                showAlert('Error loading analytics: ' + error.message, 'error');
+            }
+        }
+
+        // Update stat cards with challenge data
+        function updateStatCards(analytics, timeSeriesData) {
+            // Total Workouts
+            document.getElementById('statTotalWorkouts').textContent = analytics.total_completions || 0;
+
+            // Participants
+            document.getElementById('statParticipants').textContent = analytics.unique_participants || 0;
+
+            // Goal Progress
+            const goal = timeSeriesData.goal || 0;
+            const completions = analytics.total_completions || 0;
+            const progressPct = goal > 0 ? Math.round((completions / goal) * 100) : 0;
+            document.getElementById('statGoalProgress').textContent = `${progressPct}%`;
+            document.getElementById('statGoalMeta').textContent = `${completions} / ${goal} workouts`;
+
+            // Days Remaining
+            const endDate = new Date(timeSeriesData.end_date);
+            const today = new Date();
+            const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+            if (daysRemaining > 0) {
+                document.getElementById('statDaysRemaining').textContent = daysRemaining;
+                document.getElementById('statDateRange').textContent = `${daysRemaining} days until ${formatDate(endDate)}`;
+            } else if (daysRemaining === 0) {
+                document.getElementById('statDaysRemaining').textContent = 'Today!';
+                document.getElementById('statDateRange').textContent = 'Challenge ends today';
+            } else {
+                document.getElementById('statDaysRemaining').textContent = 'Ended';
+                document.getElementById('statDateRange').textContent = `Ended ${Math.abs(daysRemaining)} days ago`;
+            }
+        }
+
+        // Render trend chart (cumulative workouts over time)
+        function renderTrendChart(timeSeriesData) {
+            const canvas = document.getElementById('trendChart');
+            const ctx = canvas.getContext('2d');
+
+            // Destroy existing chart if it exists
+            if (trendChartInstance) {
+                trendChartInstance.destroy();
+            }
+
+            // Extract data
+            const labels = timeSeriesData.time_series.map(d => formatDate(d.date));
+            const cumulativeCounts = timeSeriesData.time_series.map(d => d.cumulative_count);
+            const goal = timeSeriesData.goal;
+
+            // Create goal line data (flat line at goal value)
+            const goalLine = new Array(labels.length).fill(goal);
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Cumulative Workouts',
+                            data: cumulativeCounts,
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.1,
+                            fill: true
+                        },
+                        {
+                            label: 'Goal',
+                            data: goalLine,
+                            borderColor: '#EF4444',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 15
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render team chart (workouts by team)
+        async function renderTeamChart(analytics) {
+            const canvas = document.getElementById('teamChart');
+            const ctx = canvas.getContext('2d');
+
+            // Destroy existing chart if it exists
+            if (teamChartInstance) {
+                teamChartInstance.destroy();
+            }
+
+            // Get team data
+            const teamTotals = analytics.team_totals || {};
+            const teamNames = Object.keys(teamTotals);
+            const teamWorkouts = Object.values(teamTotals);
+
+            // Get team colors from Challenge_Teams sheet
+            // For now, use default colors (you can enhance this later to fetch actual colors)
+            const teamColors = generateTeamColors(teamNames.length);
+
+            teamChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: teamNames,
+                    datasets: [{
+                        label: 'Workouts',
+                        data: teamWorkouts,
+                        backgroundColor: teamColors,
+                        borderColor: teamColors.map(c => c.replace('0.8', '1')),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.parsed.y} workouts`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Generate colors for teams
+        function generateTeamColors(count) {
+            const baseColors = [
+                'rgba(239, 68, 68, 0.8)',   // Red
+                'rgba(59, 130, 246, 0.8)',  // Blue
+                'rgba(34, 197, 94, 0.8)',   // Green
+                'rgba(251, 191, 36, 0.8)',  // Yellow
+                'rgba(168, 85, 247, 0.8)',  // Purple
+                'rgba(249, 115, 22, 0.8)',  // Orange
+                'rgba(236, 72, 153, 0.8)',  // Pink
+                'rgba(20, 184, 166, 0.8)'   // Teal
+            ];
+
+            return baseColors.slice(0, count);
+        }
+
+        // Sort table by column
+        function sortTable(columnIndex) {
+            const table = document.getElementById('challengeTable');
+            const tbody = document.getElementById('challengeTableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            // Determine sort direction
+            if (currentSortColumn === columnIndex) {
+                currentSortAscending = !currentSortAscending;
+            } else {
+                currentSortColumn = columnIndex;
+                currentSortAscending = true;
+            }
+
+            // Sort rows
+            rows.sort((a, b) => {
+                let aVal, bVal;
+
+                switch(columnIndex) {
+                    case 0: // Challenge Name
+                        aVal = a.cells[0].textContent.trim();
+                        bVal = b.cells[0].textContent.trim();
+                        break;
+                    case 1: // Status
+                        aVal = a.dataset.status;
+                        bVal = b.dataset.status;
+                        // Custom sort: active > upcoming > completed
+                        const statusOrder = { 'active': 1, 'upcoming': 2, 'completed': 3 };
+                        aVal = statusOrder[aVal] || 999;
+                        bVal = statusOrder[bVal] || 999;
+                        break;
+                    case 2: // Start Date
+                        aVal = new Date(a.dataset.startDate);
+                        bVal = new Date(b.dataset.startDate);
+                        break;
+                    case 3: // End Date
+                        aVal = new Date(a.dataset.endDate);
+                        bVal = new Date(b.dataset.endDate);
+                        break;
+                    case 4: // Goal
+                        aVal = parseInt(a.dataset.goal) || 0;
+                        bVal = parseInt(b.dataset.goal) || 0;
+                        break;
+                    case 5: // Participants
+                        aVal = parseInt(a.dataset.participants) || 0;
+                        bVal = parseInt(b.dataset.participants) || 0;
+                        break;
+                    case 6: // Total Workouts
+                        aVal = parseInt(a.dataset.totalWorkouts) || 0;
+                        bVal = parseInt(b.dataset.totalWorkouts) || 0;
+                        break;
+                    case 7: // Completion %
+                        aVal = parseInt(a.dataset.completionPct) || 0;
+                        bVal = parseInt(b.dataset.completionPct) || 0;
+                        break;
+                }
+
+                if (aVal < bVal) return currentSortAscending ? -1 : 1;
+                if (aVal > bVal) return currentSortAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Format date helper
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+
+            alertContainer.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

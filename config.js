@@ -1,10 +1,10 @@
 // API Configuration
 // Replace with your Google Apps Script Web App URL after deployment
-// Last updated: 2025-11-20 - New deployment with getUserInfo fix for profile editing
+// Last updated: 2025-11-21 - New deployment with email campaign bug fix and logging
 const CONFIG = {
   // IMPORTANT: After deploying Code.gs as a Web App, replace this URL
   // with your stable deployment URL: https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
-  API_URL: 'https://script.google.com/macros/s/AKfycbxJ-_hcBxOr6W-ABTCi8D6-GN5H4j3jS5sc_VcuKgMF3qgaErhABWS4Cf7PyzM2TE_9rg/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbyEJrGzeuMXQY_0uBdMK1lefhwuKj0mrCuccYz_NZhrXOjVmrzXfXRV9Fg_MD538uPHRA/exec',
 
   // Optional: Add API key for basic security
   // Set the same key in Google Apps Script Script Properties

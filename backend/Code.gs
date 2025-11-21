@@ -328,14 +328,24 @@ function doPost(e) {
         break;
 
       case 'sendEmailCampaign':
+        Logger.log('=== doPost: sendEmailCampaign action received ===');
+        Logger.log('requestData: ' + JSON.stringify(requestData));
+
         const campaignTemplateId = requestData.templateId;
         const campaignTargeting = requestData.targetingOptions;
         const trackingFlag = requestData.trackingFlag || null;
 
+        Logger.log('campaignTemplateId: ' + campaignTemplateId);
+        Logger.log('campaignTargeting: ' + JSON.stringify(campaignTargeting));
+        Logger.log('trackingFlag: ' + trackingFlag);
+
         if (!campaignTemplateId || !campaignTargeting) {
+          Logger.log('ERROR: Missing required parameters');
           result = { success: false, error: 'Missing required parameters: templateId, targetingOptions' };
         } else {
+          Logger.log('Calling sendEmailCampaign...');
           const campaignResult = sendEmailCampaign(campaignTemplateId, campaignTargeting, trackingFlag);
+          Logger.log('campaignResult: ' + JSON.stringify(campaignResult));
           result = { success: true, ...campaignResult };
         }
         break;

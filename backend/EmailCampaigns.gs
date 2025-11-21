@@ -268,7 +268,7 @@ function getTokenDataForUser(userId, challengeId = null) {
     tokenData.total_workouts = getUserChallengeWorkoutCount(userId, challenge.challenge_id);
 
     // Get user's team info for this challenge
-    const teamInfo = getUserTeamForChallenge(userId, challenge.challenge_id);
+    const teamInfo = getUserTeamForChallenge(ss, userId, challenge.challenge_id);
     if (teamInfo) {
       tokenData.team_name = teamInfo.team_name;
       tokenData.team_total_workouts = getTeamChallengeWorkoutCount(teamInfo.team_name, challenge.challenge_id);
@@ -589,9 +589,16 @@ function previewEmailForUser(templateId, userId, challengeId = null) {
  */
 function sendEmailCampaign(templateId, targetingOptions, trackingFlag = null) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  Logger.log('=== sendEmailCampaign called ===');
+  Logger.log('templateId: ' + templateId);
+  Logger.log('targetingOptions: ' + JSON.stringify(targetingOptions));
+  Logger.log('trackingFlag: ' + trackingFlag);
+
   const template = getTemplateById(templateId);
 
   if (!template) {
+    Logger.log('ERROR: Template not found');
     return {
       sent: 0,
       skipped: 0,
@@ -600,8 +607,12 @@ function sendEmailCampaign(templateId, targetingOptions, trackingFlag = null) {
     };
   }
 
+  Logger.log('Template found: ' + template.template_name);
+
   // Get targeted users
+  Logger.log('Getting targeted users...');
   const users = getTargetedUsers(targetingOptions);
+  Logger.log('Found ' + users.length + ' users');
 
   const results = {
     sent: 0,
@@ -610,11 +621,25 @@ function sendEmailCampaign(templateId, targetingOptions, trackingFlag = null) {
     details: []
   };
 
+  // Check if no users found
+  if (users.length === 0) {
+    Logger.log('WARNING: No users found for targeting criteria');
+    return {
+      sent: 0,
+      skipped: 0,
+      errors: 1,
+      details: [{error: 'No users found matching targeting criteria'}]
+    };
+  }
+
   // Get challenge ID from targeting options (if applicable)
   const challengeId = targetingOptions.mode === 'challenge' ? targetingOptions.challengeId : null;
+  Logger.log('challengeId for tokens: ' + challengeId);
 
   // Send to each user
+  Logger.log('Starting to send emails...');
   users.forEach(user => {
+    Logger.log('Processing user: ' + user.user_id);
     try {
       // Check tracking flag if provided
       if (trackingFlag) {

@@ -2,6 +2,67 @@
 
 ## Current Status (Latest Update - November 21, 2025)
 
+### 🐛 Bug Fix: Email Campaign System for Upcoming Challenges (November 21, 2025)
+
+**Fixed email campaign system to work with upcoming challenges and added comprehensive debugging**:
+
+#### The Bug
+- **Issue**: Email campaigns targeting upcoming challenges (e.g., dd_dec2025) were failing silently with "Campaign sent successfully! Sent: 0, Skipped: 0, Errors: 1" message
+- **Root Cause**: Missing `ss` (spreadsheet) parameter in `getUserTeamForChallenge()` function call
+  - Line 271 in `backend/EmailCampaigns.gs` called: `getUserTeamForChallenge(userId, challenge.challenge_id)`
+  - Function signature in `backend/Code.gs:1481` requires: `getUserTeamForChallenge(ss, userId, challengeId)`
+  - This caused the function to fail when trying to retrieve team data for token replacement
+  - All other helper functions (`getUserInfo()`, `getLifetimeWorkoutCount()`, `getActiveChallenge()`, `getSettings()`) were correctly passing `ss` parameter
+- **Secondary Issue**: Stale Google Apps Script deployment was serving old cached code even after updating source files
+
+#### The Fix
+- **EmailCampaigns.gs:271**: Added missing `ss` parameter:
+  ```javascript
+  // Before (broken):
+  const teamInfo = getUserTeamForChallenge(userId, challenge.challenge_id);
+
+  // After (fixed):
+  const teamInfo = getUserTeamForChallenge(ss, userId, challenge.challenge_id);
+  ```
+- **Added Comprehensive Logging**:
+  - `EmailCampaigns.gs` (lines 593-615, 625-642): Logs template ID, targeting options, user count, processing steps
+  - `Code.gs` (lines 331-350): Logs doPost sendEmailCampaign requests, parameters, and results
+  - Added check for zero users with specific error message
+- **Deployment**: Created new Apps Script deployment (Version 58+) to serve updated code
+- **Frontend**: Updated API URLs in `config.js` and `admin/admin-config.js` to new deployment
+- **Cache-Busting**: Updated all HTML files to version `20251121-3`
+
+#### Impact
+- ✅ Challenge-Based email targeting now works for ANY challenge status (active, upcoming, completed)
+- ✅ Team tokens (`[team_name]`, `[team_total_workouts]`) now populate correctly
+- ✅ Can send pre-launch welcome emails to upcoming challenges (e.g., dd_dec2025 before 11/24 start)
+- ✅ Future debugging made easier with detailed execution logs in Apps Script
+- ✅ System gracefully handles incomplete team data with fallback values
+
+#### Lessons Learned
+1. **Google Apps Script Deployment is Cached**: Editing `.gs` files in Script Editor doesn't automatically update the Web App
+   - Must create **new deployment** or **new version** of existing deployment
+   - Old deployments serve cached code indefinitely until explicitly updated
+   - Always create new version after backend changes to ensure updates take effect
+2. **Logging is Essential**: Without comprehensive logging, bugs in Google Apps Script are nearly impossible to debug
+   - "No logs available" means either wrong execution type (doGet vs doPost) or code not running
+   - Added logging at both API entry point (doPost) and function level (sendEmailCampaign)
+3. **Function Signature Consistency**: All helper functions that access spreadsheet must take `ss` as first parameter
+   - Previous bug (November 2025) with duplicate `getLifetimeWorkoutCount()` taught same lesson
+   - Always verify function signatures match between caller and definition
+4. **Check Execution Type**: Email campaigns run via **doPost**, not doGet
+   - Looking at doGet logs when debugging doPost operations wastes time
+   - Filter executions by Function type to find relevant logs
+
+#### Testing Checklist
+- [x] Send test email to upcoming challenge (test_01) - works
+- [ ] Send welcome email to dd_dec2025 cohort
+- [ ] Verify team tokens populate correctly in email body
+- [ ] Check doPost execution logs show detailed debugging info
+- [ ] Confirm zero-user targeting returns helpful error message
+
+---
+
 ### ✨ UX Improvement: Profile Reload Notification (November 21, 2025)
 
 **Added informational text to set expectations for page reload after profile save**:

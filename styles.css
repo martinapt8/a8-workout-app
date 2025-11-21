@@ -1308,6 +1308,15 @@ body {
     }
 }
 
+/* Edit Profile Info Text */
+.edit-profile-info {
+    font-size: 0.8125rem;
+    color: #6B7280;
+    text-align: center;
+    margin: 0.75rem 0 0 0;
+    line-height: 1.4;
+}
+
 /* ====== AI WORKOUT STYLES ====== */
 
 /* AI Generator Card */

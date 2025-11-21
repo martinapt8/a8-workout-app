@@ -2,6 +2,26 @@
 
 ## Current Status (Latest Update - November 21, 2025)
 
+### ✨ UX Improvement: Profile Reload Notification (November 21, 2025)
+
+**Added informational text to set expectations for page reload after profile save**:
+
+- **Issue**: Users found the hard page refresh jarring without warning after saving profile changes
+- **Solution**: Added explanatory text below Save/Cancel buttons
+  - Text: "When you save your profile the app will reload to ensure you see all your updates."
+  - Appears in Edit Profile form (always visible when form is expanded)
+  - Small, muted gray text (0.8125rem, #6B7280) for subtle informational styling
+- **Implementation**:
+  - **HTML** (`index.html:295`): Added `<p class="edit-profile-info">` below form-actions
+  - **CSS** (`styles.css:1311-1318`): Styled with centered text, gray color, 0.75rem top margin
+- **Impact**:
+  - ✅ Sets clear user expectations about page reload behavior
+  - ✅ Reduces jarring effect of sudden loading screen
+  - ✅ Maintains original design decision to do full page refresh (ensures all UI updates)
+  - ✅ Mobile-responsive and works across all screen sizes
+
+---
+
 ### 🐛 Bug Fix: Profile Editing Variable Reference Error (November 21, 2025)
 
 **Fixed critical JavaScript error preventing profile updates**:
